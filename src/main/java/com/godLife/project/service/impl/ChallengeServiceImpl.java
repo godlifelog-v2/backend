@@ -260,6 +260,14 @@ public class ChallengeServiceImpl implements ChallengeService {
             throw new IllegalArgumentException("인증 활동 시간이 최소 인증 시간(" + minVerifyTime + "분)보다 짧습니다.");
         }
 
+        // 최대 인증 시간 제한
+        int maxVerifyTime = challengeMapper.getMaxVerifyTime(challengeVerifyDTO.getChallIdx());
+        if (elapsedTime > maxVerifyTime) {
+            throw new IllegalArgumentException(
+                    "한 번에 인증 가능한 최대 시간(" + maxVerifyTime + "분)을 초과했습니다."
+            );
+        }
+
         // 7. 인증 기록 저장
         challengeMapper.insertVerify(
                 challengeVerifyDTO.getChallIdx(),

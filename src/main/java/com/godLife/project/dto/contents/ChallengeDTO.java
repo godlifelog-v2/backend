@@ -77,4 +77,7 @@ public class ChallengeDTO {
 
     @Schema(description = "챌린지 타입 (일반챌린지/이벤트 챌린지", example = "SPECIAL")
     private String challengeType;
+
+    @Schema(description = "챌린지 최대 인증시간", example = "30")
+    private int maxVerifyTime; // 분 단위
 }
