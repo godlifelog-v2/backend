@@ -34,7 +34,7 @@ public class ListController {
       List<MyPlanDTO> myPlanList = listService.getMyPlansList(userIdx);
 
       if (myPlanList == null) {
-        System.out.println("진행/대기중 루틴의 리스트 조회 중...서버 오류 발생!!!!!");
+        log.error("진행/대기중 루틴 리스트 조회 중 서버 오류 발생");
         throw new Exception("서버 내부 오류로 인해 루틴 리스트 조회에 실패했습니다.");
       }
       if (myPlanList.isEmpty()) {

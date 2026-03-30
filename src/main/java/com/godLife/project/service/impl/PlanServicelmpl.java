@@ -192,15 +192,15 @@ public class PlanServicelmpl implements PlanService {
     int customJobIdx = categoryService.getIdxOfCustomJob(); // '직접입력' => 19
 
     if (jobIdx != customJobIdx) { // '직접입력' 선택 안할 시 로직 건너뜀.
-      System.out.println("기타 직업 삽입 무시함.");
+      log.debug("기타 직업 삽입 무시 - jobIdx: {}", jobIdx);
       return;
     }
     jobEtcCateDTO.setPlanIdx(planIdx);
     if (planMapper.checkJobEtcByPlanIdx(planIdx)) {
-      System.out.println("기타 존재함.. 수정 로직 실행");
+      log.debug("기타 직업 존재 - 수정 로직 실행 planIdx: {}", planIdx);
       planMapper.modifyJobEtc(jobEtcCateDTO); // true => 기타 직업 존재,, 수정 로직 실행
     } else {
-      System.out.println("기타 직업 없음.. 추가 로직 실행");
+      log.debug("기타 직업 없음 - 추가 로직 실행 planIdx: {}", planIdx);
       planMapper.insertJobEtc(jobEtcCateDTO); // false => 기타 직업 없음,, 삽입 로직 실행
     }
   }

@@ -6,6 +6,7 @@ import com.godLife.project.service.interfaces.QnaService;
 import jakarta.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.listener.PatternTopic;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class RedisEventListener implements MessageListener {
@@ -73,7 +75,7 @@ public class RedisEventListener implements MessageListener {
   }
 
   public int getQnaIdx(String expiredKey) {
-    System.out.println("만료된 키 : " + expiredKey);
+    log.debug("Redis 키 만료 감지: {}", expiredKey);
 
     return Integer.parseInt(expiredKey.substring(expiredKey.lastIndexOf(":") + 1));
   }

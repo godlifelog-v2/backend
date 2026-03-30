@@ -10,10 +10,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 public class ReissueService {
   private final JWTUtil jwtUtil;
@@ -29,7 +31,7 @@ public class ReissueService {
     // 1. 쿠키에서 refresh 토큰 가져오기
     String refresh = getRefreshTokenFromCookies(request);
     if (refresh == null) {
-      System.out.println("재발급 토큰 없음");
+      log.warn("재발급 토큰 없음");
       response.addCookie(createCookie("refresh", null, 0, request));
       return ResponseEntity.status(HttpStatus.BAD_REQUEST)
           .body(createErrorResponse("Refresh token is missing", HttpStatus.BAD_REQUEST.value()));
@@ -39,7 +41,7 @@ public class ReissueService {
     try {
       jwtUtil.isExpired(refresh);
     } catch (ExpiredJwtException e) {
-      System.out.println("재발급 토큰 만료");
+      log.warn("재발급 토큰 만료");
       response.addCookie(createCookie("refresh", null, 0, request));
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
           .body(createErrorResponse("Refresh token is expired", HttpStatus.UNAUTHORIZED.value()));
@@ -47,7 +49,7 @@ public class ReissueService {
 
     // 3. refresh 토큰 검증
     if (!"refresh".equals(jwtUtil.getCategory(refresh))) {
-      System.out.println("재발급 토큰 변조");
+      log.warn("재발급 토큰 변조");
       response.addCookie(createCookie("refresh", null, 0, request));
       return ResponseEntity.status(HttpStatus.FORBIDDEN)
           .body(createErrorResponse("Invalid refresh token", HttpStatus.FORBIDDEN.value()));
@@ -56,7 +58,7 @@ public class ReissueService {
     //DB에 저장되어 있는지 확인
     Boolean isExist = refreshService.existsByRefresh(refresh);
     if (!isExist) {
-      System.out.println("재발급 토큰 DB에 없음");
+      log.warn("재발급 토큰 DB에 없음");
       response.addCookie(createCookie("refresh", null, 0, request));
       //response body
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

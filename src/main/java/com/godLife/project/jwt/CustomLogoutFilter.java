@@ -137,31 +137,29 @@ public class CustomLogoutFilter extends GenericFilterBean {
   }
 
   private void printRequestDetails(HttpServletRequest request) {
-    System.out.println("=== 📌 HTTP REQUEST 정보 ===");
-    System.out.println("📎 Method: " + request.getMethod());
-    System.out.println("📎 URI: " + request.getRequestURI());
-    System.out.println("📎 Query String: " + request.getQueryString());
-    System.out.println("📎 Protocol: " + request.getProtocol());
-    System.out.println("📎 RemoteAddr: " + request.getRemoteAddr());
-    System.out.println("📎 Secure: " + (request.isSecure() || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"))));
+    log.debug("=== HTTP REQUEST 정보 ===");
+    log.debug("Method: {}", request.getMethod());
+    log.debug("URI: {}", request.getRequestURI());
+    log.debug("Query String: {}", request.getQueryString());
+    log.debug("Protocol: {}", request.getProtocol());
+    log.debug("RemoteAddr: {}", request.getRemoteAddr());
+    log.debug("Secure: {}", request.isSecure() || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto")));
 
-    // 헤더 출력
-    System.out.println("=== 📋 Headers ===");
+    log.debug("=== Headers ===");
     Enumeration<String> headerNames = request.getHeaderNames();
     while (headerNames.hasMoreElements()) {
       String headerName = headerNames.nextElement();
-      System.out.println(headerName + ": " + request.getHeader(headerName));
+      log.debug("{}: {}", headerName, request.getHeader(headerName));
     }
 
-    // 쿠키 출력
-    System.out.println("=== 🍪 Cookies ===");
+    log.debug("=== Cookies ===");
     Cookie[] cookies = request.getCookies();
     if (cookies != null) {
       for (Cookie cookie : cookies) {
-        System.out.println(cookie.getName() + " = " + cookie.getValue());
+        log.debug("{} = {}", cookie.getName(), cookie.getValue());
       }
     } else {
-      System.out.println("쿠키 없음");
+      log.debug("쿠키 없음");
     }
   }
 

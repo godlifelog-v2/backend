@@ -719,7 +719,7 @@ public class QnaServiceImpl implements QnaService {
         }
          */
         case "SLEEP" : {
-          System.out.println("sleep 로직 동작함..!");
+          log.info("QnaService - SLEEP 로직 동작");
 
           List<String> notStatus = Collections.singletonList(QnaStatus.DELETED.getStatus());
           MatchedListMessageDTO matchedQnA = getMatchedSingleQna(adminIdx, qnaIdx, MessageStatus.UPDATE.getStatus(), notStatus, adminId);
