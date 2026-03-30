@@ -1,4 +1,4 @@
-package com.godLife.project.controller;
+package com.godLife.project.controller.v1;
 
 import com.godLife.project.dto.list.MyPlanDTO;
 import com.godLife.project.dto.list.PlanListDTO;

@@ -1,4 +1,4 @@
-package com.godLife.project.controller;
+package com.godLife.project.controller.v1;
 
 import com.godLife.project.dto.contents.FaQDTO;
 import com.godLife.project.dto.infos.SearchQueryDTO;

@@ -1,4 +1,4 @@
-package com.godLife.project.controller.AdminController;
+package com.godLife.project.controller.v1.admin;
 
 import com.godLife.project.dto.contents.ChallengeDTO;
 import com.godLife.project.dto.request.ChallengeSearchParamDTO;

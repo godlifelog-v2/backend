@@ -1,4 +1,4 @@
-package com.godLife.project.controller.AdminController;
+package com.godLife.project.controller.v1.admin;
 
 import com.godLife.project.dto.categories.JobEtcCateDTO;
 import com.godLife.project.dto.datas.ActivityDTO;

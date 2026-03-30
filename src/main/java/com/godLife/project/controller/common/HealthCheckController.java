@@ -1,4 +1,4 @@
-package com.godLife.project.controller;
+package com.godLife.project.controller.common;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;

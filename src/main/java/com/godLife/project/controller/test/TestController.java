@@ -1,4 +1,4 @@
-package com.godLife.project.controller;
+package com.godLife.project.controller.test;
 
 
 import com.godLife.project.dto.test.GetPlanIdxDTO;

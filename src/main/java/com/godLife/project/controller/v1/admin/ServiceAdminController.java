@@ -1,4 +1,4 @@
-package com.godLife.project.controller.AdminController.serviceCenter;
+package com.godLife.project.controller.v1.admin;
 
 import com.godLife.project.dto.serviceAdmin.ServiceCenterAdminInfos;
 import com.godLife.project.dto.serviceAdmin.ServiceCenterAdminList;

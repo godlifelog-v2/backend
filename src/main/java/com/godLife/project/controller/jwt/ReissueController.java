@@ -1,4 +1,4 @@
-package com.godLife.project.controller.jwtController;
+package com.godLife.project.controller.jwt;
 
 
 import com.godLife.project.service.impl.jwtImpl.ReissueService;
