@@ -1,4 +1,4 @@
-package com.godLife.project.controller;
+package com.godLife.project.controller.test;
 
 
 import com.godLife.project.dto.test.GetPlanIdxDTO;
@@ -16,7 +16,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/test")
+@RequestMapping("/api/v1/test")
 public class TestController {
 
   private final TestService testService;

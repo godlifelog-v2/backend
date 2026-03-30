@@ -1,4 +1,4 @@
-package com.godLife.project.controller;
+package com.godLife.project.controller.v1;
 
 
 import com.godLife.project.dto.infos.PlanReportDTO;
@@ -16,7 +16,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/report")
+@RequestMapping("/api/v1/report")
 public class ReportController {
 
   @Autowired

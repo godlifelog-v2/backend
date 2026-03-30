@@ -1,4 +1,4 @@
-package com.godLife.project.controller;
+package com.godLife.project.controller.v1;
 
 
 import com.godLife.project.dto.contents.QnaDTO;
@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/qna/auth")
+@RequestMapping("/api/v1/qna/auth")
 @RequiredArgsConstructor
 public class QnaController {
 

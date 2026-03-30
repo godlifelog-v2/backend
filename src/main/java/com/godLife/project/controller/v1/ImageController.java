@@ -1,4 +1,4 @@
-package com.godLife.project.controller;
+package com.godLife.project.controller.v1;
 
 import com.godLife.project.exception.CustomException;
 import com.godLife.project.handler.GlobalExceptionHandler;
@@ -20,7 +20,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/api/upload/auth")
+@RequestMapping("/api/v1/upload/auth")
 public class ImageController {
 
   // qna 이미지 경로

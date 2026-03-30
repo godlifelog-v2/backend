@@ -1,4 +1,4 @@
-package com.godLife.project.controller;
+package com.godLife.project.controller.v1;
 
 import com.godLife.project.dto.request.GetEmailRequestDTO;
 import com.godLife.project.dto.request.VerifyRequestDTO;
@@ -17,7 +17,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/verify")
+@RequestMapping("/api/v1/verify")
 public class VerifyController {
 
   @Autowired

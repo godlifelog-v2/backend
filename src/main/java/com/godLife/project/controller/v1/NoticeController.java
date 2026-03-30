@@ -1,4 +1,4 @@
-package com.godLife.project.controller;
+package com.godLife.project.controller.v1;
 
 import com.godLife.project.dto.contents.NoticeDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
@@ -20,7 +20,7 @@ import java.util.NoSuchElementException;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/notice")
+@RequestMapping("/api/v1/notice")
 @RequiredArgsConstructor
 public class NoticeController {
   @Autowired
@@ -69,12 +69,12 @@ public class NoticeController {
 
     } catch (NoSuchElementException e) {
       String msg = "공지 조회 실패, 조회하려는 공지가 존재하지 않습니다.";
-      System.out.println(e);
+      log.warn("공지 조회 실패 - noticeIdx: {}, error: {}", noticeIdx, e.getMessage());
       return ResponseEntity.status(handler.getHttpStatus(404)).body(handler.createResponse(404, msg));
 
     } catch (Exception e) {
       String msg = "서버 내부 오류로 인해 공지 조회에 실패했습니다.";
-      System.out.println(e);
+      log.error("공지 조회 중 서버 오류 - noticeIdx: {}", noticeIdx, e);
       return ResponseEntity.status(handler.getHttpStatus(500)).body(handler.createResponse(500, msg));
     }
   }
