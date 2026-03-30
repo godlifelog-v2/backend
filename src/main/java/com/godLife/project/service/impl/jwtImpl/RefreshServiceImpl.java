@@ -6,11 +6,13 @@ import com.godLife.project.mapper.jwtMapper.RefreshMapper;
 import com.godLife.project.service.impl.redis.RedisService;
 import com.godLife.project.service.interfaces.jwtInterface.RefreshService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -53,10 +55,10 @@ public class RefreshServiceImpl implements RefreshService {
   public void deleteAdminStatusByRedis(String userId) {
     int userIdx = verifyMapper.getUserIdxByUserId(userId);
 
-    System.out.println("deleteAdminStatusByRedis 동작.. userIdx : " + userId);
+    log.info("deleteAdminStatusByRedis 동작.. userIdx : {}", userId);
     String isSaved = redisService.getStringData(SAVE_SERVICE_ADMIN_STATUS + userIdx);
     if (isSaved != null) {
-      System.out.println("데이터 삭제");
+      log.info("관리자 상태 데이터 삭제 - userIdx : {}", userIdx);
       redisService.deleteData(SAVE_SERVICE_ADMIN_STATUS + userIdx);
     }
     redisService.saveStringData(IS_LOGOUT_ADMIN + userIdx, "true", 's', 10);
