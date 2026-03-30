@@ -1,4 +1,4 @@
-package com.godLife.project.controller;
+package com.godLife.project.controller.v1;
 
 import com.godLife.project.dto.contents.FaQDTO;
 import com.godLife.project.dto.infos.SearchQueryDTO;
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/faq")
+@RequestMapping("/api/v1/faq")
 public class FaqController {
   private final FaqService faqService;
   @Autowired

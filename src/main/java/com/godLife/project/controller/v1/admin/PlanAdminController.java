@@ -1,4 +1,4 @@
-package com.godLife.project.controller.AdminController;
+package com.godLife.project.controller.v1.admin;
 
 import com.godLife.project.dto.categories.JobEtcCateDTO;
 import com.godLife.project.dto.datas.ActivityDTO;
@@ -25,7 +25,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/plans")
+@RequestMapping("/api/v1/admin/plans")
 public class PlanAdminController {
   private final PlanAdminService planAdminService;
 

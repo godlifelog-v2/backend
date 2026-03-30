@@ -1,4 +1,4 @@
-package com.godLife.project.controller;
+package com.godLife.project.controller.common;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +20,7 @@ public class HealthCheckController {
   @Value("${serverName}")
   private String serverName;
 
-  @GetMapping("/api/hc")
+  @GetMapping("/api/v1/hc")
   public ResponseEntity<?> healthCheck() {
     Map<String, String> responseData = new TreeMap<>();
     responseData.put("serverName", serverName);
@@ -31,7 +31,7 @@ public class HealthCheckController {
     return ResponseEntity.ok(responseData);
   }
 
-  @GetMapping("/api/env")
+  @GetMapping("/api/v1/env")
   public ResponseEntity<?> getEnv() {
     return ResponseEntity.ok(env);
   }

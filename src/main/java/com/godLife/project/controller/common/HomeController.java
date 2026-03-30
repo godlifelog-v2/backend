@@ -1,4 +1,4 @@
-package com.godLife.project.controller;
+package com.godLife.project.controller.common;
 
 import com.godLife.project.service.interfaces.TestService;
 import org.springframework.stereotype.Controller;

@@ -1,4 +1,4 @@
-package com.godLife.project.controller.AdminController;
+package com.godLife.project.controller.v1.admin;
 
 import com.godLife.project.dto.categories.FaqCateDTO;
 import com.godLife.project.dto.categories.QnaCateDTO;
@@ -23,7 +23,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/admin/compSystem")
+@RequestMapping("/api/v1/admin/compSystem")
 @RequiredArgsConstructor
 public class CompSystemController {
 

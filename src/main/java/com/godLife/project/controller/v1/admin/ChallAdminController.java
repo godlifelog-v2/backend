@@ -1,4 +1,4 @@
-package com.godLife.project.controller.AdminController;
+package com.godLife.project.controller.v1.admin;
 
 import com.godLife.project.dto.contents.ChallengeDTO;
 import com.godLife.project.dto.request.ChallengeSearchParamDTO;
@@ -16,7 +16,7 @@ import java.util.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/admin/challenges")
+@RequestMapping("/api/v1/admin/challenges")
 public class ChallAdminController {
   @Autowired
   private GlobalExceptionHandler handler;
