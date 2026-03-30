@@ -114,13 +114,13 @@ jobs:
             
             echo ""
             echo "=== Health check ==="
-            curl -s -k https://localhost/api/hc || echo "Health check failed"
+            curl -s -k https://localhost/api/v1/hc || echo "Health check failed"
             
             echo ""
             echo "=== Direct container health check ==="
             ACTIVE_CONTAINER=$(cat ./nginx/conf.d/service-env.inc | grep -oP '(?<=set \$service_url )\w+' | cut -d: -f1)
             echo "Active container: $ACTIVE_CONTAINER"
-            docker exec $ACTIVE_CONTAINER wget -qO- http://localhost:9090/api/hc || echo "Direct check failed"
+            docker exec $ACTIVE_CONTAINER wget -qO- http://localhost:9090/api/v1/hc || echo "Direct check failed"
 
       - name: Cleanup old Docker images
         uses: appleboy/ssh-action@master
