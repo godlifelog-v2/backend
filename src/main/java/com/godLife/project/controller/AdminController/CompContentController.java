@@ -16,7 +16,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/compContent")
+@RequestMapping("/api/v1/admin/compContent")
 public class CompContentController {
   private final GlobalExceptionHandler handler;
   private final CompContentService compContentService;

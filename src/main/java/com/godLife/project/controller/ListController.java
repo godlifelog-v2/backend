@@ -17,7 +17,7 @@ import java.util.NoSuchElementException;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/list")
+@RequestMapping("/api/v1/list")
 public class ListController {
 
   @Autowired

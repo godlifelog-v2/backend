@@ -23,7 +23,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/admin/compSystem")
+@RequestMapping("/api/v1/admin/compSystem")
 @RequiredArgsConstructor
 public class CompSystemController {
 

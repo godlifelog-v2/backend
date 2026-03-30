@@ -16,7 +16,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/admin/report")
+@RequestMapping("/api/v1/admin/report")
 public class ReportAdminController {
   @Autowired
   private GlobalExceptionHandler handler;

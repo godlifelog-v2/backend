@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/qna/auth")
+@RequestMapping("/api/v1/qna/auth")
 @RequiredArgsConstructor
 public class QnaController {
 

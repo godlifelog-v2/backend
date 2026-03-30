@@ -25,7 +25,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/plans")
+@RequestMapping("/api/v1/admin/plans")
 public class PlanAdminController {
   private final PlanAdminService planAdminService;
 

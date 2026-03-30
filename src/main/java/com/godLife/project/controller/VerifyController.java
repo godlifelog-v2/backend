@@ -17,7 +17,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/verify")
+@RequestMapping("/api/v1/verify")
 public class VerifyController {
 
   @Autowired

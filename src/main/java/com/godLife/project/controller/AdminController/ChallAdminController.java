@@ -16,7 +16,7 @@ import java.util.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/admin/challenges")
+@RequestMapping("/api/v1/admin/challenges")
 public class ChallAdminController {
   @Autowired
   private GlobalExceptionHandler handler;

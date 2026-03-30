@@ -18,7 +18,7 @@ import java.util.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/challenges")
+@RequestMapping("/api/v1/challenges")
 public class ChallengeController {
 
   @Autowired

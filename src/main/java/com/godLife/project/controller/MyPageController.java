@@ -24,7 +24,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/myPage/auth")
+@RequestMapping("/api/v1/myPage/auth")
 @RequiredArgsConstructor
 public class MyPageController {
 

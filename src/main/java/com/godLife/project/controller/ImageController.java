@@ -20,7 +20,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/api/upload/auth")
+@RequestMapping("/api/v1/upload/auth")
 public class ImageController {
 
   // qna 이미지 경로

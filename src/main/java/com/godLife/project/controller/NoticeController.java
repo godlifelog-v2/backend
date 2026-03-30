@@ -20,7 +20,7 @@ import java.util.NoSuchElementException;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/notice")
+@RequestMapping("/api/v1/notice")
 @RequiredArgsConstructor
 public class NoticeController {
   @Autowired

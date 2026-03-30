@@ -22,7 +22,7 @@ import java.util.NoSuchElementException;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/api/plan")
+@RequestMapping("/api/v1/plan")
 public class PlanController {
 
   private final GlobalExceptionHandler handler;

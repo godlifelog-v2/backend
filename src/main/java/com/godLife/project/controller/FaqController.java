@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/faq")
+@RequestMapping("/api/v1/faq")
 public class FaqController {
   private final FaqService faqService;
   @Autowired
