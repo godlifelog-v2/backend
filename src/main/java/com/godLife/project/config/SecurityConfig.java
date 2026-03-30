@@ -108,8 +108,8 @@ public class SecurityConfig {
     // 지정한 엔드포인트는 해당 권한 등급이 없으면 로그인을 해도 접근 못함 (관리자)
         // ===== 관리자 권한 세분화 =====
 
-        // FAQ 카테고리 관리 (3=매니저, 4=고객서비스, 6=중간관리자, 7=책임관리자)
-            .requestMatchers("/api/v1/categories/admin/**").hasAnyAuthority("3", "4", "6", "7")
+        // FAQ 카테고리 관리 (5=DB관리자, 6=중간관리자, 7=책임관리자)
+            .requestMatchers("/api/v1/categories/admin/**").hasAnyAuthority("5", "6", "7")
 
         // 챌린지 관리 (3=매니저, 6=중간관리자, 7=책임관리자)
         .requestMatchers("/api/v1/challenges/admin/**").hasAnyAuthority("3", "6", "7")
