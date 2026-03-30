@@ -430,7 +430,7 @@ public class MyPageController {
   private String getRefreshTokenFromCookies(HttpServletRequest request) {
     Cookie[] cookies = request.getCookies();
     if (cookies == null)  {
-      System.out.println("쿠키 없음");
+      log.warn("MyPageController - 쿠키 없음");
       return null;
     }
 

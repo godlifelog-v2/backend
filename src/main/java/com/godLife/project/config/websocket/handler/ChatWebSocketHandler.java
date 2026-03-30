@@ -32,7 +32,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     log.info("[+] handleTextMessage :: {}", message.getPayload());
 
     clientSession.forEach((key, value) -> {
-      System.out.println("key :: " + key + "  value :: " + value);
+      log.debug("ChatWebSocketHandler - session key: {}, value: {}", key, value);
       if (!key.equals(session.getId())) {  //같은 아이디가 아니면 메시지를 전달합니다.
         try {
           value.sendMessage(message);

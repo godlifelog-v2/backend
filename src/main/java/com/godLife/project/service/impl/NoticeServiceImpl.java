@@ -52,7 +52,7 @@ public class NoticeServiceImpl implements NoticeService {
       String safeContent = HtmlSanitizer.sanitize(noticeDTO.getNoticeSub());
       noticeDTO.setNoticeSub(safeContent);
 
-      System.out.println(noticeDTO);
+      log.debug("createNotice - noticeDTO: {}", noticeDTO);
 
       // 저장
       int result = noticeMapper.createNotice(noticeDTO);

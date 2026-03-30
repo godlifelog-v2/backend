@@ -96,7 +96,7 @@ public class PlanController {
       boolean isFirstView = !viewedPlansMap.containsKey(planIdx) || currentTime - viewedPlansMap.get(planIdx) > 60 * 60 * 1000;
 
       if (isFirstView) {
-        System.out.println("쿠키 없음 조회수 증가!!!");
+        log.debug("쿠키 없음 - 조회수 증가 처리 planIdx: {}", planIdx);
         // 조회수 증가
         planService.increaseView(planIdx);
 
@@ -112,7 +112,7 @@ public class PlanController {
         // 마지막에 추가된 값으로 쿠키 설정
         response.addCookie(createCookie("viewed_plans", updatedViewedPlans.toString(), 60 * 60, request));
       } else {
-        System.out.println("쿠키 있음 조회수 그대로");
+        log.debug("쿠키 있음 - 조회수 유지 planIdx: {}", planIdx);
       }
 
       // 삭제 여부 설정   0: 삭제 X 1: 삭제 O

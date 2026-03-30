@@ -44,11 +44,11 @@ public class ReportServiceImpl implements ReportService {
       if (e.getCause() instanceof java.sql.SQLIntegrityConstraintViolationException sqlEx) {
         String errorMessage = sqlEx.getMessage();
         if (errorMessage.contains(NOT_NULL_VIOLATION)) {
-          System.out.println("not null 조건 위반!");
+          log.warn("루틴 신고 - not null 조건 위반");
           return 422;
         }
         if (errorMessage.contains(FOREIGN_KEY_VIOLATION)) {
-          System.out.println("foreign key 조건 위반!");
+          log.warn("루틴 신고 - foreign key 조건 위반");
           return 404;
         }
       }
@@ -91,15 +91,15 @@ public class ReportServiceImpl implements ReportService {
       if (e.getCause() instanceof java.sql.SQLIntegrityConstraintViolationException sqlEx) {
         String errorMessage = sqlEx.getMessage();
         if (errorMessage.contains(CHECK_CONSTRAINT_VIOLATION)) {
-          System.out.println("체크 제약 조건 위반!");
+          log.warn("유저 신고 - 체크 제약 조건 위반");
           return 400;
         }
         if (errorMessage.contains(NOT_NULL_VIOLATION)) {
-          System.out.println("not null 조건 위반!");
+          log.warn("유저 신고 - not null 조건 위반");
           return 422;
         }
         if (errorMessage.contains(FOREIGN_KEY_VIOLATION)) {
-          System.out.println("foreign key 조건 위반!");
+          log.warn("유저 신고 - foreign key 조건 위반");
           return 404;
         }
       }
