@@ -1,4 +1,4 @@
-package com.godLife.project.controller;
+package com.godLife.project.controller.v1;
 
 import com.godLife.project.dto.contents.ChallengeDTO;
 import com.godLife.project.dto.request.ChallengeJoinRequest;
@@ -18,7 +18,7 @@ import java.util.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/challenges")
+@RequestMapping("/api/v1/challenges")
 public class ChallengeController {
 
   @Autowired

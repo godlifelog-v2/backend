@@ -1,4 +1,4 @@
-package com.godLife.project.controller.jwtController;
+package com.godLife.project.controller.jwt;
 
 
 import com.godLife.project.service.impl.jwtImpl.ReissueService;
@@ -17,7 +17,7 @@ public class ReissueController {
     this.reissueService = reissueService;
   }
 
-  @PostMapping("/api/reissue")
+  @PostMapping("/api/v1/reissue")
   public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
     return reissueService.reissueToken(request, response);
   }

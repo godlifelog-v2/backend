@@ -1,4 +1,4 @@
-package com.godLife.project.controller;
+package com.godLife.project.controller.v1;
 
 import com.godLife.project.dto.infos.SearchLogDTO;
 import com.godLife.project.dto.response.SearchLogsResponseDTO;
@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/search")
+@RequestMapping("/api/v1/search")
 public class SearchController {
 
   @Autowired

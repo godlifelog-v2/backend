@@ -275,7 +275,7 @@ public class QnaAdminController {
   // 에러 메시지 처리
   @MessageExceptionHandler(WebSocketBusinessException.class)
   public void handleBusinessException(WebSocketBusinessException e) {
-    System.out.println("동작함");
+    log.info("handleBusinessException 동작 - error: {}, code: {}", e.getMessage(), e.getCode());
     messageService.sendToUser(e.getUsername(), "/queue/admin/errors", new CustomWsErrorDTO(e.getMessage(), e.getCode()));
   }
 

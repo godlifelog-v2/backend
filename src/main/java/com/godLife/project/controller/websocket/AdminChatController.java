@@ -29,7 +29,7 @@ public class AdminChatController {
 
 
   // 채팅방 개설
-  @PostMapping("/api/admin/chat")
+  @PostMapping("/api/v1/admin/chat")
   public ResponseEntity<Map<String, Object>> createChatRoom(@RequestHeader("Authorization") String authHeader,
                                                             @RequestBody ChatCreateDTO chatCreateDTO) {
 

@@ -1,4 +1,4 @@
-package com.godLife.project.controller;
+package com.godLife.project.controller.v1;
 
 import com.godLife.project.dto.list.PlanListDTO;
 import com.godLife.project.dto.request.myPage.*;
@@ -24,7 +24,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/myPage/auth")
+@RequestMapping("/api/v1/myPage/auth")
 @RequiredArgsConstructor
 public class MyPageController {
 
@@ -430,7 +430,7 @@ public class MyPageController {
   private String getRefreshTokenFromCookies(HttpServletRequest request) {
     Cookie[] cookies = request.getCookies();
     if (cookies == null)  {
-      System.out.println("쿠키 없음");
+      log.warn("MyPageController - 쿠키 없음");
       return null;
     }
 
