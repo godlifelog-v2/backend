@@ -84,10 +84,14 @@ public class PlanController {
       Map<Integer, Long> viewedPlansMap = new HashMap<>();
       if (viewedPlans != null && !viewedPlans.isEmpty()) {
         String[] viewedPlansArray = viewedPlans.split("_");
-        for (int i = 0; i < viewedPlansArray.length; i += 2) {
-          int planId = Integer.parseInt(viewedPlansArray[i]);
-          long timestamp = Long.parseLong(viewedPlansArray[i + 1]);
-          viewedPlansMap.put(planId, timestamp);
+        for (int i = 0; i + 1 < viewedPlansArray.length; i += 2) {
+          try {
+            int planId = Integer.parseInt(viewedPlansArray[i]);
+            long timestamp = Long.parseLong(viewedPlansArray[i + 1]);
+            viewedPlansMap.put(planId, timestamp);
+          } catch (NumberFormatException e) {
+            log.warn("쿠키 파싱 실패 - index {}: {}_{}", i, viewedPlansArray[i], viewedPlansArray[i + 1]);
+          }
         }
       }
 
@@ -223,18 +227,12 @@ public class PlanController {
     // 응답 메세지 세팅
     String msg = "";
     switch (result) {
-      case 200 -> msg = "루틴을 활성화 합니다.";
+      case 200 -> msg = isActive == 1 ? "루틴을 활성화 합니다." : "루틴을 비활성화 합니다.";
       case 403 -> msg = "작성자가 아닙니다. 재로그인 해주세요.";
       case 404 -> msg = "요청하신 루틴이 존재하지 않습니다.";
       case 410 -> msg = "회원 탈퇴한 계정입니다.";
       case 500 -> msg = "서버 내부적으로 오류가 발생하여 요청을 수행하지 못했습니다.";
       default -> msg = "알 수 없는 오류가 발생했습니다.";
-    }
-    if (result == 200 && isActive == 0) {
-      msg = "루틴을 비활성화 합니다.";
-      // 응답 메시지 설정
-      return ResponseEntity.status(handler.getHttpStatus(result))
-          .body(handler.createResponse(result, msg));
     }
 
     // 응답 메시지 설정
@@ -274,32 +272,17 @@ public class PlanController {
   public ResponseEntity<Map<String, Object>> checkLike(@RequestHeader(value = "Authorization", required = false) String authHeader,
                                                        @PathVariable int planIdx) {
 
-    // 토큰 만료 여부
-    Boolean isExpired = false;
+    int userIdx = 0; // 기본값: 비로그인
 
-    // userIdx 조회
-    if (authHeader != null) {
-      // 토큰 만료 검증
-      isExpired = handler.validToken(authHeader);
-
+    // 토큰이 존재하고 만료되지 않은 경우에만 userIdx 추출
+    if (authHeader != null && !handler.validToken(authHeader)) {
+      userIdx = handler.getUserIdxFromToken(authHeader);
     }
 
-    if (!isExpired) {
-      assert authHeader != null;
-      int userIdx = handler.getUserIdxFromToken(authHeader);
-
-      boolean result = planService.checkLike(planIdx, userIdx);
-
-      return ResponseEntity.status(handler.getHttpStatus(200))
-          .body(handler.createResponse(200, result));
-    }
-
-    int userIdx = 0;
     boolean result = planService.checkLike(planIdx, userIdx);
 
     return ResponseEntity.status(handler.getHttpStatus(200))
         .body(handler.createResponse(200, result));
-
   }
 
   // 루틴 추천 취소

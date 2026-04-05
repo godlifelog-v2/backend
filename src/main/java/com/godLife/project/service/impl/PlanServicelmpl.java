@@ -27,6 +27,11 @@ public class PlanServicelmpl implements PlanService {
 
   private final GlobalExceptionHandler handler;
 
+  private boolean isUserDeleted(int userIdx) {
+    String deleted = planMapper.getUserIsDeleted(userIdx);
+    return deleted == null || !deleted.contains("N");
+  }
+
 
   // 루틴 작성 로직
   @Override
@@ -42,7 +47,7 @@ public class PlanServicelmpl implements PlanService {
         return 412;
       }
       //System.out.println(planDTO);
-      if (!planMapper.getUserIsDeleted(userIdx).contains("N")) { return 410; }
+      if (isUserDeleted(userIdx)) { return 410; }
       // 루틴 삽입하기
       planMapper.insertPlan(planDTO);
 
@@ -101,12 +106,12 @@ public class PlanServicelmpl implements PlanService {
         }
 
         if (isPrivate && planDTO.getIsWriter() == 0) { // 비공개 루틴인데, 작성자가 아닐경우
-          return new PlanDTO(); // 빈 데이터 반환
+          return null;
         }
       }
 
       if (!existAuth && isPrivate) { // 비공개 루틴인데, 토큰도 없을 경우
-        return new PlanDTO(); // 빈 데이터 반환
+        return null;
       }
 
       // 활동 조회
@@ -145,7 +150,7 @@ public class PlanServicelmpl implements PlanService {
       return 403; // Forbidden
     }
     // 탈퇴한 유저 수정 불가
-    if (!planMapper.getUserIsDeleted(userIdx).contains("N")) { return 410; }
+    if (isUserDeleted(userIdx)) { return 410; }
 
     //  신고 처리된 루틴은 공개 설정 불가
     if (planDTO.getIsShared() == 1 && planMapper.existsHandledReport(planIdx)) {
@@ -218,7 +223,7 @@ public class PlanServicelmpl implements PlanService {
         return 403; // another
       }
       // 탈퇴한 유저 삭제 불가
-      if (!planMapper.getUserIsDeleted(userIdx).contains("N")) { return 410; }
+      if (isUserDeleted(userIdx)) { return 410; }
 
       planMapper.deletePlan(planIdx, userIdx);
       Integer forkIdx = planMapper.getForkIdxByPlanIdx(planIdx);
@@ -245,7 +250,7 @@ public class PlanServicelmpl implements PlanService {
         return 403; // another
       }
       // 탈퇴한 유저 수정 불가
-      if (!planMapper.getUserIsDeleted(userIdx).contains("N")) { return 410; }
+      if (isUserDeleted(userIdx)) { return 410; }
 
       planMapper.goStopPlan(planIdx, userIdx, isActive);
       return 200; // ok
@@ -268,7 +273,7 @@ public class PlanServicelmpl implements PlanService {
         return 409; // exist
       }
       // 탈퇴한 유저 수정 불가
-      if (!planMapper.getUserIsDeleted(userIdx).contains("N")) { return 410; }
+      if (isUserDeleted(userIdx)) { return 410; }
       planMapper.likePlan(planIdx, userIdx);
       planMapper.modifyLikeCount(planIdx);
       return 200; // ok
@@ -297,7 +302,7 @@ public class PlanServicelmpl implements PlanService {
         return 404; // not found
       }
       // 탈퇴한 유저 수정 불가
-      if (!planMapper.getUserIsDeleted(userIdx).contains("N")) { return 410; }
+      if (isUserDeleted(userIdx)) { return 410; }
 
       planMapper.unLikePlan(planIdx, userIdx);
       planMapper.modifyLikeCount(planIdx);
@@ -333,7 +338,7 @@ public class PlanServicelmpl implements PlanService {
         return 409; // conflict
       }
       // 탈퇴한 유저 수정 불가
-      if (!planMapper.getUserIsDeleted(userIdx).contains("N")) { return 410; }
+      if (isUserDeleted(userIdx)) { return 410; }
 
       planMapper.updateEarlyComplete(planIdx, userIdx);
       return 200; // ok
@@ -357,7 +362,7 @@ public class PlanServicelmpl implements PlanService {
       if (planMapper.getUserIdxByPlanIdx(planIdx) != userIdx) { return 403; } // another
       if (planMapper.getReviewExist(planIdx) != null) { return 409; } // conflict
       // 탈퇴한 유저 수정 불가
-      if (!planMapper.getUserIsDeleted(userIdx).contains("N")) { return 410; }
+      if (isUserDeleted(userIdx)) { return 410; }
 
       planMapper.addReview(planRequestDTO);
       return 200;
@@ -381,7 +386,7 @@ public class PlanServicelmpl implements PlanService {
       if ((!planMapper.checkCompleteByPlanIdx(planIdx, isCompleted, isDeleted)) || (planMapper.getReviewExist(planIdx) == null)) { return 412; } // preCondition
       if (planMapper.getUserIdxByPlanIdx(planIdx) != userIdx) { return 403; } // another
       // 탈퇴한 유저 수정 불가
-      if (!planMapper.getUserIsDeleted(userIdx).contains("N")) { return 410; }
+      if (isUserDeleted(userIdx)) { return 410; }
 
       planMapper.modifyReview(planRequestDTO);
       return 200;
