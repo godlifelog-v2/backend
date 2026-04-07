@@ -6,6 +6,7 @@ import com.godLife.project.dto.request.ChallengeSearchParamDTO;
 import com.godLife.project.dto.verify.VerifyRecordDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -59,6 +60,11 @@ public interface ChallengeMapper {
                                @Param("today") LocalDate today);
     // 최소 인증 시간 조회 (분 단위)
     int getParticipationTime(@Param("challIdx") Long challIdx);
+
+    // 최대 인증 시간 제한 (분 단위)
+    @Select("SELECT max_verify_time FROM chall_table WHERE chall_idx = #{challIdx}")
+    int getMaxVerifyTime(Long challIdx);
+
     // 남은 클리어시간 차감
     void updateClearTime(@Param("challIdx") Long challIdx, @Param("elapsedTime") int elapsedTime);
     // 클리어 시간 0 이하 시 챌린지 종료
