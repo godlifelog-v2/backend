@@ -1,6 +1,6 @@
 package com.godLife.project.exception;
 
-import com.godLife.project.dto.contents.FaQDTO;
+import com.godLife.project.dto.model.content.FaQDTO;
 
 import java.util.List;
 

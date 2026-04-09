@@ -1,10 +1,10 @@
 package com.godLife.project.controller.v1;
 
-import com.godLife.project.dto.contents.ChallengeDTO;
-import com.godLife.project.dto.request.ChallengeJoinRequest;
-import com.godLife.project.dto.request.ChallengeSearchParamDTO;
-import com.godLife.project.dto.verify.ChallengeVerifyDTO;
-import com.godLife.project.dto.verify.VerifyRecordDTO;
+import com.godLife.project.dto.model.content.ChallengeDTO;
+import com.godLife.project.dto.request.challenge.ChallengeJoinRequest;
+import com.godLife.project.dto.query.challenge.ChallengeSearchParamDTO;
+import com.godLife.project.dto.request.challenge.ChallengeVerifyDTO;
+import com.godLife.project.dto.internal.verify.VerifyRecordDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.service.interfaces.ChallengeService;
 import lombok.extern.slf4j.Slf4j;

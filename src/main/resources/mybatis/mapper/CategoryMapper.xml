@@ -5,7 +5,7 @@
 <mapper namespace="com.godLife.project.mapper.CategoryMapper">
 
   <!-- 직업 카테고리 조회 -->
-  <select id="getAllJOBCategories" resultType="com.godLife.project.dto.categories.JobCateDTO">
+  <select id="getAllJOBCategories" resultType="JobCateDTO">
     SELECT
     JC.JOB_IDX AS IDX,
     JC.JOB_NAME AS NAME,
@@ -27,7 +27,7 @@
   </select>
 
   <!-- 관심사 카테고리 조회 -->
-  <select id="getAllTargetCategories" resultType="com.godLife.project.dto.categories.TargetCateDTO">
+  <select id="getAllTargetCategories" resultType="TargetCateDTO">
     SELECT
     TC.TARGET_IDX AS IDX,
     TC.TARGET_NAME AS NAME,
@@ -41,7 +41,7 @@
   </select>
 
   <!-- 챌린지 카테고리 조회 -->
-  <select id="getAllChallCategories" resultType="com.godLife.project.dto.categories.ChallengeCateDTO">
+  <select id="getAllChallCategories" resultType="ChallengeCateDTO">
     SELECT
     j.CHALL_CATEGORY_IDX AS challCateIdx,
     j.CHALL_NAME AS challName,

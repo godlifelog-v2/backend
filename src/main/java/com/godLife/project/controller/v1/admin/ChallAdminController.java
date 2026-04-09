@@ -1,7 +1,7 @@
 package com.godLife.project.controller.v1.admin;
 
-import com.godLife.project.dto.contents.ChallengeDTO;
-import com.godLife.project.dto.request.ChallengeSearchParamDTO;
+import com.godLife.project.dto.model.content.ChallengeDTO;
+import com.godLife.project.dto.query.challenge.ChallengeSearchParamDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.service.interfaces.AdminInterface.ChallAdminService;
 import jakarta.validation.Valid;

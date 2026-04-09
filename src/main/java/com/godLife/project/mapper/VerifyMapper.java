@@ -1,7 +1,7 @@
 package com.godLife.project.mapper;
 
-import com.godLife.project.dto.request.VerifyRequestDTO;
-import com.godLife.project.dto.verify.CheckAllFireActivateDTO;
+import com.godLife.project.dto.request.verify.VerifyRequestDTO;
+import com.godLife.project.dto.internal.verify.CheckAllFireActivateDTO;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;

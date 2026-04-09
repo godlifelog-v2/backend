@@ -1,8 +1,8 @@
 package com.godLife.project.mapper;
 
-import com.godLife.project.dto.contents.FaQDTO;
-import com.godLife.project.dto.infos.SearchQueryDTO;
-import com.godLife.project.dto.list.FaqListDTO;
+import com.godLife.project.dto.model.content.FaQDTO;
+import com.godLife.project.dto.query.search.SearchQueryDTO;
+import com.godLife.project.dto.query.content.FaqListDTO;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

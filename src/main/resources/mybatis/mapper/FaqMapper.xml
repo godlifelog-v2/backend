@@ -4,14 +4,14 @@
 <mapper namespace="com.godLife.project.mapper.FaqMapper">
 
     <!-- FAQ 전체 조회 -->
-    <select id="selectAllFaq" resultType="com.godLife.project.dto.list.FaqListDTO">
+    <select id="selectAllFaq" resultType="FaqListDTO">
         SELECT f.FAQ_IDX, f.FAQ_TITLE, fc.FAQ_CATEGORY_NAME
         FROM FAQ_TABLE f
         LEFT JOIN FAQ_CATEGORY fc ON f.FAQ_CATEGORY = fc.FAQ_CATEGORY_IDX
     </select>
 
     <!-- FAQ 카테고리 조회 -->
-    <select id="selectCateFaq" resultType="com.godLife.project.dto.list.FaqListDTO">
+    <select id="selectCateFaq" resultType="FaqListDTO">
         SELECT
         f.FAQ_IDX,
         f.FAQ_TITLE,
@@ -27,7 +27,7 @@
     </select>
 
     <!-- FAQ 상세 조회 -->
-    <select id="selectFaqById" parameterType="java.lang.Integer" resultType="com.godLife.project.dto.contents.FaQDTO">
+    <select id="selectFaqById" parameterType="java.lang.Integer" resultType="FaQDTO">
         SELECT
         F.FAQ_IDX              AS faqIdx,
         F.FAQ_TITLE            AS faqTitle,
@@ -43,13 +43,13 @@
     </select>
 
     <!-- FAQ 작성 -->
-    <insert id="insertFaq" parameterType="com.godLife.project.dto.contents.FaQDTO">
+    <insert id="insertFaq" parameterType="FaQDTO">
         INSERT INTO FAQ_TABLE (FAQ_TITLE, FAQ_ANSWER, FAQ_CATEGORY)
         VALUES (#{faqTitle}, #{faqAnswer}, #{faqCategory})
     </insert>
 
     <!-- FAQ 수정 update 쿼리 -->
-    <update id="updateFaq" parameterType="com.godLife.project.dto.contents.FaQDTO">
+    <update id="updateFaq" parameterType="FaQDTO">
         UPDATE FAQ_TABLE
         SET FAQ_TITLE = #{faqTitle},
         FAQ_ANSWER = #{faqAnswer},
@@ -58,8 +58,8 @@
     </update>
 
     <!-- FAQ 제목 또는 내용에 검색어가 포함된 FAQ를 검색하는 select 쿼리 -->
-    <select id="searchFaq" parameterType="com.godLife.project.dto.infos.SearchQueryDTO"
-            resultType="com.godLife.project.dto.contents.FaQDTO">
+    <select id="searchFaq" parameterType="SearchQueryDTO"
+            resultType="FaQDTO">
         SELECT f.FAQ_IDX, f.FAQ_TITLE, f.FAQ_ANSWER, c.FAQ_CATEGORY_NAME
         FROM FAQ_TABLE f
         JOIN FAQ_CATEGORY c ON f.FAQ_CATEGORY = c.FAQ_CATEGORY_IDX

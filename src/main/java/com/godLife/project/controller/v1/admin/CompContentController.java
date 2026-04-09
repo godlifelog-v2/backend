@@ -1,9 +1,9 @@
 package com.godLife.project.controller.v1.admin;
 
-import com.godLife.project.dto.categories.ChallengeCateDTO;
-import com.godLife.project.dto.categories.JobCateDTO;
-import com.godLife.project.dto.categories.TargetCateDTO;
-import com.godLife.project.dto.datas.FireDTO;
+import com.godLife.project.dto.category.ChallengeCateDTO;
+import com.godLife.project.dto.category.JobCateDTO;
+import com.godLife.project.dto.category.TargetCateDTO;
+import com.godLife.project.dto.model.common.FireDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.service.interfaces.AdminInterface.CompContentService;
 import lombok.RequiredArgsConstructor;

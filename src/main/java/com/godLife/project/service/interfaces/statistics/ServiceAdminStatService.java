@@ -1,6 +1,6 @@
 package com.godLife.project.service.interfaces.statistics;
 
-import com.godLife.project.dto.statistics.response.ResponseQnaAdminStat;
+import com.godLife.project.dto.response.stats.ResponseQnaAdminStat;
 
 public interface ServiceAdminStatService {
 

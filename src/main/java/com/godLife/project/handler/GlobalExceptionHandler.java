@@ -1,13 +1,11 @@
 package com.godLife.project.handler;
 
-import com.godLife.project.dto.error.ErrorResponse;
-import com.godLife.project.dto.list.QnaListDTO;
+import com.godLife.project.dto.internal.error.ErrorResponse;
 import com.godLife.project.exception.CustomException;
 import com.godLife.project.jwt.JWTUtil;
 import com.godLife.project.mapper.VerifyMapper;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +16,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @ControllerAdvice

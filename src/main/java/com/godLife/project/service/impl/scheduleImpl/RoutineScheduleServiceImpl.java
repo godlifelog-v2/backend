@@ -1,7 +1,7 @@
 package com.godLife.project.service.impl.scheduleImpl;
 
-import com.godLife.project.dto.scheduler.VerifyUnder90DTO;
-import com.godLife.project.dto.verify.CheckAllFireActivateDTO;
+import com.godLife.project.dto.internal.scheduler.VerifyUnder90DTO;
+import com.godLife.project.dto.internal.verify.CheckAllFireActivateDTO;
 import com.godLife.project.mapper.MidnightMapper;
 import com.godLife.project.mapper.VerifyMapper;
 import lombok.RequiredArgsConstructor;

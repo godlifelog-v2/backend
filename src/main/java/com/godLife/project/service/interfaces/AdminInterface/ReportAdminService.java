@@ -1,7 +1,7 @@
 package com.godLife.project.service.interfaces.AdminInterface;
 
-import com.godLife.project.dto.infos.PlanReportDTO;
-import com.godLife.project.dto.infos.UserReportDTO;
+import com.godLife.project.dto.query.report.PlanReportDTO;
+import com.godLife.project.dto.query.report.UserReportDTO;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 

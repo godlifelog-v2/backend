@@ -1,11 +1,11 @@
 package com.godLife.project.service.interfaces;
 
-import com.godLife.project.dto.contents.QnaDTO;
-import com.godLife.project.dto.contents.QnaReplyDTO;
-import com.godLife.project.dto.list.QnaDetailDTO;
-import com.godLife.project.dto.qnaWebsocket.listMessage.MatchedListMessageDTO;
-import com.godLife.project.dto.qnaWebsocket.listMessage.QnaDetailMessageDTO;
-import com.godLife.project.dto.qnaWebsocket.listMessage.WaitListMessageDTO;
+import com.godLife.project.dto.model.content.QnaDTO;
+import com.godLife.project.dto.model.content.QnaReplyDTO;
+import com.godLife.project.dto.query.content.QnaDetailDTO;
+import com.godLife.project.dto.websocket.qna.MatchedListMessageDTO;
+import com.godLife.project.dto.websocket.qna.QnaDetailMessageDTO;
+import com.godLife.project.dto.websocket.qna.WaitListMessageDTO;
 
 import java.util.List;
 

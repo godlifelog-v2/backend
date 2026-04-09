@@ -1,7 +1,7 @@
 package com.godLife.project.service.impl.adminImpl.serviceCenter;
 
-import com.godLife.project.dto.serviceAdmin.ServiceCenterAdminInfos;
-import com.godLife.project.dto.serviceAdmin.ServiceCenterAdminList;
+import com.godLife.project.dto.websocket.admin.ServiceCenterAdminInfos;
+import com.godLife.project.dto.websocket.admin.ServiceCenterAdminList;
 import com.godLife.project.enums.QnaStatus;
 import com.godLife.project.exception.CustomException;
 import com.godLife.project.mapper.AdminMapper.ServiceAdminMapper;

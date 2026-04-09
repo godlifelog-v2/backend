@@ -1,7 +1,7 @@
 package com.godLife.project.mapper;
 
-import com.godLife.project.dto.datas.UserDTO;
-import com.godLife.project.dto.request.GetNameNEmail;
+import com.godLife.project.dto.model.user.UserDTO;
+import com.godLife.project.dto.query.user.GetNameNEmail;
 import org.apache.ibatis.annotations.*;
 
 @Mapper

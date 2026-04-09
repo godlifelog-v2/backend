@@ -1,6 +1,6 @@
 package com.godLife.project.service.interfaces.AdminInterface;
 
-import com.godLife.project.dto.request.adminChat.ChatCreateDTO;
+import com.godLife.project.dto.request.chat.ChatCreateDTO;
 
 public interface AdminChatService {
 

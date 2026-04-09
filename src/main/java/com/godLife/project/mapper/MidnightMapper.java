@@ -1,9 +1,8 @@
 package com.godLife.project.mapper;
 
-import com.godLife.project.dto.scheduler.VerifyUnder90DTO;
+import com.godLife.project.dto.internal.scheduler.VerifyUnder90DTO;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 import java.util.List;

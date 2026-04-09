@@ -1,8 +1,8 @@
 package com.godLife.project.controller.test;
 
 
-import com.godLife.project.dto.test.GetPlanIdxDTO;
-import com.godLife.project.dto.test.GetUserListDTO;
+import com.godLife.project.dto.internal.test.GetPlanIdxDTO;
+import com.godLife.project.dto.internal.test.GetUserListDTO;
 import com.godLife.project.service.impl.scheduleImpl.RoutineScheduleServiceImpl;
 import com.godLife.project.service.interfaces.TestService;
 import lombok.extern.slf4j.Slf4j;

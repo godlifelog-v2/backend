@@ -1,0 +1,18 @@
+package com.godLife.project.dto.query.challenge;
+
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+  public class ChallRequestDTO {
+    private Long challIdx;
+    private String challTitle;
+    private String challDescription;
+    private Integer challCategoryIdx;
+    private Integer maxParticipants;
+    private LocalDateTime challEndTime;
+    private Integer currentParticipants;
+    private String challState;
+    private Boolean isJoined;  // 현재 로그인 유저의 참여 여부
+}

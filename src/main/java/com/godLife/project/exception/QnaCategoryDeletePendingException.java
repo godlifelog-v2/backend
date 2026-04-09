@@ -1,6 +1,6 @@
 package com.godLife.project.exception;
 
-import com.godLife.project.dto.list.QnaListDTO;
+import com.godLife.project.dto.query.content.QnaListDTO;
 
 import java.util.List;
 

@@ -1,7 +1,7 @@
 package com.godLife.project.service.impl;
 
-import com.godLife.project.dto.test.GetPlanIdxDTO;
-import com.godLife.project.dto.test.GetUserListDTO;
+import com.godLife.project.dto.internal.test.GetPlanIdxDTO;
+import com.godLife.project.dto.internal.test.GetUserListDTO;
 import com.godLife.project.mapper.TestMapper;
 import com.godLife.project.service.interfaces.TestService;
 import org.springframework.stereotype.Service;

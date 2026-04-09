@@ -1,8 +1,8 @@
 package com.godLife.project.service.interfaces;
 
 
-import com.godLife.project.dto.infos.SearchLogDTO;
-import com.godLife.project.dto.response.SearchLogsResponseDTO;
+import com.godLife.project.dto.query.search.SearchLogDTO;
+import com.godLife.project.dto.response.search.SearchLogsResponseDTO;
 
 import java.util.List;
 

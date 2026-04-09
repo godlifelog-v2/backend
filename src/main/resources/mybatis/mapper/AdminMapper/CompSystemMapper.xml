@@ -5,20 +5,20 @@
 <mapper namespace="com.godLife.project.mapper.AdminMapper.CompSystemMapper">
     <!--            FAQ CATEGORY 관리 테이블 CRUD Mapper         -->
     <!-- FAQ CATEGORY 별 조회 -->
-    <select id="faqListByCategory" resultType="com.godLife.project.dto.contents.FaQDTO">
+    <select id="faqListByCategory" resultType="FaQDTO">
         SELECT *
         FROM FAQ_TABLE
         WHERE FAQ_CATEGORY = #{faqCategory}
     </select>
 
     <!-- FAQ_CATEGORY 추가 -->
-    <insert id="insertFaqCate" parameterType="com.godLife.project.dto.categories.FaqCateDTO">
+    <insert id="insertFaqCate" parameterType="FaqCateDTO">
         INSERT INTO FAQ_CATEGORY (FAQ_CATEGORY_NAME)
         VALUES (#{faqCategoryName})
     </insert>
 
     <!-- FAQ_CATEGORY 수정 -->
-    <update id="updateFaqCate" parameterType="com.godLife.project.dto.categories.FaqCateDTO">
+    <update id="updateFaqCate" parameterType="FaqCateDTO">
         UPDATE FAQ_CATEGORY
         SET FAQ_CATEGORY_NAME = #{faqCategoryName}
         WHERE FAQ_CATEGORY_IDX = #{faqCategoryIdx}
@@ -51,26 +51,26 @@
     <!--            QNA CATEGORY 관리 테이블 CRUD Mapper         -->
 
     <!-- QNA_CATEGORY LIST 조회 -->
-<!--    <select id="selectAllQnaCate" resultType="com.godLife.project.dto.categories.QnaCateDTO">-->
+<!--    <select id="selectAllQnaCate" resultType="QnaCateDTO">-->
 <!--        SELECT *-->
 <!--        FROM QNA_CATEGORY-->
 <!--    </select>-->
 
     <!-- QNA CATEGORY 별 조회 -->
-    <select id="qnaListByCategory" resultType="com.godLife.project.dto.list.QnaListDTO">
+    <select id="qnaListByCategory" resultType="QnaListDTO">
         SELECT *
         FROM QNA_TABLE
         WHERE CATEGORY = #{category}
     </select>
 
     <!-- QNA 카테고리 추가 -->
-    <insert id="insertQnaCate" parameterType="com.godLife.project.dto.categories.QnaCateDTO">
+    <insert id="insertQnaCate" parameterType="QnaCateDTO">
         INSERT INTO QNA_CATEGORY (PARENT_IDX, CATEGORY_NAME, CATEGORY_LEVEL)
         VALUES (#{parentIdx}, #{categoryName}, #{categoryLevel})
     </insert>
 
     <!-- QNA_CATEGORY 수정 -->
-    <update id="updateQnaCate" parameterType="com.godLife.project.dto.categories.QnaCateDTO">
+    <update id="updateQnaCate" parameterType="QnaCateDTO">
         UPDATE QNA_CATEGORY
         <set>
             <if test="categoryName != null and categoryName != ''">
@@ -128,7 +128,7 @@
 
 
     <!-- 추가 -->
-    <insert id="insertTopMenu" parameterType="com.godLife.project.dto.categories.TopCateDTO">
+    <insert id="insertTopMenu" parameterType="TopCateDTO">
         INSERT INTO TOP_CATEGORY (
         PARENT_IDX,
         TOP_NAME,
@@ -146,7 +146,7 @@
     </insert>
 
     <!-- 수정 -->
-    <update id="updateTopMenu" parameterType="com.godLife.project.dto.categories.TopCateDTO">
+    <update id="updateTopMenu" parameterType="TopCateDTO">
         UPDATE TOP_CATEGORY
         <set>
             <if test="parentIdx != 0">
@@ -192,13 +192,13 @@
             <!--            ICON 관리 테이블 CRUD Mapper         -->
 
     <!-- 추가 -->
-    <insert id="insertIcon" parameterType="com.godLife.project.dto.datas.IconDTO">
+    <insert id="insertIcon" parameterType="IconDTO">
         INSERT INTO ICON_TABLE (ICON_KEY, ICON, COLOR, VISIBLE)
         VALUES (#{iconKey}, #{icon}, #{color}, #{visible})
     </insert>
 
     <!-- 수정 -->
-    <update id="updateIcon" parameterType="com.godLife.project.dto.datas.IconDTO">
+    <update id="updateIcon" parameterType="IconDTO">
         UPDATE ICON_TABLE
         <set>
             <if test="iconKey != null and iconKey != ''">
@@ -239,11 +239,11 @@
 
     <!--
         < 탑메뉴 조회 >
-    <select id="selectTopMenu" resultType="com.godLife.project.dto.categories.TopCateDTO">
+    <select id="selectTopMenu" resultType="TopCateDTO">
         SELECT * FROM TOP_CATEGORY ORDER BY ORD_IDX ASC
     </select>
         < 아이콘 조회 >
-    <select id="selectIcon" resultType="com.godLife.project.dto.datas.IconDTO">
+    <select id="selectIcon" resultType="IconDTO">
         SELECT * FROM ICON_TABLE
     </select>
 

@@ -1,8 +1,8 @@
 package com.godLife.project.service.impl.statisticsImpl;
 
-import com.godLife.project.dto.statistics.DayAndMonthStats;
-import com.godLife.project.dto.statistics.QnaAdminStat;
-import com.godLife.project.dto.statistics.response.ResponseQnaAdminStat;
+import com.godLife.project.dto.internal.stats.DayAndMonthStats;
+import com.godLife.project.dto.internal.stats.QnaAdminStat;
+import com.godLife.project.dto.response.stats.ResponseQnaAdminStat;
 import com.godLife.project.enums.QnaStatus;
 import com.godLife.project.exception.CustomException;
 import com.godLife.project.mapper.StatsMapper.ServiceAdminStatMapper;

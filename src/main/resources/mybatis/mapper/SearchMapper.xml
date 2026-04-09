@@ -5,7 +5,7 @@
 <mapper namespace="com.godLife.project.mapper.SearchMapper">
 
   <!-- 검색 기록 추가 -->
-  <insert id="setSearchLogs" parameterType="com.godLife.project.dto.infos.SearchLogDTO">
+  <insert id="setSearchLogs" parameterType="SearchLogDTO">
     <choose>
       <when test="uniqueId != null">
         INSERT INTO SEARCH_LOG(UNIQUE_ID, SEARCH_KEYWORD) VALUES (#{uniqueId}, #{searchKeyword})
@@ -17,7 +17,7 @@
   </insert>
 
   <!-- 검색 기록 조회 -->
-  <select id="getSearchLogs" parameterType="com.godLife.project.dto.infos.SearchLogDTO" resultType="com.godLife.project.dto.response.SearchLogsResponseDTO">
+  <select id="getSearchLogs" parameterType="SearchLogDTO" resultType="SearchLogsResponseDTO">
     <choose>
       <when test="uniqueId != null">
         SELECT LOG_IDX, SEARCH_KEYWORD
@@ -39,7 +39,7 @@
   </select>
 
   <!-- 최근 검색어 조회 -->
-  <select id="getRecentKeyword" parameterType="com.godLife.project.dto.infos.SearchLogDTO" resultType="com.godLife.project.dto.infos.SearchLogDTO">
+  <select id="getRecentKeyword" parameterType="SearchLogDTO" resultType="SearchLogDTO">
     <choose>
       <when test="uniqueId != null">
         SELECT LOG_IDX, SEARCH_KEYWORD, IS_DELETED
@@ -57,7 +57,7 @@
   </select>
 
   <!-- 검색 기록 최신화 -->
-  <update id="updateSearchLog" parameterType="com.godLife.project.dto.infos.SearchLogDTO">
+  <update id="updateSearchLog" parameterType="SearchLogDTO">
     <choose>
       <when test="isDeleted == 1">
         UPDATE SEARCH_LOG
@@ -73,7 +73,7 @@
   </update>
 
   <!-- 검색 기록 삭제 -->
-  <update id="deleteSearchLog" parameterType="com.godLife.project.dto.infos.SearchLogDTO">
+  <update id="deleteSearchLog" parameterType="SearchLogDTO">
     <choose>
       <when test="uniqueId != null">
         UPDATE SEARCH_LOG

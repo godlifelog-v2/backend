@@ -1,7 +1,7 @@
 package com.godLife.project.controller.v1;
 
-import com.godLife.project.dto.list.MyPlanDTO;
-import com.godLife.project.dto.list.PlanListDTO;
+import com.godLife.project.dto.response.plan.MyPlanDTO;
+import com.godLife.project.dto.query.plan.PlanListDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.service.interfaces.ListService;
 import lombok.RequiredArgsConstructor;

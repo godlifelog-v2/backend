@@ -1,14 +1,14 @@
 package com.godLife.project.controller.websocket;
 
-import com.godLife.project.dto.error.CustomWsErrorDTO;
-import com.godLife.project.dto.qnaWebsocket.QnaMatchedListDTO;
-import com.godLife.project.dto.qnaWebsocket.listMessage.MatchedListMessageDTO;
-import com.godLife.project.dto.qnaWebsocket.listMessage.QnaDetailMessageDTO;
-import com.godLife.project.dto.qnaWebsocket.listMessage.WaitListMessageDTO;
-import com.godLife.project.dto.serviceAdmin.AdminIdxAndIdDTO;
-import com.godLife.project.dto.serviceAdmin.ServiceCenterAdminInfos;
-import com.godLife.project.dto.serviceAdmin.ServiceCenterAdminList;
-import com.godLife.project.dto.statistics.response.ResponseQnaAdminStat;
+import com.godLife.project.dto.internal.error.CustomWsErrorDTO;
+import com.godLife.project.dto.websocket.qna.QnaMatchedListDTO;
+import com.godLife.project.dto.websocket.qna.MatchedListMessageDTO;
+import com.godLife.project.dto.websocket.qna.QnaDetailMessageDTO;
+import com.godLife.project.dto.websocket.qna.WaitListMessageDTO;
+import com.godLife.project.dto.websocket.admin.AdminIdxAndIdDTO;
+import com.godLife.project.dto.websocket.admin.ServiceCenterAdminInfos;
+import com.godLife.project.dto.websocket.admin.ServiceCenterAdminList;
+import com.godLife.project.dto.response.stats.ResponseQnaAdminStat;
 import com.godLife.project.enums.MessageStatus;
 import com.godLife.project.enums.QnaRedisKey;
 import com.godLife.project.enums.QnaStatus;

@@ -1,7 +1,7 @@
 package com.godLife.project.controller.v1;
 
-import com.godLife.project.dto.request.GetEmailRequestDTO;
-import com.godLife.project.dto.request.VerifyRequestDTO;
+import com.godLife.project.dto.request.verify.GetEmailRequestDTO;
+import com.godLife.project.dto.request.verify.VerifyRequestDTO;
 import com.godLife.project.dto.request.myPage.ModifyEmailRequestDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.service.interfaces.VerifyService;

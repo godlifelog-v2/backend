@@ -1,14 +1,13 @@
 package com.godLife.project.mapper;
 
-import com.godLife.project.dto.list.PlanListDTO;
-import com.godLife.project.dto.list.QnaListDTO;
-import com.godLife.project.dto.list.customDTOs.CustomPlanDTO;
+import com.godLife.project.dto.query.content.QnaListDTO;
+import com.godLife.project.dto.query.plan.CustomPlanDTO;
+import com.godLife.project.dto.query.plan.PlanListDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
-import java.util.Map;
 
 @Mapper
 public interface ListMapper {

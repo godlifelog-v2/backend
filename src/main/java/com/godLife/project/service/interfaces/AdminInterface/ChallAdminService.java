@@ -1,7 +1,7 @@
 package com.godLife.project.service.interfaces.AdminInterface;
 
-import com.godLife.project.dto.contents.ChallengeDTO;
-import com.godLife.project.dto.request.ChallengeSearchParamDTO;
+import com.godLife.project.dto.model.content.ChallengeDTO;
+import com.godLife.project.dto.query.challenge.ChallengeSearchParamDTO;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 

@@ -1,8 +1,8 @@
 package com.godLife.project.mapper;
 
-import com.godLife.project.dto.datas.UserDTO;
+import com.godLife.project.dto.model.user.UserDTO;
 import com.godLife.project.dto.request.myPage.*;
-import com.godLife.project.dto.response.MyPageUserInfosResponseDTO;
+import com.godLife.project.dto.response.user.MyPageUserInfosResponseDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;

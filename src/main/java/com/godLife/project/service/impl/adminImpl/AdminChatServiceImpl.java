@@ -1,9 +1,9 @@
 package com.godLife.project.service.impl.adminImpl;
 
-import com.godLife.project.dto.chat.ChatMembers;
-import com.godLife.project.dto.chat.ChatRoles;
-import com.godLife.project.dto.chat.ChatRoomDTO;
-import com.godLife.project.dto.request.adminChat.ChatCreateDTO;
+import com.godLife.project.dto.model.chat.ChatMembers;
+import com.godLife.project.dto.model.chat.ChatRoles;
+import com.godLife.project.dto.model.chat.ChatRoomDTO;
+import com.godLife.project.dto.request.chat.ChatCreateDTO;
 import com.godLife.project.exception.CustomException;
 import com.godLife.project.mapper.AdminMapper.AdminChatMapper;
 import com.godLife.project.mapper.UserMapper;

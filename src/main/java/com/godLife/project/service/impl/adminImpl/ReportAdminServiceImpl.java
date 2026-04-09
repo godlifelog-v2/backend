@@ -1,7 +1,7 @@
 package com.godLife.project.service.impl.adminImpl;
 
-import com.godLife.project.dto.infos.PlanReportDTO;
-import com.godLife.project.dto.infos.UserReportDTO;
+import com.godLife.project.dto.query.report.PlanReportDTO;
+import com.godLife.project.dto.query.report.UserReportDTO;
 import com.godLife.project.mapper.AdminMapper.ReportAdminMapper;
 import com.godLife.project.service.interfaces.AdminInterface.ReportAdminService;
 import lombok.RequiredArgsConstructor;

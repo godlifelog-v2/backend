@@ -5,7 +5,7 @@
 <mapper namespace="com.godLife.project.mapper.PlanMapper">
 
   <!-- 루틴 저장 쿼리 -->
-  <insert id="insertPlan" parameterType="com.godLife.project.dto.datas.PlanDTO" useGeneratedKeys="true" keyProperty="planIdx">
+  <insert id="insertPlan" parameterType="PlanDTO" useGeneratedKeys="true" keyProperty="planIdx">
     INSERT INTO PLAN_TABLE(
       USER_IDX, PLAN_TITLE, END_TO, TARGET_IDX, IS_SHARED, PLAN_IMP, JOB_IDX
       <if test="isActive != null and isActive == 1">
@@ -33,7 +33,7 @@
   </insert>
 
   <!-- 활동 저장 쿼리 -->
-  <insert id="insertActivity" parameterType="com.godLife.project.dto.datas.ActivityDTO">
+  <insert id="insertActivity" parameterType="ActivityDTO">
     <choose>
       <when test="setTime != null ">
         INSERT INTO PLAN_ACTIVITY (PLAN_IDX, ACTIVITY_NAME, SET_TIME,
@@ -63,7 +63,7 @@
   </insert>
 
   <!-- 기타 직업 추가 쿼리 -->
-  <insert id="insertJobEtc" parameterType="com.godLife.project.dto.categories.JobEtcCateDTO">
+  <insert id="insertJobEtc" parameterType="JobEtcCateDTO">
     INSERT INTO JOB_ETC_CATEGORY
     VALUES (NULL, #{planIdx}, #{name}, #{iconKey}, NOW())
   </insert>
@@ -107,7 +107,7 @@
   </select>
 
   <!-- 직업 카테고리 조회 -->
-  <select id="getJOBCategoryByJobIdx" resultType="com.godLife.project.dto.categories.JobCateDTO" parameterType="int">
+  <select id="getJOBCategoryByJobIdx" resultType="JobCateDTO" parameterType="int">
     SELECT
     JC.JOB_IDX AS IDX,
     JC.JOB_NAME AS NAME,
@@ -120,7 +120,7 @@
   </select>
 
   <!-- 관심사 카테고리 조회 -->
-  <select id="getTargetCategoryByTargetIdx" resultType="com.godLife.project.dto.categories.TargetCateDTO" parameterType="int">
+  <select id="getTargetCategoryByTargetIdx" resultType="TargetCateDTO" parameterType="int">
     SELECT
     TC.TARGET_IDX AS IDX,
     TC.TARGET_NAME AS NAME,
@@ -133,7 +133,7 @@
   </select>
 
   <!-- 루틴 조회 시 기타 직업 조회 쿼리-->
-  <select id="getJobEtcInfoByPlanIdx" resultType="com.godLife.project.dto.categories.JobEtcCateDTO" parameterType="int">
+  <select id="getJobEtcInfoByPlanIdx" resultType="JobEtcCateDTO" parameterType="int">
     SELECT
     ETC.JOB_NAME AS NAME,
     ETC.ICON_KEY,
@@ -145,7 +145,7 @@
   </select>
 
   <!-- 루틴 수정 쿼리 -->
-  <update id="modifyPlan" parameterType="com.godLife.project.dto.datas.PlanDTO">
+  <update id="modifyPlan" parameterType="PlanDTO">
     UPDATE PLAN_TABLE
     SET PLAN_TITLE = #{planTitle},
         END_TO = #{endTo},
@@ -166,7 +166,7 @@
   </select>
 
   <!-- 활동 수정 쿼리 -->
-  <update id="modifyActivity" parameterType="com.godLife.project.dto.datas.ActivityDTO">
+  <update id="modifyActivity" parameterType="ActivityDTO">
     UPDATE PLAN_ACTIVITY
     SET ACTIVITY_NAME = #{activityName},
         <if test="setTime != null">
@@ -186,7 +186,7 @@
   </update>
 
   <!-- 기타 직업 수정 쿼리 -->
-  <update id="modifyJobEtc" parameterType="com.godLife.project.dto.categories.JobEtcCateDTO">
+  <update id="modifyJobEtc" parameterType="JobEtcCateDTO">
     UPDATE JOB_ETC_CATEGORY
     SET JOB_NAME = #{name},
         ICON_KEY = #{iconKey},
@@ -239,13 +239,13 @@
   </update>
 
   <!-- 후기 작성 -->
-  <update id="addReview" parameterType="com.godLife.project.dto.request.PlanRequestDTO">
+  <update id="addReview" parameterType="PlanRequestDTO">
     UPDATE PLAN_TABLE
     SET REVIEW = #{review}
     WHERE (PLAN_IDX = #{planIdx} AND USER_IDX = #{userIdx}) AND IS_COMPLETED = 1 AND REVIEW IS NULL
   </update>
   <!-- 후기 수정 -->
-  <update id="modifyReview" parameterType="com.godLife.project.dto.request.PlanRequestDTO">
+  <update id="modifyReview" parameterType="PlanRequestDTO">
     UPDATE PLAN_TABLE
     SET REVIEW = #{review}
     WHERE (PLAN_IDX = #{planIdx} AND USER_IDX = #{userIdx}) AND IS_COMPLETED = 1 AND REVIEW IS NOT NULL

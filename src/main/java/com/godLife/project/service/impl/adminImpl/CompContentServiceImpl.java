@@ -1,10 +1,10 @@
 package com.godLife.project.service.impl.adminImpl;
 
-import com.godLife.project.dto.categories.ChallengeCateDTO;
-import com.godLife.project.dto.categories.JobCateDTO;
-import com.godLife.project.dto.categories.TargetCateDTO;
-import com.godLife.project.dto.categories.TopCateDTO;
-import com.godLife.project.dto.datas.FireDTO;
+import com.godLife.project.dto.category.ChallengeCateDTO;
+import com.godLife.project.dto.category.JobCateDTO;
+import com.godLife.project.dto.category.TargetCateDTO;
+import com.godLife.project.dto.category.TopCateDTO;
+import com.godLife.project.dto.model.common.FireDTO;
 import com.godLife.project.mapper.AdminMapper.CompContentMapper;
 import com.godLife.project.mapper.CategoryMapper;
 import com.godLife.project.service.impl.redis.RedisService;

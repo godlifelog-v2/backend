@@ -1,7 +1,7 @@
 package com.godLife.project.service.interfaces;
 
-import com.godLife.project.dto.datas.PlanDTO;
-import com.godLife.project.dto.request.PlanRequestDTO;
+import com.godLife.project.dto.model.plan.PlanDTO;
+import com.godLife.project.dto.request.plan.PlanRequestDTO;
 import jakarta.servlet.http.HttpServletRequest;
 
 public interface PlanService {

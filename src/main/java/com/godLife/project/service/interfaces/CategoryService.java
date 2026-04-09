@@ -1,11 +1,11 @@
 package com.godLife.project.service.interfaces;
 
-import com.godLife.project.dto.categories.*;
-import com.godLife.project.dto.datas.FireDTO;
-import com.godLife.project.dto.datas.IconDTO;
-import com.godLife.project.dto.datas.UserLevelDTO;
+import com.godLife.project.dto.category.*;
+import com.godLife.project.dto.model.common.FireDTO;
+import com.godLife.project.dto.model.common.IconDTO;
+import com.godLife.project.dto.model.user.UserLevelDTO;
 import com.godLife.project.dto.response.qna.QnaParent;
-import com.godLife.project.dto.response.top.TopMenu;
+import com.godLife.project.dto.response.menu.TopMenu;
 
 import java.util.List;
 

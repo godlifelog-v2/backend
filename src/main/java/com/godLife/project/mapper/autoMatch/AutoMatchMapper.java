@@ -1,6 +1,6 @@
 package com.godLife.project.mapper.autoMatch;
 
-import com.godLife.project.dto.serviceAdmin.AdminIdxAndIdDTO;
+import com.godLife.project.dto.websocket.admin.AdminIdxAndIdDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 

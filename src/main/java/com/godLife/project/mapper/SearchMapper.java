@@ -1,7 +1,7 @@
 package com.godLife.project.mapper;
 
-import com.godLife.project.dto.infos.SearchLogDTO;
-import com.godLife.project.dto.response.SearchLogsResponseDTO;
+import com.godLife.project.dto.query.search.SearchLogDTO;
+import com.godLife.project.dto.response.search.SearchLogsResponseDTO;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Update;

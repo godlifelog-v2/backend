@@ -1,11 +1,11 @@
 package com.godLife.project.mapper;
 
-import com.godLife.project.dto.contents.QnaDTO;
-import com.godLife.project.dto.contents.QnaReplyDTO;
-import com.godLife.project.dto.list.QnaDetailDTO;
-import com.godLife.project.dto.qnaWebsocket.QnaMatchedListDTO;
-import com.godLife.project.dto.qnaWebsocket.QnaReplyListDTO;
-import com.godLife.project.dto.qnaWebsocket.QnaWaitListDTO;
+import com.godLife.project.dto.model.content.QnaDTO;
+import com.godLife.project.dto.model.content.QnaReplyDTO;
+import com.godLife.project.dto.query.content.QnaDetailDTO;
+import com.godLife.project.dto.websocket.qna.QnaMatchedListDTO;
+import com.godLife.project.dto.websocket.qna.QnaReplyListDTO;
+import com.godLife.project.dto.websocket.qna.QnaWaitListDTO;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;

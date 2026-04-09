@@ -1,7 +1,7 @@
 package com.godLife.project.service.impl;
 
-import com.godLife.project.dto.request.VerifyRequestDTO;
-import com.godLife.project.dto.verify.CheckAllFireActivateDTO;
+import com.godLife.project.dto.request.verify.VerifyRequestDTO;
+import com.godLife.project.dto.internal.verify.CheckAllFireActivateDTO;
 import com.godLife.project.mapper.PlanMapper;
 import com.godLife.project.mapper.VerifyMapper;
 import com.godLife.project.service.impl.redis.RedisService;

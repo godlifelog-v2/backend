@@ -1,9 +1,9 @@
 package com.godLife.project.mapper;
 
-import com.godLife.project.dto.contents.ChallengeDTO;
-import com.godLife.project.dto.infos.ChallengeJoinDTO;
-import com.godLife.project.dto.request.ChallengeSearchParamDTO;
-import com.godLife.project.dto.verify.VerifyRecordDTO;
+import com.godLife.project.dto.model.content.ChallengeDTO;
+import com.godLife.project.dto.query.challenge.ChallengeJoinDTO;
+import com.godLife.project.dto.query.challenge.ChallengeSearchParamDTO;
+import com.godLife.project.dto.internal.verify.VerifyRecordDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;

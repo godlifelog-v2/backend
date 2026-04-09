@@ -1,8 +1,8 @@
 package com.godLife.project.service.impl;
 
 
-import com.godLife.project.dto.infos.SearchLogDTO;
-import com.godLife.project.dto.response.SearchLogsResponseDTO;
+import com.godLife.project.dto.query.search.SearchLogDTO;
+import com.godLife.project.dto.response.search.SearchLogsResponseDTO;
 import com.godLife.project.mapper.SearchMapper;
 import com.godLife.project.service.interfaces.SearchService;
 import lombok.RequiredArgsConstructor;

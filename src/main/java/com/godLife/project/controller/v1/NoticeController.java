@@ -1,6 +1,6 @@
 package com.godLife.project.controller.v1;
 
-import com.godLife.project.dto.contents.NoticeDTO;
+import com.godLife.project.dto.model.content.NoticeDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.service.interfaces.NoticeService;
 import jakarta.validation.Valid;

@@ -3,8 +3,8 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.godLife.project.mapper.ListMapper">
-    <resultMap id="PlanListResultMap" type="com.godLife.project.dto.list.PlanListDTO">
-        <association property="planInfos" javaType="com.godLife.project.dto.list.customDTOs.CustomPlanListDTO">
+    <resultMap id="PlanListResultMap" type="PlanListDTO">
+        <association property="planInfos" javaType="CustomPlanListDTO">
             <result property="rank" column="RANK"/>
             <result property="planIdx" column="PLAN_IDX"/>
             <result property="userNick" column="USER_NICK"/>
@@ -18,28 +18,28 @@
             <result property="isShared" column="IS_SHARED"/>
         </association>
 
-        <association property="fireInfos" javaType="com.godLife.project.dto.list.customDTOs.CustomFireDTO">
+        <association property="fireInfos" javaType="CustomFireDTO">
             <result property="lvIdx" column="LV_IDX"/>
             <result property="fireName" column="FIRE_NAME"/>
             <result property="fireColor" column="FIRE_COLOR"/>
             <result property="fireEffect" column="FIRE_EFFECT"/>
         </association>
 
-        <association property="targetInfos" javaType="com.godLife.project.dto.list.customDTOs.CustomTargetDTO">
+        <association property="targetInfos" javaType="CustomTargetDTO">
             <result property="name" column="TARGET_NAME"/>
             <result property="iconKey" column="TARGET_ICON_KEY"/>
             <result property="icon" column="TARGET_ICON"/>
             <result property="color" column="TARGET_COLOR"/>
         </association>
 
-        <association property="jobDefault" javaType="com.godLife.project.dto.list.customDTOs.CustomJobDTO">
+        <association property="jobDefault" javaType="CustomJobDTO">
             <result property="name" column="JOB_NAME"/>
             <result property="iconKey" column="JOB_ICON_KEY"/>
             <result property="icon" column="JOB_ICON"/>
             <result property="color" column="JOB_COLOR"/>
         </association>
 
-        <association property="jobEtc" javaType="com.godLife.project.dto.list.customDTOs.CustomEtcJobDTO">
+        <association property="jobEtc" javaType="CustomEtcJobDTO">
             <result property="name" column="ETC_JOB_NAME"/>
             <result property="iconKey" column="ETC_ICON_KEY"/>
             <result property="icon" column="ETC_ICON"/>
@@ -228,7 +228,7 @@
     <!-- /////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
 
     <!-- (개인용) 전체 조회 -->
-    <select id="getMyPlansByUserIdx" parameterType="int" resultType="com.godLife.project.dto.list.customDTOs.CustomPlanDTO">
+    <select id="getMyPlansByUserIdx" parameterType="int" resultType="CustomPlanDTO">
         SELECT
             PLAN_IDX, PLAN_TITLE, END_TO, PLAN_SUB_END,
             IS_SHARED, IS_ACTIVE, PLAN_IMP, CERT_EXP,
@@ -431,7 +431,7 @@
     </sql>
 
     <!-- 문의 리스트 조회 -->
-    <select id="getQnaList" parameterType="map" resultType="com.godLife.project.dto.list.QnaListDTO">
+    <select id="getQnaList" parameterType="map" resultType="QnaListDTO">
         SELECT ROW_NUMBER() OVER (
             ORDER BY
             <if test="sort == 'answer'">

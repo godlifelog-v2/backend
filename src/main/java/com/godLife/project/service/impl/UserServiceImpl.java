@@ -1,8 +1,8 @@
 package com.godLife.project.service.impl;
 
 
-import com.godLife.project.dto.datas.UserDTO;
-import com.godLife.project.dto.request.GetNameNEmail;
+import com.godLife.project.dto.model.user.UserDTO;
+import com.godLife.project.dto.query.user.GetNameNEmail;
 import com.godLife.project.dto.request.myPage.GetUserPwRequestDTO;
 import com.godLife.project.mapper.UserMapper;
 import com.godLife.project.service.interfaces.UserService;

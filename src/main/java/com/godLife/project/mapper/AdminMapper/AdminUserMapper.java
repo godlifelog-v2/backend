@@ -1,8 +1,8 @@
 package com.godLife.project.mapper.AdminMapper;
 
-import com.godLife.project.dto.categories.AuthorityCateDTO;
-import com.godLife.project.dto.list.customDTOs.AdminListDTO;
-import com.godLife.project.dto.list.customDTOs.AdminUserDTO;
+import com.godLife.project.dto.category.AuthorityCateDTO;
+import com.godLife.project.dto.query.user.AdminListDTO;
+import com.godLife.project.dto.query.user.AdminUserDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
