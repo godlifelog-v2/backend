@@ -6,12 +6,12 @@
     <!--            목표 카테고리 CRUD Mapper         -->
 
     <!-- 추가 -->
-    <insert id="insertTargetCategory" parameterType="com.godLife.project.dto.categories.TargetCateDTO">
+    <insert id="insertTargetCategory" parameterType="TargetCateDTO">
         INSERT INTO TARGET_CATEGORY (TARGET_NAME, ICON_KEY)
         VALUES (#{name}, #{iconKey})
     </insert>
     <!-- 수정 -->
-    <update id="updateTargetCategory" parameterType="com.godLife.project.dto.categories.TargetCateDTO">
+    <update id="updateTargetCategory" parameterType="TargetCateDTO">
         UPDATE target_category
         <set>
             <if test="name != null">
@@ -49,13 +49,13 @@
     <!--            직업 카테고리 CRUD Mapper         -->
 
     <!-- 작성 -->
-    <insert id="insertJobCategory" parameterType="com.godLife.project.dto.categories.JobCateDTO">
+    <insert id="insertJobCategory" parameterType="JobCateDTO">
         INSERT INTO JOB_CATEGORY (JOB_NAME, ICON_KEY)
         VALUES (#{name}, #{iconKey})
     </insert>
 
     <!-- 수정 -->
-    <update id="updateJobCategory" parameterType="com.godLife.project.dto.categories.JobCateDTO">
+    <update id="updateJobCategory" parameterType="JobCateDTO">
         UPDATE JOB_CATEGORY
         <set>
             <if test="name != null">
@@ -94,13 +94,13 @@
     <!--            등급 관리 테이블 CRUD Mapper         -->
 
     <!-- 등급 추가 -->
-    <insert id="insertFire" parameterType="com.godLife.project.dto.datas.FireDTO">
+    <insert id="insertFire" parameterType="FireDTO">
         INSERT INTO FIRE_TABLE (MIN_EXP, MAX_EXP, FIRE_NAME, FIRE_COLOR, FIRE_EFFECT)
         VALUES (#{minExp}, #{maxExp}, #{fireName}, #{fireColor}, #{fireEffect})
     </insert>
 
     <!-- 등급 수정 -->
-    <update id="updateFire" parameterType="com.godLife.project.dto.datas.FireDTO">
+    <update id="updateFire" parameterType="FireDTO">
         UPDATE FIRE_TABLE
         <set>
             <if test="minExp != null">
@@ -161,7 +161,7 @@
     <!--            챌린지 카테고리 테이블 CRUD Mapper         -->
 
     <!-- 카테고리 추가 -->
-    <insert id="insertChallCate" parameterType="com.godLife.project.dto.categories.ChallengeCateDTO">
+    <insert id="insertChallCate" parameterType="ChallengeCateDTO">
         INSERT INTO CHALL_CATEGORY (CHALL_NAME, ICON_KEY)
         VALUES (#{challName}, #{iconKey})
     </insert>
@@ -176,7 +176,7 @@
     </select>
 
     <!-- 수정 -->
-    <update id="updateChallCate" parameterType="com.godLife.project.dto.categories.ChallengeCateDTO">
+    <update id="updateChallCate" parameterType="ChallengeCateDTO">
         UPDATE CHALL_CATEGORY
         <set>
             <if test="challName != null">
@@ -199,7 +199,7 @@
 
     <!-- 조회 쿼리문 -->
     <!-- 목표 조회
-    <select id="targetCategoryList" resultType="com.godLife.project.dto.categories.TargetCateDTO">
+    <select id="targetCategoryList" resultType="TargetCateDTO">
         SELECT
         t.TARGET_IDX AS idx,
         t.TARGET_NAME AS name,
@@ -212,7 +212,7 @@
     </select>
 
         < 직업 >
-        <select id="getAllJobCategories" resultType="com.godLife.project.dto.categories.JobCateDTO">
+        <select id="getAllJobCategories" resultType="JobCateDTO">
         SELECT
         j.JOB_IDX AS idx,
         j.JOB_NAME AS name,
@@ -224,7 +224,7 @@
     </select>
 
         < 등급 >
-    <select id="selectAllFireGrades" resultType="com.godLife.project.dto.datas.FireDTO">
+    <select id="selectAllFireGrades" resultType="FireDTO">
         SELECT
         LV_IDX as lvIdx,
         MIN_EXP as minExp,
@@ -239,7 +239,7 @@
     </select>
 
         < 챌린지 >
-        <select id="selectChallCate" resultType="com.godLife.project.dto.categories.ChallengeCateDTO">
+        <select id="selectChallCate" resultType="ChallengeCateDTO">
         SELECT
         j.CHALL_CATEGORY_IDX AS challCateIdx,
         j.CHALL_NAME AS challName,

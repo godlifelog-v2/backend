@@ -1,9 +1,9 @@
 package com.godLife.project.mapper.AdminMapper;
 
-import com.godLife.project.dto.categories.ChallengeCateDTO;
-import com.godLife.project.dto.categories.JobCateDTO;
-import com.godLife.project.dto.categories.TargetCateDTO;
-import com.godLife.project.dto.datas.FireDTO;
+import com.godLife.project.dto.category.ChallengeCateDTO;
+import com.godLife.project.dto.category.JobCateDTO;
+import com.godLife.project.dto.category.TargetCateDTO;
+import com.godLife.project.dto.model.common.FireDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

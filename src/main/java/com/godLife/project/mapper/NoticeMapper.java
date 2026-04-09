@@ -1,6 +1,6 @@
 package com.godLife.project.mapper;
 
-import com.godLife.project.dto.contents.NoticeDTO;
+import com.godLife.project.dto.model.content.NoticeDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

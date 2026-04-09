@@ -1,9 +1,9 @@
 package com.godLife.project.mapper;
 
-import com.godLife.project.dto.categories.*;
-import com.godLife.project.dto.datas.FireDTO;
-import com.godLife.project.dto.datas.IconDTO;
-import com.godLife.project.dto.datas.UserLevelDTO;
+import com.godLife.project.dto.category.*;
+import com.godLife.project.dto.model.common.FireDTO;
+import com.godLife.project.dto.model.common.IconDTO;
+import com.godLife.project.dto.model.user.UserLevelDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 

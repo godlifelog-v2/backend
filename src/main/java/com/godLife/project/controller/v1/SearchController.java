@@ -1,7 +1,7 @@
 package com.godLife.project.controller.v1;
 
-import com.godLife.project.dto.infos.SearchLogDTO;
-import com.godLife.project.dto.response.SearchLogsResponseDTO;
+import com.godLife.project.dto.query.search.SearchLogDTO;
+import com.godLife.project.dto.response.search.SearchLogsResponseDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.service.interfaces.SearchService;
 import jakarta.servlet.http.Cookie;

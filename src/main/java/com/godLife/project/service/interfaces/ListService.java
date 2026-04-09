@@ -1,6 +1,6 @@
 package com.godLife.project.service.interfaces;
 
-import com.godLife.project.dto.list.MyPlanDTO;
+import com.godLife.project.dto.response.plan.MyPlanDTO;
 
 import java.util.List;
 import java.util.Map;

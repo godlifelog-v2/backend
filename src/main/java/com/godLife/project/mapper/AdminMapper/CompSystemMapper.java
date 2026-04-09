@@ -1,12 +1,12 @@
 package com.godLife.project.mapper.AdminMapper;
 
-import com.godLife.project.dto.categories.FaqCateDTO;
-import com.godLife.project.dto.categories.QnaCateDTO;
-import com.godLife.project.dto.categories.TopCateDTO;
-import com.godLife.project.dto.contents.FaQDTO;
-import com.godLife.project.dto.contents.QnaDTO;
-import com.godLife.project.dto.datas.IconDTO;
-import com.godLife.project.dto.list.QnaListDTO;
+import com.godLife.project.dto.category.FaqCateDTO;
+import com.godLife.project.dto.category.QnaCateDTO;
+import com.godLife.project.dto.category.TopCateDTO;
+import com.godLife.project.dto.model.content.FaQDTO;
+import com.godLife.project.dto.model.content.QnaDTO;
+import com.godLife.project.dto.model.common.IconDTO;
+import com.godLife.project.dto.query.content.QnaListDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

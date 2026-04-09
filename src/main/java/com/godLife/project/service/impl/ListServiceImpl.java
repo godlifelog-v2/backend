@@ -1,9 +1,9 @@
 package com.godLife.project.service.impl;
 
-import com.godLife.project.dto.list.MyPlanDTO;
-import com.godLife.project.dto.list.PlanListDTO;
-import com.godLife.project.dto.list.QnaListDTO;
-import com.godLife.project.dto.list.customDTOs.CustomPlanDTO;
+import com.godLife.project.dto.response.plan.MyPlanDTO;
+import com.godLife.project.dto.query.plan.PlanListDTO;
+import com.godLife.project.dto.query.content.QnaListDTO;
+import com.godLife.project.dto.query.plan.CustomPlanDTO;
 import com.godLife.project.enums.QnaStatus;
 import com.godLife.project.exception.CustomException;
 import com.godLife.project.mapper.ListMapper;

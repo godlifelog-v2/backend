@@ -1,8 +1,8 @@
 package com.godLife.project.controller.v1;
 
-import com.godLife.project.dto.contents.FaQDTO;
-import com.godLife.project.dto.infos.SearchQueryDTO;
-import com.godLife.project.dto.list.FaqListDTO;
+import com.godLife.project.dto.model.content.FaQDTO;
+import com.godLife.project.dto.query.search.SearchQueryDTO;
+import com.godLife.project.dto.query.content.FaqListDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.service.interfaces.FaqService;
 import org.springframework.beans.factory.annotation.Autowired;

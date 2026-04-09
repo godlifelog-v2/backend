@@ -1,8 +1,8 @@
 package com.godLife.project.service.impl.adminImpl;
 
-import com.godLife.project.dto.contents.ChallengeDTO;
-import com.godLife.project.dto.infos.ChallengeJoinDTO;
-import com.godLife.project.dto.request.ChallengeSearchParamDTO;
+import com.godLife.project.dto.model.content.ChallengeDTO;
+import com.godLife.project.dto.query.challenge.ChallengeJoinDTO;
+import com.godLife.project.dto.query.challenge.ChallengeSearchParamDTO;
 import com.godLife.project.enums.ChallengeState;
 import com.godLife.project.mapper.AdminMapper.ChallAdminMapper;
 import com.godLife.project.service.interfaces.AdminInterface.ChallAdminService;

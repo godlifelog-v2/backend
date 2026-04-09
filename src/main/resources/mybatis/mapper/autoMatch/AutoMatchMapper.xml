@@ -5,7 +5,7 @@
 <mapper namespace="com.godLife.project.mapper.autoMatch.AutoMatchMapper">
 
     <!-- 매칭 할 상담원 조회 -->
-    <select id="getServiceAdminIdx" resultType="com.godLife.project.dto.serviceAdmin.AdminIdxAndIdDTO">
+    <select id="getServiceAdminIdx" resultType="AdminIdxAndIdDTO">
         SELECT S.USER_IDX, U.USER_ID
         FROM SERVICE_CENTER S
         INNER JOIN USER_TABLE U ON S.USER_IDX = U.USER_IDX

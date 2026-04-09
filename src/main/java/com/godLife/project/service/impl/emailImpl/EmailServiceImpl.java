@@ -1,6 +1,6 @@
 package com.godLife.project.service.impl.emailImpl;
 
-import com.godLife.project.dto.email.MailTxtSendDTO;
+import com.godLife.project.dto.internal.email.MailTxtSendDTO;
 import com.godLife.project.service.interfaces.emailInterface.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

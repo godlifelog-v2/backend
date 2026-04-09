@@ -1,9 +1,9 @@
 package com.godLife.project.controller.v1.admin;
 
-import com.godLife.project.dto.categories.FaqCateDTO;
-import com.godLife.project.dto.categories.QnaCateDTO;
-import com.godLife.project.dto.categories.TopCateDTO;
-import com.godLife.project.dto.datas.IconDTO;
+import com.godLife.project.dto.category.FaqCateDTO;
+import com.godLife.project.dto.category.QnaCateDTO;
+import com.godLife.project.dto.category.TopCateDTO;
+import com.godLife.project.dto.model.common.IconDTO;
 import com.godLife.project.exception.FaqCategoryDeletePendingException;
 import com.godLife.project.exception.QnaCategoryDeletePendingException;
 import com.godLife.project.handler.GlobalExceptionHandler;

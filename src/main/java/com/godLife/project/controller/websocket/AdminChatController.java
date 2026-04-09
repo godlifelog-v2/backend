@@ -1,7 +1,7 @@
 package com.godLife.project.controller.websocket;
 
-import com.godLife.project.dto.request.adminChat.ChatCreateDTO;
-import com.godLife.project.dto.test.TestChatDTO;
+import com.godLife.project.dto.request.chat.ChatCreateDTO;
+import com.godLife.project.dto.internal.test.TestChatDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.service.interfaces.AdminInterface.AdminChatService;
 import lombok.RequiredArgsConstructor;

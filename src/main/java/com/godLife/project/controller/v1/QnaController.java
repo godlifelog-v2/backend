@@ -1,10 +1,10 @@
 package com.godLife.project.controller.v1;
 
 
-import com.godLife.project.dto.contents.QnaDTO;
-import com.godLife.project.dto.contents.QnaReplyDTO;
-import com.godLife.project.dto.list.QnaDetailDTO;
-import com.godLife.project.dto.qnaWebsocket.listMessage.QnaDetailMessageDTO;
+import com.godLife.project.dto.model.content.QnaDTO;
+import com.godLife.project.dto.model.content.QnaReplyDTO;
+import com.godLife.project.dto.query.content.QnaDetailDTO;
+import com.godLife.project.dto.websocket.qna.QnaDetailMessageDTO;
 import com.godLife.project.enums.MessageStatus;
 import com.godLife.project.enums.QnaRedisKey;
 import com.godLife.project.enums.QnaStatus;

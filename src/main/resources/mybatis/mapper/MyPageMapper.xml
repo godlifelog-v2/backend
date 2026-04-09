@@ -3,21 +3,21 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.godLife.project.mapper.MyPageMapper">
-    <resultMap id="MyPageGetUserInfoResultMap" type="com.godLife.project.dto.response.MyPageUserInfosResponseDTO">
+    <resultMap id="MyPageGetUserInfoResultMap" type="MyPageUserInfosResponseDTO">
         <id property="userId" column="USER_ID" />
         <result property="userEmail" column="USER_EMAIL" />
         <result property="userJoin" column="USER_JOIN" />
         <result property="userPhone" column="USER_PHONE" />
         <result property="userGender" column="USER_GENDER" />
         <result property="maxExp" column="MAX_EXP" />
-        <association property="jobInfos" javaType="com.godLife.project.dto.categories.JobCateDTO">
+        <association property="jobInfos" javaType="JobCateDTO">
             <result property="idx" column="JOB_IDX" />
             <result property="name" column="JOB_NAME" />
             <result property="iconKey" column="JOB_ICONKEY" />
             <result property="icon" column="JOB_ICON" />
             <result property="color" column="JOB_COLOR" />
         </association>
-        <association property="targetInfos" javaType="com.godLife.project.dto.categories.TargetCateDTO">
+        <association property="targetInfos" javaType="TargetCateDTO">
             <result property="idx" column="TARGET_IDX" />
             <result property="name" column="TARGET_NAME" />
             <result property="iconKey" column="TARGET_ICONKEY" />
@@ -58,7 +58,7 @@
     </update>
 
     <!-- 회원 정보 수정 (개인 정보) -->
-    <update id="modifyPersonal" parameterType="com.godLife.project.dto.request.myPage.ModifyPersonalRequestDTO">
+    <update id="modifyPersonal" parameterType="ModifyPersonalRequestDTO">
         UPDATE USER_TABLE
         SET USER_NAME = #{userName},
             USER_PHONE = #{userPhone},
@@ -67,7 +67,7 @@
     </update>
 
     <!-- 회원 정보 수정 (닉네임) -->
-    <update id="modifyNickName" parameterType="com.godLife.project.dto.request.myPage.ModifyNicknameRequestDTO">
+    <update id="modifyNickName" parameterType="ModifyNicknameRequestDTO">
         UPDATE USER_TABLE
         SET USER_NICK = #{userNick}
         <if test="nickTag != null">

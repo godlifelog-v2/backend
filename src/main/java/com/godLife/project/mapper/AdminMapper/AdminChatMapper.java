@@ -1,8 +1,8 @@
 package com.godLife.project.mapper.AdminMapper;
 
-import com.godLife.project.dto.chat.ChatMembers;
-import com.godLife.project.dto.chat.ChatRoles;
-import com.godLife.project.dto.chat.ChatRoomDTO;
+import com.godLife.project.dto.model.chat.ChatMembers;
+import com.godLife.project.dto.model.chat.ChatRoles;
+import com.godLife.project.dto.model.chat.ChatRoomDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

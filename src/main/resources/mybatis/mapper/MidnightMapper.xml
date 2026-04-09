@@ -5,7 +5,7 @@
 <mapper namespace="com.godLife.project.mapper.MidnightMapper">
 
     <!-- 전체 조회 -->
-    <select id="getPlanIdxIfVerifyRateIsUnder90" resultType="com.godLife.project.dto.scheduler.VerifyUnder90DTO">
+    <select id="getPlanIdxIfVerifyRateIsUnder90" resultType="VerifyUnder90DTO">
         SELECT P.PLAN_IDX, P.CERT_EXP, P.LAST_EXP,
         CASE
         WHEN COUNT(DISTINCT A.ACTIVITY_IDX) = 0 THEN 0
@@ -21,7 +21,7 @@
         HAVING ROUND((COUNT(DISTINCT V.ACTIVITY_IDX) / COUNT(DISTINCT A.ACTIVITY_IDX)) * 100, 2) <![CDATA[ < ]]> 90
     </select>
 
-    <update id="decreaseCertExp" parameterType="com.godLife.project.dto.scheduler.VerifyUnder90DTO">
+    <update id="decreaseCertExp" parameterType="VerifyUnder90DTO">
         UPDATE PLAN_TABLE
         SET CERT_EXP = CERT_EXP - #{minusExp}
         WHERE PLAN_IDX = #{planIdx}

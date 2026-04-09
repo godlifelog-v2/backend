@@ -1,7 +1,7 @@
 package com.godLife.project.service.interfaces.jwtInterface;
 
-import com.godLife.project.dto.infos.PlanReportDTO;
-import com.godLife.project.dto.infos.UserReportDTO;
+import com.godLife.project.dto.query.report.PlanReportDTO;
+import com.godLife.project.dto.query.report.UserReportDTO;
 
 public interface ReportService {
   // 루틴 신고하기

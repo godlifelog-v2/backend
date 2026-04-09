@@ -1,9 +1,9 @@
 package com.godLife.project.service.interfaces.AdminInterface;
 
-import com.godLife.project.dto.categories.ChallengeCateDTO;
-import com.godLife.project.dto.categories.JobCateDTO;
-import com.godLife.project.dto.categories.TargetCateDTO;
-import com.godLife.project.dto.datas.FireDTO;
+import com.godLife.project.dto.category.ChallengeCateDTO;
+import com.godLife.project.dto.category.JobCateDTO;
+import com.godLife.project.dto.category.TargetCateDTO;
+import com.godLife.project.dto.model.common.FireDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

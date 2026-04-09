@@ -1,7 +1,7 @@
 package com.godLife.project.service.interfaces.AdminInterface;
 
-import com.godLife.project.dto.datas.PlanDTO;
-import com.godLife.project.dto.list.customDTOs.CustomAdminPlanListDTO;
+import com.godLife.project.dto.model.plan.PlanDTO;
+import com.godLife.project.dto.query.plan.CustomAdminPlanListDTO;
 import com.godLife.project.mapper.AdminMapper.PlanAdminMapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;

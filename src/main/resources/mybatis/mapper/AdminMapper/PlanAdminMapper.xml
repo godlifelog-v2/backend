@@ -5,7 +5,7 @@
 <mapper namespace="com.godLife.project.mapper.AdminMapper.PlanAdminMapper">
 
 
-    <select id="selectAdminPlanList" resultType="com.godLife.project.dto.list.customDTOs.CustomAdminPlanListDTO">
+    <select id="selectAdminPlanList" resultType="CustomAdminPlanListDTO">
         SELECT
         r.PLAN_IDX,
         r.PLAN_TITLE,
@@ -37,7 +37,7 @@
         AND r.IS_DELETED = 0
     </select>
 
-    <select id="selectAdminPlanListByTargetIdx" resultType="com.godLife.project.dto.list.customDTOs.CustomAdminPlanListDTO">
+    <select id="selectAdminPlanListByTargetIdx" resultType="CustomAdminPlanListDTO">
         SELECT
         r.PLAN_IDX,
         r.PLAN_TITLE,
@@ -53,7 +53,7 @@
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
-    <select id="selectPlanList" resultType="com.godLife.project.dto.list.customDTOs.CustomAdminPlanListDTO">
+    <select id="selectPlanList" resultType="CustomAdminPlanListDTO">
         SELECT
         r.PLAN_IDX,
         r.PLAN_TITLE,

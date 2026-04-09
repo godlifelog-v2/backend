@@ -1,6 +1,6 @@
 package com.godLife.project.service.impl;
 
-import com.godLife.project.dto.contents.NoticeDTO;
+import com.godLife.project.dto.model.content.NoticeDTO;
 import com.godLife.project.mapper.NoticeMapper;
 import com.godLife.project.service.interfaces.NoticeService;
 import com.godLife.project.utils.HtmlSanitizer;

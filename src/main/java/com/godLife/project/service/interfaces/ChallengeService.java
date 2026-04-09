@@ -1,9 +1,9 @@
 package com.godLife.project.service.interfaces;
 
-import com.godLife.project.dto.contents.ChallengeDTO;
-import com.godLife.project.dto.request.ChallengeSearchParamDTO;
-import com.godLife.project.dto.verify.ChallengeVerifyDTO;
-import com.godLife.project.dto.verify.VerifyRecordDTO;
+import com.godLife.project.dto.model.content.ChallengeDTO;
+import com.godLife.project.dto.query.challenge.ChallengeSearchParamDTO;
+import com.godLife.project.dto.request.challenge.ChallengeVerifyDTO;
+import com.godLife.project.dto.internal.verify.VerifyRecordDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

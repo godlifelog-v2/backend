@@ -1,8 +1,8 @@
 package com.godLife.project.mapper.AdminMapper;
 
-import com.godLife.project.dto.contents.ChallengeDTO;
-import com.godLife.project.dto.infos.ChallengeJoinDTO;
-import com.godLife.project.dto.request.ChallengeSearchParamDTO;
+import com.godLife.project.dto.model.content.ChallengeDTO;
+import com.godLife.project.dto.query.challenge.ChallengeJoinDTO;
+import com.godLife.project.dto.query.challenge.ChallengeSearchParamDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

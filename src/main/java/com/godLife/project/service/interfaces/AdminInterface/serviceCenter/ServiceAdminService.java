@@ -1,7 +1,7 @@
 package com.godLife.project.service.interfaces.AdminInterface.serviceCenter;
 
-import com.godLife.project.dto.serviceAdmin.ServiceCenterAdminInfos;
-import com.godLife.project.dto.serviceAdmin.ServiceCenterAdminList;
+import com.godLife.project.dto.websocket.admin.ServiceCenterAdminInfos;
+import com.godLife.project.dto.websocket.admin.ServiceCenterAdminList;
 
 import java.util.List;
 

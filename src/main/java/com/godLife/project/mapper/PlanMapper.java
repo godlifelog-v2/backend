@@ -1,12 +1,12 @@
 package com.godLife.project.mapper;
 
-import com.godLife.project.dto.categories.JobCateDTO;
-import com.godLife.project.dto.categories.JobEtcCateDTO;
-import com.godLife.project.dto.categories.TargetCateDTO;
-import com.godLife.project.dto.datas.ActivityDTO;
-import com.godLife.project.dto.datas.FireDTO;
-import com.godLife.project.dto.datas.PlanDTO;
-import com.godLife.project.dto.request.PlanRequestDTO;
+import com.godLife.project.dto.category.JobCateDTO;
+import com.godLife.project.dto.category.JobEtcCateDTO;
+import com.godLife.project.dto.category.TargetCateDTO;
+import com.godLife.project.dto.model.plan.ActivityDTO;
+import com.godLife.project.dto.model.common.FireDTO;
+import com.godLife.project.dto.model.plan.PlanDTO;
+import com.godLife.project.dto.request.plan.PlanRequestDTO;
 import com.godLife.project.handler.typehandler.ListStringTypeHandler;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.mapping.FetchType;

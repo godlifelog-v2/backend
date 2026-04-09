@@ -1,6 +1,6 @@
 package com.godLife.project.service.impl.adminImpl;
 
-import com.godLife.project.dto.list.customDTOs.CustomAdminPlanListDTO;
+import com.godLife.project.dto.query.plan.CustomAdminPlanListDTO;
 import com.godLife.project.mapper.AdminMapper.PlanAdminMapper;
 import com.godLife.project.service.interfaces.AdminInterface.PlanAdminService;
 import lombok.RequiredArgsConstructor;

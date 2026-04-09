@@ -1,8 +1,8 @@
 package com.godLife.project.service.impl.adminImpl;
 
-import com.godLife.project.dto.categories.AuthorityCateDTO;
-import com.godLife.project.dto.list.customDTOs.AdminListDTO;
-import com.godLife.project.dto.list.customDTOs.AdminUserDTO;
+import com.godLife.project.dto.category.AuthorityCateDTO;
+import com.godLife.project.dto.query.user.AdminListDTO;
+import com.godLife.project.dto.query.user.AdminUserDTO;
 import com.godLife.project.mapper.AdminMapper.AdminUserMapper;
 import com.godLife.project.service.interfaces.AdminInterface.AdminUserService;
 import lombok.RequiredArgsConstructor;

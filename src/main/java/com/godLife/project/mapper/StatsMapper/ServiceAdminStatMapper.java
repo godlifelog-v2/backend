@@ -1,8 +1,8 @@
 package com.godLife.project.mapper.StatsMapper;
 
-import com.godLife.project.dto.statistics.DayAndMonthStats;
-import com.godLife.project.dto.statistics.QnaAdminStat;
-import com.godLife.project.dto.statistics.response.ResponseQnaAdminStat;
+import com.godLife.project.dto.internal.stats.DayAndMonthStats;
+import com.godLife.project.dto.internal.stats.QnaAdminStat;
+import com.godLife.project.dto.response.stats.ResponseQnaAdminStat;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;

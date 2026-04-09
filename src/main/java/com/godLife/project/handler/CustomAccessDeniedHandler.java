@@ -1,8 +1,8 @@
 package com.godLife.project.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.godLife.project.dto.datas.UserDTO;
-import com.godLife.project.dto.jwtDTO.CustomUserDetails;
+import com.godLife.project.dto.model.user.UserDTO;
+import com.godLife.project.dto.security.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;

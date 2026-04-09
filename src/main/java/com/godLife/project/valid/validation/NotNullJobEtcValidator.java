@@ -1,7 +1,7 @@
 package com.godLife.project.valid.validation;
 
-import com.godLife.project.dto.categories.JobEtcCateDTO;
-import com.godLife.project.dto.datas.PlanDTO;
+import com.godLife.project.dto.category.JobEtcCateDTO;
+import com.godLife.project.dto.model.plan.PlanDTO;
 import com.godLife.project.service.interfaces.CategoryService;
 import com.godLife.project.valid.annotation.NotNullJobEtc;
 import jakarta.validation.ConstraintValidator;

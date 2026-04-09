@@ -23,8 +23,8 @@
 
     <!-- 챌린지 조회 (필터) -->
     <select id="getLatestAdminChallenges"
-            parameterType="com.godLife.project.dto.request.ChallengeSearchParamDTO"
-            resultType="com.godLife.project.dto.request.ChallRequestDTO">
+            parameterType="ChallengeSearchParamDTO"
+            resultType="ChallRequestDTO">
         SELECT
         CT.CHALL_IDX,
         CT.CHALL_TITLE,
@@ -73,7 +73,7 @@
 
     <!-- 챌린지 조회 카운트 -->
     <select id="countLatestAdminChallenges"
-            parameterType="com.godLife.project.dto.request.ChallengeSearchParamDTO"
+            parameterType="ChallengeSearchParamDTO"
             resultType="int">
         SELECT COUNT(*)
         FROM CHALL_TABLE CT
@@ -120,7 +120,7 @@
     </select>
 
     <!-- 챌린지 수정 -->
-    <update id="modifyChallenge" parameterType="com.godLife.project.dto.contents.ChallengeDTO">
+    <update id="modifyChallenge" parameterType="ChallengeDTO">
         UPDATE CHALL_TABLE
         <set>
             <if test="challTitle != null">CHALL_TITLE = #{challTitle},</if>
@@ -189,7 +189,7 @@
 
 
     <!-- 챌린지 상세정보 조회 -->
-    <select id="challengeDetail" resultType="com.godLife.project.dto.contents.ChallengeDTO">
+    <select id="challengeDetail" resultType="ChallengeDTO">
         SELECT
         CHALL_IDX, CHALL_TITLE, CHALL_DESCRIPTION, CHALL_CATEGORY_IDX,
         MIN_PARTICIPATION_TIME, TOTAL_CLEAR_TIME, MAX_PARTICIPANTS,
@@ -199,7 +199,7 @@
     </select>
 
     <!-- 상세조회시 참가자 조회-->
-    <select id="getChallengeParticipants" resultType="com.godLife.project.dto.infos.ChallengeJoinDTO">
+    <select id="getChallengeParticipants" resultType="ChallengeJoinDTO">
         SELECT cj.CHALL_JOIN_IDX,
         cj.CHALL_IDX,
         cj.USER_IDX,

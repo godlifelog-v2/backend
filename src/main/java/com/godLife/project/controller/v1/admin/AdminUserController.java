@@ -1,8 +1,8 @@
 package com.godLife.project.controller.v1.admin;
 
-import com.godLife.project.dto.categories.AuthorityCateDTO;
-import com.godLife.project.dto.list.customDTOs.AdminListDTO;
-import com.godLife.project.dto.list.customDTOs.AdminUserDTO;
+import com.godLife.project.dto.category.AuthorityCateDTO;
+import com.godLife.project.dto.query.user.AdminListDTO;
+import com.godLife.project.dto.query.user.AdminUserDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.service.interfaces.AdminInterface.AdminUserService;
 import lombok.RequiredArgsConstructor;

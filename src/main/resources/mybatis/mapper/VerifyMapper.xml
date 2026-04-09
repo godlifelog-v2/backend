@@ -21,7 +21,7 @@
     </select>
 
     <!-- 모든 루틴 불꽃 활성화 여부 조회 -->
-    <select id="checkAllFireIsActivateByUserIdx" parameterType="int" resultType="com.godLife.project.dto.verify.CheckAllFireActivateDTO">
+    <select id="checkAllFireIsActivateByUserIdx" parameterType="int" resultType="CheckAllFireActivateDTO">
         SELECT USER_IDX,
         CASE
         WHEN COUNT(*) = SUM(CASE WHEN FIRE_STATE = 1 THEN 1 ELSE 0 END) THEN 1

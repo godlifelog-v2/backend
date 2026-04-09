@@ -1,8 +1,8 @@
 package com.godLife.project.service.impl;
 
 
-import com.godLife.project.dto.infos.PlanReportDTO;
-import com.godLife.project.dto.infos.UserReportDTO;
+import com.godLife.project.dto.query.report.PlanReportDTO;
+import com.godLife.project.dto.query.report.UserReportDTO;
 import com.godLife.project.mapper.ReportMapper;
 import com.godLife.project.service.interfaces.jwtInterface.ReportService;
 import lombok.RequiredArgsConstructor;

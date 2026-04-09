@@ -1,8 +1,8 @@
 package com.godLife.project.service.interfaces;
 
-import com.godLife.project.dto.qnaWebsocket.listMessage.MatchedListMessageDTO;
-import com.godLife.project.dto.qnaWebsocket.listMessage.WaitListMessageDTO;
-import com.godLife.project.dto.serviceAdmin.AdminIdxAndIdDTO;
+import com.godLife.project.dto.websocket.qna.MatchedListMessageDTO;
+import com.godLife.project.dto.websocket.qna.WaitListMessageDTO;
+import com.godLife.project.dto.websocket.admin.AdminIdxAndIdDTO;
 
 public interface QnaMatchService {
 

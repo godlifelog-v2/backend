@@ -20,7 +20,7 @@
   </update>
 
   <!-- 상담원 일간/월간 문의 처리 통계 일괄 조회-->
-  <select id="getQnaAdminDayAndMonthStats" parameterType="int" resultType="com.godLife.project.dto.statistics.DayAndMonthStats">
+  <select id="getQnaAdminDayAndMonthStats" parameterType="int" resultType="DayAndMonthStats">
     WITH daily AS (
     SELECT TOTAL_COUNT AS D_TOTAL_COUNT, TOTAL_DURATION AS D_TOTAL_DURATION
     FROM QNA_DAILY_STATS
@@ -57,7 +57,7 @@
 
 
   <!-- 상담원 통계 테이블 최신화 -->
-  <update id="updateQnaAdminSummaryStats" parameterType="com.godLife.project.dto.statistics.QnaAdminStat">
+  <update id="updateQnaAdminSummaryStats" parameterType="QnaAdminStat">
     UPDATE QNA_ADMIN_SUMMARY_STATS
     SET TOTAL_COUNT = #{totalCount},
         TOTAL_DURATION = #{totalDuration},

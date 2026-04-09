@@ -1,8 +1,8 @@
 package com.godLife.project.controller.v1;
 
 
-import com.godLife.project.dto.datas.PlanDTO;
-import com.godLife.project.dto.request.PlanRequestDTO;
+import com.godLife.project.dto.model.plan.PlanDTO;
+import com.godLife.project.dto.request.plan.PlanRequestDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.service.interfaces.PlanService;
 import jakarta.servlet.http.Cookie;

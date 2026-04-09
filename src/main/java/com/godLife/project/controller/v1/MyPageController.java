@@ -1,8 +1,8 @@
 package com.godLife.project.controller.v1;
 
-import com.godLife.project.dto.list.PlanListDTO;
+import com.godLife.project.dto.query.plan.PlanListDTO;
 import com.godLife.project.dto.request.myPage.*;
-import com.godLife.project.dto.response.MyPageUserInfosResponseDTO;
+import com.godLife.project.dto.response.user.MyPageUserInfosResponseDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.service.impl.redis.RedisService;
 import com.godLife.project.service.interfaces.ListService;

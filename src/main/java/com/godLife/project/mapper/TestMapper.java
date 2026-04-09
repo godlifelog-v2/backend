@@ -1,7 +1,7 @@
 package com.godLife.project.mapper;
 
-import com.godLife.project.dto.test.GetPlanIdxDTO;
-import com.godLife.project.dto.test.GetUserListDTO;
+import com.godLife.project.dto.internal.test.GetPlanIdxDTO;
+import com.godLife.project.dto.internal.test.GetUserListDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;

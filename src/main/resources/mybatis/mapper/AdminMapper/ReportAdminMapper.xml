@@ -5,7 +5,7 @@
 <mapper namespace="com.godLife.project.mapper.AdminMapper.ReportAdminMapper">
 
     <!-- 유저 신고 조회 or 상태별 조회 -->
-    <select id="getAllReports" resultType="com.godLife.project.dto.infos.UserReportDTO">
+    <select id="getAllReports" resultType="UserReportDTO">
         SELECT
         r.REPORTER_IDX,
         reporter.USER_NICK AS REPORTER_NICK,
@@ -42,7 +42,7 @@
     </select>
 
     <!-- 상태별 조회 status : 0 처리중, 1 처리완료 -->
-    <select id="selectReportsByStatus" resultType="com.godLife.project.dto.infos.UserReportDTO">
+    <select id="selectReportsByStatus" resultType="UserReportDTO">
         SELECT
         r.REPORTER_IDX,
         reporter.USER_NICK AS REPORTER_NICK,
@@ -61,7 +61,7 @@
 
 
     <!-- 신고처리 -->
-    <update id="userReportStateUpdate" parameterType="com.godLife.project.dto.infos.UserReportDTO">
+    <update id="userReportStateUpdate" parameterType="UserReportDTO">
         UPDATE USER_REPORT
         SET STATUS = #{status}
         WHERE USER_REPORT_IDX = #{userReportIdx}
@@ -94,7 +94,7 @@
 
     <!--                  루틴 신고 관련               -->
     <!-- 전체 루틴 신고 조회 -->
-    <select id="selectPlanReports" resultType="com.godLife.project.dto.infos.PlanReportDTO">
+    <select id="selectPlanReports" resultType="PlanReportDTO">
         SELECT
         r.PLAN_REPORT_IDX,
         r.REPORTER_IDX,
@@ -112,7 +112,7 @@
 
 
     <!-- 상태별 조회 status : 0 처리중, 1 처리완료 -->
-    <select id="selectPlanReportsByStatus" resultType="com.godLife.project.dto.infos.PlanReportDTO">
+    <select id="selectPlanReportsByStatus" resultType="PlanReportDTO">
         SELECT
         r.REPORTER_IDX,
         reporter.USER_NICK AS REPORTER_NICK,
@@ -143,7 +143,7 @@
     </select>
 
     <!-- 신고처리 -->
-    <update id="planReportStateUpdate" parameterType="com.godLife.project.dto.infos.PlanReportDTO">
+    <update id="planReportStateUpdate" parameterType="PlanReportDTO">
         UPDATE PLAN_REPORT
         SET STATUS = #{status}
         WHERE PLAN_REPORT_IDX = #{planReportIdx}
@@ -155,7 +155,7 @@
     </select>
 
     <!-- 루틴 비공개 처리-->
-    <update id="updatePlanVisible" parameterType="com.godLife.project.dto.infos.PlanReportDTO">
+    <update id="updatePlanVisible" parameterType="PlanReportDTO">
         UPDATE PLAN_TABLE
         SET IS_SHARED = #{isShared}
         WHERE PLAN_IDX = #{planIdx}

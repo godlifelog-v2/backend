@@ -1,9 +1,9 @@
 package com.godLife.project.service.interfaces;
 
 
-import com.godLife.project.dto.datas.UserDTO;
+import com.godLife.project.dto.model.user.UserDTO;
 import com.godLife.project.dto.request.myPage.*;
-import com.godLife.project.dto.response.MyPageUserInfosResponseDTO;
+import com.godLife.project.dto.response.user.MyPageUserInfosResponseDTO;
 
 import java.util.List;
 

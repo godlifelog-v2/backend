@@ -1,6 +1,6 @@
 package com.godLife.project.service.interfaces;
 
-import com.godLife.project.dto.contents.NoticeDTO;
+import com.godLife.project.dto.model.content.NoticeDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

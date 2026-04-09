@@ -1,9 +1,9 @@
 package com.godLife.project.controller.v1.admin;
 
-import com.godLife.project.dto.categories.JobEtcCateDTO;
-import com.godLife.project.dto.datas.ActivityDTO;
-import com.godLife.project.dto.datas.PlanDTO;
-import com.godLife.project.dto.list.customDTOs.CustomAdminPlanListDTO;
+import com.godLife.project.dto.category.JobEtcCateDTO;
+import com.godLife.project.dto.model.plan.ActivityDTO;
+import com.godLife.project.dto.model.plan.PlanDTO;
+import com.godLife.project.dto.query.plan.CustomAdminPlanListDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.mapper.AdminMapper.PlanAdminMapper;
 import com.godLife.project.service.interfaces.AdminInterface.PlanAdminService;

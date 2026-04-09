@@ -5,7 +5,7 @@
 <mapper namespace="com.godLife.project.mapper.NoticeMapper">
 
     <!-- 공지사항 List 조회 - 페이지네이션 적용 -->
-    <select id="getNoticeList" resultType="com.godLife.project.dto.contents.NoticeDTO">
+    <select id="getNoticeList" resultType="NoticeDTO">
         SELECT
         n.notice_idx AS noticeIdx,
         n.notice_title AS noticeTitle,
@@ -25,7 +25,7 @@
     </select>
 
     <!-- 공지사항 상세 조회 (작성자 이름 포함) -->
-    <select id="getNoticeDetail" resultType="com.godLife.project.dto.contents.NoticeDTO">
+    <select id="getNoticeDetail" resultType="NoticeDTO">
         SELECT
         N.NOTICE_IDX,
         N.NOTICE_TITLE,
@@ -43,7 +43,7 @@
     </select>
 
     <!-- 활성화된 팝업 공지사항 조회 -->
-    <select id="getActivePopupNoticeList" resultType="com.godLife.project.dto.contents.NoticeDTO">
+    <select id="getActivePopupNoticeList" resultType="NoticeDTO">
         SELECT *
         FROM NOTICE_TABLE
         WHERE IS_POPUP = 'Y'
@@ -52,7 +52,7 @@
     </select>
 
     <!-- 팝업 활성화 -->
-    <update id="setNoticePopup" parameterType="com.godLife.project.dto.contents.NoticeDTO">
+    <update id="setNoticePopup" parameterType="NoticeDTO">
         UPDATE NOTICE_TABLE
         SET IS_POPUP = #{isPopup},
         POPUP_START_DATE = #{popupStartDate},
@@ -61,7 +61,7 @@
     </update>
 
     <!-- 공지사항 작성 -->
-    <insert id="createNotice" parameterType="com.godLife.project.dto.contents.NoticeDTO">
+    <insert id="createNotice" parameterType="NoticeDTO">
         INSERT INTO NOTICE_TABLE (NOTICE_TITLE, NOTICE_SUB, USER_IDX, NOTICE_DATE, IS_POPUP, POPUP_START_DATE, POPUP_END_DATE)
         VALUES (#{noticeTitle}, #{noticeSub}, #{userIdx}, NOW(), #{isPopup}, #{popupStartDate}, #{popupEndDate})
     </insert>

@@ -1,6 +1,6 @@
 package com.godLife.project.service.impl.jwtImpl;
 
-import com.godLife.project.dto.jwtDTO.RefreshDTO;
+import com.godLife.project.dto.security.RefreshDTO;
 import com.godLife.project.mapper.VerifyMapper;
 import com.godLife.project.mapper.jwtMapper.RefreshMapper;
 import com.godLife.project.service.impl.redis.RedisService;

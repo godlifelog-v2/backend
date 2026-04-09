@@ -1,9 +1,9 @@
 package com.godLife.project.service.impl;
 
-import com.godLife.project.dto.categories.JobEtcCateDTO;
-import com.godLife.project.dto.datas.ActivityDTO;
-import com.godLife.project.dto.datas.PlanDTO;
-import com.godLife.project.dto.request.PlanRequestDTO;
+import com.godLife.project.dto.category.JobEtcCateDTO;
+import com.godLife.project.dto.model.plan.ActivityDTO;
+import com.godLife.project.dto.model.plan.PlanDTO;
+import com.godLife.project.dto.request.plan.PlanRequestDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.mapper.PlanMapper;
 import com.godLife.project.service.interfaces.CategoryService;

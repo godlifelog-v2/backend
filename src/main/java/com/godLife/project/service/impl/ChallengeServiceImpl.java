@@ -1,10 +1,10 @@
 package com.godLife.project.service.impl;
 
-import com.godLife.project.dto.contents.ChallengeDTO;
-import com.godLife.project.dto.infos.ChallengeJoinDTO;
-import com.godLife.project.dto.request.ChallengeSearchParamDTO;
-import com.godLife.project.dto.verify.ChallengeVerifyDTO;
-import com.godLife.project.dto.verify.VerifyRecordDTO;
+import com.godLife.project.dto.model.content.ChallengeDTO;
+import com.godLife.project.dto.query.challenge.ChallengeJoinDTO;
+import com.godLife.project.dto.query.challenge.ChallengeSearchParamDTO;
+import com.godLife.project.dto.request.challenge.ChallengeVerifyDTO;
+import com.godLife.project.dto.internal.verify.VerifyRecordDTO;
 import com.godLife.project.enums.ChallengeState;
 import com.godLife.project.jwt.JWTUtil;
 import com.godLife.project.mapper.ChallengeMapper;
