@@ -66,12 +66,6 @@ public class JWTFilter extends OncePerRequestFilter {
       return;
     }
 
-    // 계정 정지 여부 확인
-    if (jwtUtil.getIsBanned(accessToken) == 1) {
-      sendJson(response, HttpServletResponse.SC_FORBIDDEN, "{\"error\": \"정지로 인해 서비스 이용이 제한되었습니다.\"}");
-      return;
-    }
-
     String username = jwtUtil.getUsername(accessToken);
     String role = jwtUtil.getRole(accessToken);
 

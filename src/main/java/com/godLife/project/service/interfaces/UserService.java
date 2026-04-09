@@ -3,6 +3,7 @@ package com.godLife.project.service.interfaces;
 import com.godLife.project.dto.model.user.UserDTO;
 import com.godLife.project.dto.query.user.GetNameNEmail;
 import com.godLife.project.dto.request.myPage.GetUserPwRequestDTO;
+import com.godLife.project.dto.response.user.UserProfileResponseDTO;
 
 public interface UserService {
     // 회원가입
@@ -20,5 +21,6 @@ public interface UserService {
     // 비번 찾기
     int FindUserPw(GetUserPwRequestDTO userPwRequestDTO, String userEmail);
 
-
+    // 프로필 조회
+    UserProfileResponseDTO getUserProfile(String userId);
 }

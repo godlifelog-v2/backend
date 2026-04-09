@@ -46,29 +46,28 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
   @Override
   public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
-
     // JSON 형식으로 데이터 받기
-        try {
-            // 요청 본문에서 JSON 데이터를 읽어 LoginDTO 객체로 변환
-            ObjectMapper objectMapper = new ObjectMapper();
-            UserDTO loginDTO = objectMapper.readValue(request.getInputStream(), UserDTO.class);
+    try {
+      // 요청 본문에서 JSON 데이터를 읽어 LoginDTO 객체로 변환
+      ObjectMapper objectMapper = new ObjectMapper();
+      UserDTO loginDTO = objectMapper.readValue(request.getInputStream(), UserDTO.class);
 
-            String username = loginDTO.getUserId();
-            String password = loginDTO.getUserPw();
+      String username = loginDTO.getUserId();
+      String password = loginDTO.getUserPw();
 
-            // 스프링 시큐리티에서 username과 password를 검증하기 위해서는 token에 담아야 함
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password, null);
-            return authenticationManager.authenticate(authToken);
-        } catch (IOException e) {
-          log.error("로그인 중 JSON 파싱 에러: {}", e.getMessage());
-            throw new AuthenticationException("Failed to parse JSON request") {};
-        }
+      // 스프링 시큐리티에서 username과 password를 검증하기 위해서는 token에 담아야 함
+      UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password, null);
+      return authenticationManager.authenticate(authToken);
+    } catch (IOException e) {
+      log.error("로그인 중 JSON 파싱 에러: {}", e.getMessage());
+      throw new AuthenticationException("Failed to parse JSON request") {};
+    }
 
   }
 
   //로그인 성공시 실행하는 메소드 (여기서 JWT를 발급하면 됨)
   @Override
-  protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException{
+  protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException {
 
     //유저 정보
     String username = authentication.getName();
@@ -80,25 +79,23 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     // 유저 정보 조회
     UserDTO tempUserDTO = userService.findByUserId(username);
-    int isBanned = tempUserDTO.getIsBanned();
+
+    // 정지 유저 차단
+    if (tempUserDTO.getIsBanned() == 1) {
+      response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+      response.getWriter().write("{\"error\": \"정지된 계정입니다.\"}");
+      return;
+    }
 
     // 전송할 데이터 DTO
     LoginResponseDTO loginUserDTO = new LoginResponseDTO();
-    loginUserDTO.setUserIdx(tempUserDTO.getUserIdx());      // 유저 고유 인덱스
-    loginUserDTO.setUserName(tempUserDTO.getUserName());    // 유저 이름
-    loginUserDTO.setUserNick(tempUserDTO.getUserNick());    // 유저 닉네임
-    loginUserDTO.setNickTag(tempUserDTO.getNickTag());      // 닉네임 중복 태그
-    loginUserDTO.setJobIdx(tempUserDTO.getJobIdx());        // 유저 직업
-    loginUserDTO.setTargetIdx(tempUserDTO.getTargetIdx());  // 유저 관심사
-    loginUserDTO.setCombo(tempUserDTO.getCombo());          // 유저 콤보
-    loginUserDTO.setUserExp(tempUserDTO.getUserExp());      // 유저 경험치
-    loginUserDTO.setUserLv(tempUserDTO.getUserLv());        // 유저 레벨
+    loginUserDTO.setUserNick(tempUserDTO.getUserNick());
+    loginUserDTO.setNickTag(tempUserDTO.getNickTag());
     if (tempUserDTO.getAuthorityIdx() >= 2) {
-      loginUserDTO.setRoleStatus(true);                     // 유저 권한이 아닐 경우 true
-    loginUserDTO.setReportCount(tempUserDTO.getReportCount()); // 신고 횟수
-    loginUserDTO.setIsBanned(tempUserDTO.getIsBanned());       // 정지 여부
+      loginUserDTO.setRoleStatus(true);
     }
-
 
     // Long accessExp = TimeUnit.MINUTES.toMillis(10);     // 10분
     Long accessExp = TimeUnit.MINUTES.toMillis(5);  // 5분
@@ -106,8 +103,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     Long refreshExp = TimeUnit.HOURS.toMillis(24);  // 24시간
 
     //토큰 생성
-    String access = jwtUtil.createJwt("access", username, role,  isBanned, accessExp);
-    String refresh = jwtUtil.createJwt("refresh", username, role, isBanned, refreshExp);
+    String access = jwtUtil.createJwt("access", username, role, accessExp);
+    String refresh = jwtUtil.createJwt("refresh", username, role, refreshExp);
 
     // Refresh 토큰 저장
     refreshService.addRefreshToken(username, refresh, refreshExp);
@@ -144,7 +141,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     cookie.setPath("/");     // 쿠키 적용 범위
     cookie.setHttpOnly(true);
 
-    // 🔹 현재 요청이 HTTPS인지 확인하여 Secure 적용
+    // 현재 요청이 HTTPS인지 확인하여 Secure 적용
     boolean isSecure = request.isSecure() || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
     if (isSecure) {
       cookie.setSecure(true);

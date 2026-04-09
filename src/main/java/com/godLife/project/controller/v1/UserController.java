@@ -3,6 +3,7 @@ package com.godLife.project.controller.v1;
 import com.godLife.project.dto.model.user.UserDTO;
 import com.godLife.project.dto.query.user.GetNameNEmail;
 import com.godLife.project.dto.request.myPage.GetUserPwRequestDTO;
+import com.godLife.project.dto.response.user.UserProfileResponseDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.service.impl.redis.RedisService;
 import com.godLife.project.service.interfaces.UserService;
@@ -83,6 +84,7 @@ public class UserController {
     }
     return ResponseEntity.ok().body(handler.createResponse(200, result));
   }
+
   // 아이디 찾기 마스킹 제거
   @GetMapping("/find/userId/noMask")
   public ResponseEntity<Map<String, Object>> noMaskingUserId(@Valid @ModelAttribute GetNameNEmail request,
@@ -146,6 +148,19 @@ public class UserController {
 
     // 응답 메시지 설정
     return ResponseEntity.status(handler.getHttpStatus(result)).body(handler.createResponse(result, msg));
+  }
+
+  // 프로필 조회
+  @Operation(summary = "유저 프로필 조회 API", description = "로그인 후 유저의 게임 프로필 데이터 조회")
+  @GetMapping("/auth/profile")
+  public ResponseEntity<Map<String, Object>> getUserProfile(@RequestHeader("Authorization") String authHeader) {
+    String userId = handler.getUserNameFromToken(authHeader);
+    UserProfileResponseDTO result = userService.getUserProfile(userId);
+
+    if (result == null) {
+      return ResponseEntity.status(404).body(handler.createResponse(404, "유저 정보가 없습니다."));
+    }
+    return ResponseEntity.ok(handler.createResponse(200, result));
   }
 
 }
