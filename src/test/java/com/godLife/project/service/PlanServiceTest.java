@@ -1,7 +1,7 @@
 package com.godLife.project.service;
 
-import com.godLife.project.dto.datas.ActivityDTO;
-import com.godLife.project.dto.datas.PlanDTO;
+import com.godLife.project.dto.model.plan.ActivityDTO;
+import com.godLife.project.dto.model.plan.PlanDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.mapper.PlanMapper;
 import com.godLife.project.service.impl.PlanServicelmpl;

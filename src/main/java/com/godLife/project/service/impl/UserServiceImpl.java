@@ -4,6 +4,7 @@ package com.godLife.project.service.impl;
 import com.godLife.project.dto.model.user.UserDTO;
 import com.godLife.project.dto.query.user.GetNameNEmail;
 import com.godLife.project.dto.request.myPage.GetUserPwRequestDTO;
+import com.godLife.project.dto.response.user.UserProfileResponseDTO;
 import com.godLife.project.mapper.UserMapper;
 import com.godLife.project.service.interfaces.UserService;
 import lombok.RequiredArgsConstructor;
@@ -91,6 +92,23 @@ public class UserServiceImpl implements UserService {
         return visiblePart + maskedPart;
     }
 
+
+    // 프로필 조회
+    @Override
+    public UserProfileResponseDTO getUserProfile(String userId) {
+        UserDTO user = userMapper.findByUserid(userId);
+        if (user == null) return null;
+
+        UserProfileResponseDTO dto = new UserProfileResponseDTO();
+        dto.setUserNick(user.getUserNick());
+        dto.setNickTag(user.getNickTag());
+        dto.setJobIdx(user.getJobIdx());
+        dto.setTargetIdx(user.getTargetIdx());
+        dto.setCombo(user.getCombo());
+        dto.setUserExp(user.getUserExp());
+        dto.setUserLv(user.getUserLv());
+        return dto;
+    }
 
     // 비번 찾기
     @Override
