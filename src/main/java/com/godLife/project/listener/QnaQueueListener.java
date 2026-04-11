@@ -83,7 +83,7 @@ public class QnaQueueListener implements InitializingBean, DisposableBean {
               continue;
             }
 
-            String result = redisService.brPopFromRedisQueue(QnaRedisKey.QNA_QUEUE_KEY.getKey(), 0);
+            String result = redisService.brPopFromRedisQueue(QnaRedisKey.QNA_QUEUE_KEY.getKey(), 10);
 
             if (result != null) {
               int qnaIdx = Integer.parseInt(result);
