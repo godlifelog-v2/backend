@@ -7,6 +7,7 @@ import com.godLife.project.mapper.MyPageMapper;
 import com.godLife.project.mapper.PlanMapper;
 import com.godLife.project.mapper.UserMapper;
 import com.godLife.project.service.interfaces.MyPageService;
+import com.godLife.project.service.interfaces.jwtInterface.RefreshService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +26,7 @@ public class MyPageServiceImpl implements MyPageService {
 
     private final AuthServiceImpl authService;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshService refreshService;
 
     // 회원 탈퇴
     @Override
@@ -213,6 +215,12 @@ public class MyPageServiceImpl implements MyPageService {
 
             if (result == 0) {
                 return 404;
+            }
+
+            // 비밀번호 변경 성공 시 기존 Refresh Token 전체 무효화 (세션 하이재킹 방지)
+            String userId = userMapper.getUserIdByUserIdx(userIdx);
+            if (userId != null) {
+                refreshService.deleteByUsername(userId);
             }
 
             return 200;
