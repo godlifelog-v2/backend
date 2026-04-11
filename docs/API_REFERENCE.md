@@ -1,6 +1,6 @@
 # GodLifeLog v2 Backend - REST API 레퍼런스
 
-> 작성일: 2026-04-07
+> 작성일: 2026-04-07 / 최종 수정: 2026-04-11
 > 기준 브랜치: `dev`
 > Base URL: `/api/v1`
 
@@ -129,17 +129,325 @@ Authorization: Bearer {accessToken}
 | Method | Path | 설명 | 파라미터 | 인증 |
 |---|---|---|---|---|
 | POST | `/join` | 회원가입 | Body: `UserDTO` | ❌ |
+| POST | `/login` | 로그인 | Body: `userId`, `userPw` | ❌ |
+| POST | `/logout` | 로그아웃 | Cookie: `refresh` | ❌ (Refresh Cookie 필수) |
 | GET | `/checkId/{userId}` | 아이디 중복 확인 | Path: `userId` | ❌ |
 | GET | `/find/userId` | 아이디 찾기 (마스킹) | Query: `GetNameNEmail` | ❌ |
 | GET | `/find/userId/noMask` | 아이디 찾기 (마스킹 해제) | Query: `GetNameNEmail` | ❌ (이메일 인증 필수) |
 | PATCH | `/find/userPw/{userEmail}` | 비밀번호 초기화 | Path: `userEmail`, Body: `GetUserPwRequestDTO` | ❌ (이메일 인증 필수) |
+| GET | `/auth/profile` | 유저 프로필 조회 | Header: `Authorization` | ✅ JWT |
 
-**`UserDTO` 주요 필드**: `userId`, `userPw`, `userName`, `userEmail`, `userNick`, `jobIdx`, `targetIdxList`
+**`UserDTO` 주요 필드**: `userId`, `userPw`, `userName`, `userEmail`, `userNick`, `jobIdx`, `targetIdx`, `userPhone`, `userGender`
 
-**응답 (공통)**
+---
+
+### POST `/join` — 회원가입
+
+**요청 본문 (`UserDTO`)**
+
+#### 필수 필드
+
+| 필드 | 타입 | 제약 조건 |
+|---|---|---|
+| `userId` | String | 4~15자, 영문+숫자만 (`[a-zA-Z0-9]*`), 중복 불가 |
+| `userPw` | String | 8~20자, 영문/숫자/특수문자(`!@#$%^*()_+-=[]{},.?:~`) |
+| `userName` | String | 3~15자 |
+| `userEmail` | String | 이메일 형식, 중복 불가 |
+| `userNick` | String | 2~15자, 한글/영문/숫자/-_ (`[가-힣a-zA-Z0-9-_]*`) |
+| `jobIdx` | int | Min 1 (직업 카테고리 인덱스) |
+| `targetIdx` | int | Min 1 (초기 관심사 인덱스) |
+| `userPhone` | String | `010-XXXX-XXXX` 형식 |
+| `userGender` | int | Min 1 |
+
+**요청 예시**
 ```json
-{ "status": 200, "message": "회원가입 성공", "data": { "userIdx": 1 } }
+{
+  "userId": "Hong123",
+  "userPw": "Pass1234!",
+  "userName": "홍길동",
+  "userEmail": "hong@example.com",
+  "userNick": "의적단",
+  "jobIdx": 1,
+  "targetIdx": 1,
+  "userPhone": "010-1234-5678",
+  "userGender": 1
+}
 ```
+
+**응답**
+
+| 상태 코드 | 응답 본문 | 설명 |
+|---|---|---|
+| `200 OK` | `{ "message": "회원가입 완료" }` | 가입 성공 |
+| `400 Bad Request` | `{ "필드명": "에러 메시지", ... }` | 유효성 검사 실패 |
+
+---
+
+### POST `/login` — 로그인
+
+Spring Security 필터(`LoginFilter`)에서 처리됩니다. 컨트롤러가 아닌 필터 레벨에서 동작합니다.
+
+**요청**
+```json
+{
+  "userId": "string",
+  "userPw": "string"
+}
+```
+
+**응답 (성공 200)**
+- Header: `Authorization: Bearer {accessToken}`
+- Cookie: `refresh={refreshToken}; HttpOnly; Path=/` (HTTPS 환경에서는 `Secure; SameSite=None` 추가)
+- Body:
+```json
+{
+  "userNick": "닉네임",
+  "nickTag": "#태그",
+  "roleStatus": false
+}
+```
+
+| 필드 | 타입 | 설명 |
+|---|---|---|
+| `userNick` | string | 유저 닉네임 |
+| `nickTag` | string | 닉네임 태그 |
+| `roleStatus` | boolean | 관리자 여부 (`authorityIdx >= 2`이면 `true`) |
+
+**응답 (실패)**
+
+| 상태 코드 | 사유 |
+|---|---|
+| `401 Unauthorized` | 아이디 또는 비밀번호 불일치 |
+| `403 Forbidden` | 정지된 계정 |
+
+```json
+{ "error": "아이디 혹은 비밀번호가 일치하지 않습니다." }
+{ "error": "정지된 계정입니다." }
+```
+
+**토큰 유효 기간**
+| 토큰 | 유효 기간 |
+|---|---|
+| Access Token | 5분 |
+| Refresh Token | 24시간 |
+
+---
+
+### POST `/logout` — 로그아웃
+
+Spring Security 필터(`CustomLogoutFilter`)에서 처리됩니다.
+
+**요청**
+- Cookie: `refresh={refreshToken}`
+
+**처리 과정**
+1. 쿠키에서 Refresh 토큰 추출
+2. 토큰 만료 여부 검증
+3. 토큰 카테고리(`refresh`) 검증
+4. DB(Redis) 저장 여부 확인
+5. DB에서 Refresh 토큰 삭제 및 관리자 상태 정보 삭제
+6. `refresh` 쿠키 만료 처리 (`MaxAge=0`)
+
+**응답 (성공 200)**
+```json
+{ "message": "로그아웃이 완료되었습니다." }
+```
+
+**응답 (실패)**
+
+| 상태 코드 | 사유 |
+|---|---|
+| `401 Unauthorized` | Refresh 토큰 쿠키 없음 |
+| `401 Unauthorized` | Refresh 토큰 만료 |
+| `401 Unauthorized` | DB에 Refresh 토큰 없음 |
+| `400 Bad Request` | 유효하지 않은 Refresh 토큰 (카테고리 불일치) |
+
+---
+
+### GET `/find/userId` — 아이디 찾기 (마스킹)
+
+이름과 이메일이 일치하는 계정의 아이디를 **마스킹 처리**하여 반환합니다. 이메일 인증 없이 바로 호출할 수 있습니다.
+
+**요청 (Query Parameter)**
+
+| 파라미터 | 타입 | 필수 | 제약 조건 |
+|---|---|---|---|
+| `userName` | String | ✅ | 3~15자 |
+| `userEmail` | String | ✅ | 이메일 형식, **DB에 등록된 이메일이어야 함** |
+
+```
+GET /api/v1/user/find/userId?userName=홍길동&userEmail=hong@example.com
+```
+
+**응답**
+
+| 상태 코드 | `data` 값 예시 | 설명 |
+|---|---|---|
+| `200 OK` | `"Ho***"` | 아이디를 마스킹하여 반환 |
+| `404 Not Found` | `"아이디가 없습니다."` | 이름+이메일 조합에 해당하는 계정 없음 |
+| `400 Bad Request` | `{ "필드명": "에러 메시지" }` | 유효성 검사 실패 |
+
+**마스킹 규칙**
+
+| 아이디 길이 | 노출 글자 수 | 예시 |
+|---|---|---|
+| 7~12자 | 앞 3자 노출 | `"Hongs123"` → `"Hon*****"` |
+| 6자 이하 | 앞 2자 노출 | `"Hong"` → `"Ho**"` |
+| 13자 이상 | 앞 4자 노출 | `"HongGilDong1234"` → `"Hong***********"` |
+
+> **프론트엔드 구현 팁**: 마스킹된 아이디를 보여주면서 "전체 아이디 확인" 버튼을 제공하고, 클릭 시 이메일 인증 후 `/find/userId/noMask`를 호출하는 UX를 권장합니다.
+
+---
+
+### GET `/find/userId/noMask` — 아이디 찾기 (마스킹 해제)
+
+이메일 인증이 완료된 경우에 한해 아이디를 **마스킹 없이** 반환합니다.
+
+> **⚠️ 선행 조건**: 이 API 호출 전에 반드시 이메일 인증 완료 단계를 거쳐야 합니다. ([이메일 인증 플로우 참고](#이메일-인증-플로우-아이디-찾기--비밀번호-초기화-공통))
+
+**요청 (Query Parameter)**
+
+| 파라미터 | 타입 | 필수 | 제약 조건 |
+|---|---|---|---|
+| `userName` | String | ✅ | 3~15자 |
+| `userEmail` | String | ✅ | 이메일 형식, DB에 등록된 이메일 |
+
+```
+GET /api/v1/user/find/userId/noMask?userName=홍길동&userEmail=hong@example.com
+```
+
+**응답**
+
+| 상태 코드 | `data` 값 예시 | 설명 |
+|---|---|---|
+| `200 OK` | `"HongGilDong"` | 아이디 원문 반환. Redis의 이메일 인증 플래그 자동 삭제 |
+| `404 Not Found` | `"아이디가 없습니다."` | 이름+이메일 조합에 해당하는 계정 없음 |
+| `412 Precondition Failed` | `"이메일 인증이 필요합니다."` | 이메일 인증 미완료 또는 만료(10분) |
+| `400 Bad Request` | `{ "필드명": "에러 메시지" }` | 유효성 검사 실패 |
+
+> **주의**: 인증 성공 후 Redis의 인증 완료 플래그는 **한 번만 사용 가능**합니다. 응답 200 반환 시 자동으로 삭제됩니다.
+
+---
+
+### PATCH `/find/userPw/{userEmail}` — 비밀번호 초기화
+
+이메일 인증이 완료된 경우에 한해 비밀번호를 새 값으로 초기화합니다.
+
+> **⚠️ 선행 조건**: 이 API 호출 전에 반드시 이메일 인증 완료 단계를 거쳐야 합니다. ([이메일 인증 플로우 참고](#이메일-인증-플로우-아이디-찾기--비밀번호-초기화-공통))
+
+**요청**
+
+- **Path Variable**: `userEmail` (String) — 인증 완료된 이메일 주소
+
+```
+PATCH /api/v1/user/find/userPw/hong@example.com
+```
+
+**요청 본문 (`GetUserPwRequestDTO`)**
+
+| 필드 | 타입 | 필수 | 제약 조건 |
+|---|---|---|---|
+| `userPw` | String | ✅ | 8~20자, 영문/숫자/특수문자(`!@#$%^*()_+-=[]{},.?:~`) |
+| `userPwConfirm` | String | ✅ | `userPw`와 동일한 값이어야 함 |
+
+```json
+{
+  "userPw": "NewPass1234!",
+  "userPwConfirm": "NewPass1234!"
+}
+```
+
+**응답**
+
+| 상태 코드 | 설명 |
+|---|---|
+| `200 OK` | 비밀번호 초기화 성공. Redis의 이메일 인증 플래그 자동 삭제 |
+| `400 Bad Request` | `userPwConfirm` 값 누락 또는 공백 |
+| `404 Not Found` | 해당 이메일로 등록된 계정 없음 |
+| `412 Precondition Failed` | 이메일 인증 미완료 또는 만료(10분) |
+| `422 Unprocessable Entity` | `userPw`와 `userPwConfirm` 불일치 |
+| `500 Internal Server Error` | 서버 오류 |
+
+> **주의**: 인증 성공 후 Redis의 인증 완료 플래그는 **한 번만 사용 가능**합니다. 응답 200 반환 시 자동으로 삭제됩니다.
+
+---
+
+### 이메일 인증 플로우 (아이디 찾기 / 비밀번호 초기화 공통)
+
+아이디 찾기(마스킹 해제)와 비밀번호 초기화는 모두 **이메일 인증**을 선행해야 합니다.  
+사용하는 Verify API는 **단순인증용** 쌍입니다. ([Verify 섹션 참고](#4-인증검증-verify))
+
+```
+[Step 1] 인증코드 발송
+POST /api/v1/verify/emails/send/just/verification-requests
+Body: { "userEmail": "hong@example.com" }
+
+[Step 2] 인증코드 검증
+POST /api/v1/verify/emails/just/verifications?code=123456
+Body: { "userEmail": "hong@example.com" }
+→ 응답: { "verified": true }   ← 이 시점부터 10분간 인증 완료 상태 유지
+
+[Step 3-A] 아이디 찾기 (마스킹 해제)
+GET /api/v1/user/find/userId/noMask?userName=홍길동&userEmail=hong@example.com
+
+[Step 3-B] 비밀번호 초기화
+PATCH /api/v1/user/find/userPw/hong@example.com
+Body: { "userPw": "NewPass1234!", "userPwConfirm": "NewPass1234!" }
+```
+
+**Redis 키 흐름 요약**
+
+| 단계 | Redis Key | Value | TTL |
+|---|---|---|---|
+| 인증코드 발송 후 | `AuthCode hong@example.com` | `"482931"` (6자리) | 5분 |
+| 인증코드 검증 성공 후 | `EMAIL_VERIFIED: hong@example.com` | `"true"` | 10분 |
+| Step 3-A/B 완료 후 | (자동 삭제) | — | — |
+
+> **프론트엔드 구현 팁**
+> - Step 2 응답의 `verified: false`이면 "인증코드가 올바르지 않습니다" 안내 후 재입력 유도
+> - Step 3 호출 시 `412` 응답이면 "인증이 만료되었습니다. 다시 인증해주세요" 안내 후 Step 1로 복귀
+
+---
+
+### GET `/auth/profile` — 유저 프로필 조회
+
+로그인한 유저의 프로필 데이터를 조회합니다.
+
+**요청**
+- Header: `Authorization: Bearer {accessToken}`
+
+**응답 (성공 200)**
+```json
+{
+  "code": 200,
+  "message": {
+    "userNick": "철수짱",
+    "nickTag": "#1",
+    "jobIdx": 1,
+    "targetIdx": 1,
+    "combo": 18,
+    "userExp": 1770,
+    "userLv": 6
+  },
+  "status": "success"
+}
+```
+
+| 필드          | 타입     | 설명              |
+|-------------|--------|-----------------|
+| `userNick`    | String | 유저 닉네임          |
+| `nickTag`     | String | 닉네임 중복 태그       |
+| `jobIdx`    | int    | 직업 카테고리 인덱스     |
+| `targetIdx` | int    | 관심사(목표) 카테고리 인덱스 |
+| `combo`     | int    | 연속 달성 콤보 수      |
+| `userExp`   | double | 유저 경험치          |
+| `userLv`    | int    | 유저 레벨           |
+
+**응답 (실패)**
+
+| 상태 코드 | 사유 |
+|---|---|
+| `404 Not Found` | 유저 정보 없음 |
 
 ---
 
@@ -150,10 +458,90 @@ Authorization: Bearer {accessToken}
 | Method | Path | 설명 | 파라미터 | 인증 |
 |---|---|---|---|---|
 | POST | `/auth/routine` | 루틴 활동 인증 | Body: `VerifyRequestDTO` | ✅ JWT |
-| POST | `/emails/send/verification-requests` | 이메일 인증코드 전송(수정용) | Body: `ModifyEmailRequestDTO` | ❌ |
-| POST | `/emails/send/just/verification-requests` | 이메일 인증코드 전송(단순) | Body: `GetEmailRequestDTO` | ❌ |
-| POST | `/emails/verifications` | 이메일 인증코드 검증(수정용) | Body: `ModifyEmailRequestDTO`, Query: `code` | ❌ |
-| POST | `/emails/just/verifications` | 이메일 인증코드 검증(단순) | Body: `GetEmailRequestDTO`, Query: `code` | ❌ |
+| POST | `/emails/send/verification-requests` | 이메일 인증코드 전송 (가입/수정용) | Body: `ModifyEmailRequestDTO` | ❌ |
+| POST | `/emails/send/just/verification-requests` | 이메일 인증코드 전송 (단순인증용) | Body: `GetEmailRequestDTO` | ❌ |
+| POST | `/emails/verifications` | 이메일 인증코드 검증 (가입/수정용) | Body: `ModifyEmailRequestDTO`, Query: `code` | ❌ |
+| POST | `/emails/just/verifications` | 이메일 인증코드 검증 (단순인증용) | Body: `GetEmailRequestDTO`, Query: `code` | ❌ |
+
+### 이메일 인증 API 설계 의도
+
+이메일 인증 API는 **가입/수정용**과 **단순인증용** 두 쌍으로 나뉩니다.  
+내부 로직(`sendCodeToEmail`, `verifiedAuthCode`)은 동일하지만, 요청 DTO의 커스텀 유효성 검사 방향이 반대입니다.
+
+| 구분 | 가입/수정용 | 단순인증용 |
+|---|---|---|
+| 사용 DTO | `ModifyEmailRequestDTO` | `GetEmailRequestDTO` |
+| 커스텀 어노테이션 | `@UniqueUserEmail` | `@CheckUserEmail` |
+| DB 이메일 존재 시 | 요청 거부 (중복 방지) | 요청 허용 |
+| DB 이메일 없을 시 | 요청 허용 | 요청 거부 |
+| 사용 시나리오 | 회원가입, 이메일 변경 | 아이디 찾기, 비밀번호 찾기 |
+
+**가입/수정용**: 이메일이 DB에 **이미 존재하면 거부** → 중복 가입 및 이미 사용 중인 이메일로의 변경을 사전 차단
+
+**단순인증용**: 이메일이 DB에 **존재해야만 허용** → 등록되지 않은 이메일로는 인증코드 발송 자체를 차단
+
+이 분리를 통해 인증코드 발송 전 단계에서 이미 잘못된 대상을 걸러냅니다.
+
+---
+
+### POST `/emails/send/just/verification-requests` — 이메일 인증코드 전송 (단순인증용)
+
+아이디 찾기 / 비밀번호 초기화에서 사용하는 이메일 인증코드 발송 API입니다.  
+**DB에 등록된 이메일에만** 발송합니다.
+
+**요청 본문**
+
+| 필드 | 타입 | 필수 | 제약 조건 |
+|---|---|---|---|
+| `userEmail` | String | ✅ | 이메일 형식, **DB에 등록된 이메일이어야 함** |
+
+```json
+{ "userEmail": "hong@example.com" }
+```
+
+**응답**
+
+| 상태 코드 | 설명 |
+|---|---|
+| `200 OK` | 인증코드 이메일 발송 성공. 제목: `[갓생 로그] 이메일 인증 코드 입니다.` |
+| `400 Bad Request` | 이메일 형식 오류 또는 DB 미등록 이메일 |
+
+> 발송된 인증코드는 Redis에 `AuthCode {userEmail}` 키로 **5분간** 저장됩니다.
+
+---
+
+### POST `/emails/just/verifications` — 이메일 인증코드 검증 (단순인증용)
+
+발송된 인증코드의 일치 여부를 검증하고, 성공 시 인증 완료 플래그를 저장합니다.
+
+**요청**
+
+- **Query Parameter**: `code` (String) — 사용자가 입력한 6자리 인증코드
+
+**요청 본문**
+
+| 필드 | 타입 | 필수 | 제약 조건 |
+|---|---|---|---|
+| `userEmail` | String | ✅ | 이메일 형식, DB에 등록된 이메일 |
+
+```
+POST /api/v1/verify/emails/just/verifications?code=482931
+Body: { "userEmail": "hong@example.com" }
+```
+
+**응답 (200 OK)**
+
+```json
+{ "verified": true }
+```
+
+| `verified` 값 | 의미 |
+|---|---|
+| `true` | 인증 성공. 이후 10분간 인증 완료 상태 유지 |
+| `false` | 인증코드 불일치 또는 만료 |
+
+> 인증 성공 시 Redis에 `EMAIL_VERIFIED: {userEmail}` = `"true"` 키가 **10분간** 저장됩니다.  
+> 아이디 찾기(noMask) 또는 비밀번호 초기화 API 호출 성공 시 자동으로 삭제됩니다.
 
 ---
 
@@ -591,10 +979,12 @@ Authorization: Bearer {accessToken}
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
 | POST `/verify/auth/routine` | `{ status, message }` | 200/400/403/404/409/410/412/500 |
-| POST `/verify/emails/send/verification-requests` | (No content) | 200 |
-| POST `/verify/emails/send/just/verification-requests` | (No content) | 200 |
+| POST `/verify/emails/send/verification-requests` | (No content) | 200, 400 |
+| POST `/verify/emails/send/just/verification-requests` | (No content) | 200, 400 |
 | POST `/verify/emails/verifications` | `{ verified: Boolean }` | 200, 400 |
 | POST `/verify/emails/just/verifications` | `{ verified: Boolean }` | 200, 400 |
+
+> 이메일 발송 엔드포인트에서 400이 반환되는 경우: 이메일 형식 오류, 또는 DB 이메일 존재 여부 검증 실패 (가입/수정용은 이미 존재하는 이메일, 단순인증용은 존재하지 않는 이메일)
 
 ### 5. 카테고리 (Category) — 응답
 

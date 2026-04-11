@@ -3,6 +3,7 @@ package com.godLife.project.service.impl;
 import com.godLife.project.dto.request.verify.VerifyRequestDTO;
 import com.godLife.project.dto.internal.verify.CheckAllFireActivateDTO;
 import com.godLife.project.mapper.PlanMapper;
+import com.godLife.project.mapper.UserMapper;
 import com.godLife.project.mapper.VerifyMapper;
 import com.godLife.project.service.impl.redis.RedisService;
 import com.godLife.project.service.interfaces.VerifyService;
@@ -24,10 +25,15 @@ import java.util.Random;
 public class VerifyServiceImpl implements VerifyService {
 
   private static final String AUTH_CODE_PREFIX = "AuthCode ";
+  private static final String AUTH_CODE_FAIL_PREFIX = "AuthCode:fail:";
+  private static final String AUTH_CODE_COOLDOWN_PREFIX = "AuthCode:cooldown:";
+  private static final int MAX_FAIL_COUNT = 5;
 
   private final VerifyMapper verifyMapper;
 
   private final PlanMapper planMapper;
+
+  private final UserMapper userMapper;
 
   private final EmailService emailService;
 
@@ -82,31 +88,79 @@ public class VerifyServiceImpl implements VerifyService {
     }
   }
 
-  // 인증 코드 생성 및 이메일 전송
+  // 인증 코드 생성 및 이메일 전송 (가입/수정용 — 이미 등록된 이메일이 아닌 경우에 사용)
   @Override
   public void sendCodeToEmail(String toEmail) {
+    // 재발송 쿨다운 체크 (1분 내 재발송 차단)
+    String cooldownKey = AUTH_CODE_COOLDOWN_PREFIX + toEmail;
+    if (redisService.checkExistsValue(cooldownKey)) {
+      throw new IllegalStateException("잠시 후 다시 시도해주세요.");
+    }
+
     String title = "[갓생 로그] 이메일 인증 코드 입니다.";
     String authCode = this.createCode();
     emailService.sendEmail(toEmail, title, authCode);
 
     // 이메일 인증 요청 시 인증 번호 Redis에 저장
     // (key = "AuthCode " + Email / value = AuthCode) 소멸시간 5분
-    String key = AUTH_CODE_PREFIX + toEmail;
-
-    redisService.saveStringData(key, authCode, 'm', 5);
+    redisService.saveStringData(AUTH_CODE_PREFIX + toEmail, authCode, 'm', 5);
+    redisService.saveStringData(cooldownKey, "1", 'm', 1);
   }
 
-  // 인증 코드 검증
+  // 인증 코드 생성 및 이메일 전송 (단순인증용 — 아이디 찾기 / 비밀번호 초기화)
+  // 이메일 열거 공격 방지: 미등록 이메일이어도 항상 동일한 응답 반환
+  @Override
+  public void sendCodeToEmailForFindAccount(String toEmail) {
+    // 재발송 쿨다운 체크 (1분 내 재발송 차단) — 미등록 이메일에도 적용하여 타이밍 공격 방지
+    String cooldownKey = AUTH_CODE_COOLDOWN_PREFIX + toEmail;
+    if (redisService.checkExistsValue(cooldownKey)) {
+      throw new IllegalStateException("잠시 후 다시 시도해주세요.");
+    }
+
+    // 등록된 이메일인 경우에만 실제 전송 (미등록 이메일은 전송 없이 쿨다운만 설정)
+    if (userMapper.checkUserEmailExist(toEmail)) {
+      String title = "[갓생 로그] 이메일 인증 코드 입니다.";
+      String authCode = this.createCode();
+      emailService.sendEmail(toEmail, title, authCode);
+      redisService.saveStringData(AUTH_CODE_PREFIX + toEmail, authCode, 'm', 5);
+    }
+
+    // 이메일 등록 여부와 무관하게 항상 쿨다운 적용
+    redisService.saveStringData(cooldownKey, "1", 'm', 1);
+  }
+
+  // 인증 코드 검증 (Brute Force 방어 — 5회 실패 시 코드 무효화)
   @Override
   public boolean verifiedAuthCode(String email, String authCode) {
     String key = AUTH_CODE_PREFIX + email;
-    String redisAuthCode = redisService.getStringData(key);
+    String failKey = AUTH_CODE_FAIL_PREFIX + email;
 
-    boolean result = redisService.checkExistsValue(key) && redisAuthCode.equals(authCode);
-    if (result) { // 검증 성공 시 인증코드 삭제
+    // 실패 횟수 조회
+    String failCountStr = redisService.getStringData(failKey);
+    int failCount = failCountStr != null ? Integer.parseInt(failCountStr) : 0;
+
+    String redisAuthCode = redisService.getStringData(key);
+    boolean codeExists = redisAuthCode != null;
+    boolean result = codeExists && redisAuthCode.equals(authCode);
+
+    if (result) {
+      // 검증 성공: 인증 코드 및 실패 카운트 삭제 후 인증 완료 플래그 저장
       redisService.deleteData(key);
+      redisService.deleteData(failKey);
       redisService.saveStringData("EMAIL_VERIFIED: " + email, "true", 'm', 10);
+    } else if (codeExists) {
+      // 코드가 존재하지만 불일치: 실패 횟수 증가
+      int newFailCount = failCount + 1;
+      if (newFailCount >= MAX_FAIL_COUNT) {
+        // 최대 실패 횟수 초과 시 코드 즉시 무효화 → 재발송 강제
+        redisService.deleteData(key);
+        redisService.deleteData(failKey);
+        log.warn("이메일 인증 코드 최대 실패 횟수 초과 — 코드 무효화: {}", email);
+      } else {
+        redisService.saveStringData(failKey, String.valueOf(newFailCount), 'm', 5);
+      }
     }
+
     return result;
   }
 

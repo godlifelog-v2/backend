@@ -50,4 +50,8 @@ public interface UserMapper {
     @Select("SELECT USER_IDX FROM USER_TABLE WHERE USER_EMAIL = #{userEmail} AND IS_DELETED = 'N'")
     int getUserIdxByUserEmail(String userEmail);
 
+    // 이메일로 로그인 아이디 조회 (비밀번호 변경 후 세션 무효화 시 사용)
+    @Select("SELECT USER_ID FROM USER_TABLE WHERE USER_EMAIL = #{userEmail} AND IS_DELETED = 'N'")
+    String getUserIdByUserEmail(String userEmail);
+
 }
