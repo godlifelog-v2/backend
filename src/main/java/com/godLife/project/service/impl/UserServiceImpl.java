@@ -7,6 +7,7 @@ import com.godLife.project.dto.request.myPage.GetUserPwRequestDTO;
 import com.godLife.project.dto.response.user.UserProfileResponseDTO;
 import com.godLife.project.mapper.UserMapper;
 import com.godLife.project.service.interfaces.UserService;
+import com.godLife.project.service.interfaces.jwtInterface.RefreshService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -23,6 +24,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshService refreshService;
 
     // 회원가입
     @Override
@@ -126,6 +128,12 @@ public class UserServiceImpl implements UserService {
             int result = userMapper.findUserPw(encryptedPassword, userEmail);
             if (result == 0) {
                 return 404;
+            }
+
+            // 비밀번호 변경 성공 시 기존 Refresh Token 전체 무효화 (세션 하이재킹 방지)
+            String userId = userMapper.getUserIdByUserEmail(userEmail);
+            if (userId != null) {
+                refreshService.deleteByUsername(userId);
             }
 
             return 200;

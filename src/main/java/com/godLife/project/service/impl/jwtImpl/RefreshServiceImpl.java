@@ -31,10 +31,16 @@ public class RefreshServiceImpl implements RefreshService {
     return refreshMapper.existsByRefresh(refresh) > 0;
   }
 
-  // 리프레쉬 토큰 삭제
+  // 리프레쉬 토큰 삭제 (토큰 값으로)
   @Override
   public void deleteByRefresh(String refresh) {
     refreshMapper.deleteByRefresh(refresh);
+  }
+
+  // 리프레쉬 토큰 전체 삭제 (유저 ID로 — 비밀번호 변경 시 기존 세션 무효화)
+  @Override
+  public void deleteByUsername(String username) {
+    refreshMapper.deleteByUsername(username);
   }
 
   // 리프레쉬 토큰 등록

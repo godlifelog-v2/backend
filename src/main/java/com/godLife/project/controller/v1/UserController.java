@@ -69,9 +69,9 @@ public class UserController {
     return ResponseEntity.ok(isAvailable);
   }
 
-  // 아이디 찾기
-  @GetMapping("/find/userId")
-  public ResponseEntity<Map<String, Object>> findUserId(@Valid @ModelAttribute GetNameNEmail request,
+  // 아이디 찾기 (마스킹) — GET → POST 변경: 이름/이메일이 URL 로그에 노출되지 않도록
+  @PostMapping("/find/userId")
+  public ResponseEntity<Map<String, Object>> findUserId(@Valid @RequestBody GetNameNEmail request,
                                                         BindingResult valid) {
     if (valid.hasErrors()) {
       return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
@@ -85,73 +85,67 @@ public class UserController {
     return ResponseEntity.ok().body(handler.createResponse(200, result));
   }
 
-  // 아이디 찾기 마스킹 제거
-  @GetMapping("/find/userId/noMask")
-  public ResponseEntity<Map<String, Object>> noMaskingUserId(@Valid @ModelAttribute GetNameNEmail request,
+  // 아이디 찾기 (마스킹 해제) — GET → POST 변경 + TOCTOU 방어를 위한 원자적 인증 플래그 처리
+  @PostMapping("/find/userId/noMask")
+  public ResponseEntity<Map<String, Object>> noMaskingUserId(@Valid @RequestBody GetNameNEmail request,
                                                              BindingResult valid) {
     if (valid.hasErrors()) {
       return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
     }
 
-    // 이메일 인증 여부 검증
+    // 이메일 인증 플래그를 원자적으로 조회+삭제 (GETDEL) — Race Condition 방지
     String key = "EMAIL_VERIFIED: " + request.getUserEmail();
-    String verified = redisService.getStringData(key); // 인증 여부 조회
+    String verified = redisService.getAndDeleteStringData(key);
 
-    if (verified == null || !verified.equals("true")) {
+    if (!"true".equals(verified)) {
       return ResponseEntity.status(handler.getHttpStatus(412))
           .body(handler.createResponse(412, "이메일 인증이 필요합니다."));
     }
 
     String result = userService.FindUserIdByNameNEmail(request, false);
 
-    redisService.deleteData(key); // 인증 데이터 삭제
-
     if (result == null || result.isBlank()) {
       return ResponseEntity.status(404).body(handler.createResponse(404, "아이디가 없습니다."));
     }
     return ResponseEntity.ok().body(handler.createResponse(200, result));
-
   }
 
-  // 비번 찾기
-  @PatchMapping("/find/userPw/{userEmail}")
+  // 비밀번호 초기화 — Path Variable 이메일 제거: URL 로그에 이메일이 노출되지 않도록 Body로 이동
+  //                    TOCTOU 방어: 인증 플래그를 원자적으로 조회+삭제
+  //                    500 시 인증 플래그 재삭제 방지: getAndDelete로 사전에 처리
+  @PatchMapping("/find/userPw")
   public ResponseEntity<Map<String, Object>> findUserPw(@Valid @RequestBody GetUserPwRequestDTO request,
-                                                        BindingResult valid,
-                                                        @PathVariable String userEmail) {
+                                                        BindingResult valid) {
     if (valid.hasErrors()) {
       return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
     }
 
-    // 이메일 인증 여부 검증
-    String key = "EMAIL_VERIFIED: " + userEmail;
-    String verified = redisService.getStringData(key); // 인증 여부 조회
+    // 이메일 인증 플래그를 원자적으로 조회+삭제 (GETDEL) — Race Condition 방지
+    String key = "EMAIL_VERIFIED: " + request.getUserEmail();
+    String verified = redisService.getAndDeleteStringData(key);
 
-    if (verified == null || !verified.equals("true")) {
+    if (!"true".equals(verified)) {
       return ResponseEntity.status(handler.getHttpStatus(412))
           .body(handler.createResponse(412, "이메일 인증이 필요합니다."));
     }
 
-    int result = userService.FindUserPw(request, userEmail);
+    int result = userService.FindUserPw(request, request.getUserEmail());
 
     // 응답 메세지 세팅
-    String msg = "";
-    switch (result) {
-      case 200 -> msg = "비밀번호 수정 완료";
-      case 400 -> msg = "비밀번호 확인 필드의 값이 누락되었습니다.";
-      case 404 -> msg = "탈퇴했거나, 존재하지 않는 유저입니다.";
-      case 422 -> msg = "비밀번호가 일치하지 않습니다.";
-      case 500 -> msg = "서버 내부적으로 오류가 발생하여 요청을 수행하지 못했습니다.";
-      default -> msg = "알 수 없는 오류가 발생했습니다.";
-    }
+    String msg = switch (result) {
+      case 200 -> "비밀번호 수정 완료";
+      case 400 -> "비밀번호 확인 필드의 값이 누락되었습니다.";
+      case 404 -> "탈퇴했거나, 존재하지 않는 유저입니다.";
+      case 422 -> "비밀번호가 일치하지 않습니다.";
+      case 500 -> "서버 내부적으로 오류가 발생하여 요청을 수행하지 못했습니다.";
+      default -> "알 수 없는 오류가 발생했습니다.";
+    };
 
-    redisService.deleteData(key);
-
-    // 응답 메시지 설정
     return ResponseEntity.status(handler.getHttpStatus(result)).body(handler.createResponse(result, msg));
   }
 
   // 프로필 조회
-  @Operation(summary = "유저 프로필 조회 API", description = "로그인 후 유저의 게임 프로필 데이터 조회")
+  @Operation(summary = "유저 프로필 조회 API", description = "로그인 후 유저의 프로필 데이터 조회")
   @GetMapping("/auth/profile")
   public ResponseEntity<Map<String, Object>> getUserProfile(@RequestHeader("Authorization") String authHeader) {
     String userId = handler.getUserNameFromToken(authHeader);

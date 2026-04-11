@@ -62,12 +62,18 @@ public class VerifyController {
     }
     String email = emailRequestDTO.getUserEmail();
 
-    verifyService.sendCodeToEmail(email);
+    try {
+      verifyService.sendCodeToEmail(email);
+    } catch (IllegalStateException e) {
+      // 1분 내 재발송 요청 — 429 Too Many Requests
+      return ResponseEntity.status(429).body(handler.createResponse(429, e.getMessage()));
+    }
 
     return ResponseEntity.ok().build();
   }
 
-  // 이메일 인증 번호 요청 엔드포인트 (단순인증)
+  // 이메일 인증 번호 요청 엔드포인트 (단순인증 — 아이디 찾기 / 비밀번호 초기화)
+  // 이메일 열거 공격 방지: 미등록 이메일이어도 항상 200 반환 (서비스 계층에서 처리)
   @PostMapping("/emails/send/just/verification-requests")
   public ResponseEntity<Map<String, Object>> sendJustAuthCode(@Valid @RequestBody GetEmailRequestDTO emailRequestDTO,
                                                           BindingResult valid) {
@@ -76,7 +82,12 @@ public class VerifyController {
     }
     String email = emailRequestDTO.getUserEmail();
 
-    verifyService.sendCodeToEmail(email);
+    try {
+      verifyService.sendCodeToEmailForFindAccount(email);
+    } catch (IllegalStateException e) {
+      // 1분 내 재발송 요청 — 429 Too Many Requests
+      return ResponseEntity.status(429).body(handler.createResponse(429, e.getMessage()));
+    }
 
     return ResponseEntity.ok().build();
   }

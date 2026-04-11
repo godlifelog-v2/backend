@@ -81,6 +81,11 @@ public class RedisService {
     return redisTemplate.opsForValue().get(key);
   }
 
+  // 원자적 조회 및 삭제 (GETDEL) — TOCTOU Race Condition 방지
+  public String getAndDeleteStringData(String key) {
+    return redisTemplate.opsForValue().getAndDelete(key);
+  }
+
   // 리스트 DTO 데이터 조회
   public <T> List<T> getListData(String key, Class<T> clazz) {
     // 1차: Caffeine 로컬 캐시 조회 (네트워크 왕복 없음)
