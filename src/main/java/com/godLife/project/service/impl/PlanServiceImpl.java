@@ -20,7 +20,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PlanServicelmpl implements PlanService {
+public class PlanServiceImpl implements PlanService {
 
   private final PlanMapper planMapper;
   private final CategoryService categoryService;

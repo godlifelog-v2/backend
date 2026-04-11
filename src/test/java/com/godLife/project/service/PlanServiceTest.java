@@ -4,7 +4,7 @@ import com.godLife.project.dto.model.plan.ActivityDTO;
 import com.godLife.project.dto.model.plan.PlanDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.mapper.PlanMapper;
-import com.godLife.project.service.impl.PlanServicelmpl;
+import com.godLife.project.service.impl.PlanServiceImpl;
 import com.godLife.project.service.interfaces.CategoryService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +35,7 @@ class PlanServiceTest {
     private GlobalExceptionHandler handler;
 
     @InjectMocks
-    private PlanServicelmpl planService;
+    private PlanServiceImpl planService;
 
     // ────────────────────────────────────────────────
     // Bug 3: getUserIsDeleted null 반환 시 NPE 수정
