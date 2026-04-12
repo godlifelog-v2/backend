@@ -41,6 +41,11 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.36'
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
 
+    // MapStruct (Lombok보다 뒤에 선언해야 Lombok이 먼저 실행됨)
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+
     // Oracle JDBC
     implementation 'com.oracle.database.jdbc:ojdbc11:23.3.0.23.09'
     // MariaDB JDBC

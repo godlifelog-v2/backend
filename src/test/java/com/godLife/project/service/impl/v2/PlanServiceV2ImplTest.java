@@ -8,9 +8,11 @@ import com.godLife.project.dto.response.plan.v2.ActivityV2DTO;
 import com.godLife.project.dto.response.plan.v2.PlanDetailDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.mapper.PlanMapper;
+import com.godLife.project.mapper.dto.PlanDetailMapper;
 import com.godLife.project.mapper.v2.PlanMapperV2;
 import com.godLife.project.service.interfaces.CategoryService;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -34,6 +36,7 @@ class PlanServiceV2ImplTest {
 
     @Mock private PlanMapper planMapper;
     @Mock private PlanMapperV2 planMapperV2;
+    @Mock private PlanDetailMapper planDetailMapper;
     @Mock private CategoryService categoryService;
     @Mock private GlobalExceptionHandler handler;
     @Mock private HttpServletRequest request;
@@ -44,6 +47,21 @@ class PlanServiceV2ImplTest {
     @BeforeEach
     void setUp() {
         when(categoryService.getIdxOfCustomJob()).thenReturn(19);
+
+        // 매퍼 mock: PlanDTO의 int 플래그와 description/color를 그대로 반영하는 DTO 반환
+        when(planDetailMapper.toDto(any(PlanDTO.class), anyList())).thenAnswer(inv -> {
+            PlanDTO src = inv.getArgument(0);
+            List<ActivityV2DTO> acts = inv.getArgument(1);
+            PlanDetailDTO d = new PlanDetailDTO();
+            d.setIsWriter    (src.getIsWriter()    == 1);
+            d.setIsShared    (src.getIsShared()    == 1);
+            d.setIsActive    (src.getIsActive()    == 1);
+            d.setIsCompleted (src.getIsCompleted() == 1);
+            d.setDescription (src.getDescription());
+            d.setColor       (src.getColor());
+            d.setActivities  (acts);
+            return d;
+        });
     }
 
     @Nested

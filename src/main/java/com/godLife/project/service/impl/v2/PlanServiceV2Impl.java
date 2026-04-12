@@ -11,6 +11,7 @@ import com.godLife.project.dto.response.plan.v2.ActivityV2DTO;
 import com.godLife.project.dto.response.plan.v2.PlanDetailDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.mapper.PlanMapper;
+import com.godLife.project.mapper.dto.PlanDetailMapper;
 import com.godLife.project.mapper.v2.PlanMapperV2;
 import com.godLife.project.service.interfaces.CategoryService;
 import com.godLife.project.service.interfaces.v2.PlanServiceV2;
@@ -30,6 +31,7 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
 
     private final PlanMapper planMapper;
     private final PlanMapperV2 planMapperV2;
+    private final PlanDetailMapper planDetailMapper;
     private final CategoryService categoryService;
     private final GlobalExceptionHandler handler;
 
@@ -88,7 +90,7 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
             planDTO.setJobCateDTO(planMapper.getJOBCategoryByJobIdx(planDTO.getJobIdx()));
         }
 
-        return toPlanDetailDTO(planDTO, activities);
+        return planDetailMapper.toDto(planDTO, activities);
     }
 
     // ========================= 루틴 CRUD =========================
@@ -253,38 +255,4 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
         }
     }
 
-    /** PlanDTO(int 플래그) + v2 활동 목록 → PlanDetailDTO(boolean 플래그) 변환 */
-    private PlanDetailDTO toPlanDetailDTO(PlanDTO planDTO, List<ActivityV2DTO> activities) {
-        PlanDetailDTO detail = new PlanDetailDTO();
-        detail.setPlanIdx(planDTO.getPlanIdx());
-        detail.setPlanTitle(planDTO.getPlanTitle());
-        detail.setEndTo(planDTO.getEndTo());
-        detail.setRepeatDays(planDTO.getRepeatDays());
-        detail.setPlanImp(planDTO.getPlanImp());
-        detail.setCertExp(planDTO.getCertExp());
-        detail.setVerifyCount(planDTO.getVerifyCount());
-        detail.setViewCount(planDTO.getViewCount());
-        detail.setLikeCount(planDTO.getLikeCount());
-        detail.setForkCount(planDTO.getForkCount());
-        detail.setIsShared(planDTO.getIsShared() == 1);
-        detail.setIsActive(planDTO.getIsActive() == 1);
-        detail.setIsCompleted(planDTO.getIsCompleted() == 1);
-        detail.setIsWriter(planDTO.getIsWriter() == 1);
-        detail.setFireState(planDTO.isFireState());
-        detail.setForked(planDTO.isForked());
-        detail.setPlanSubDate(planDTO.getPlanSubDate());
-        detail.setPlanSubStart(planDTO.getPlanSubStart());
-        detail.setPlanSubEnd(planDTO.getPlanSubEnd());
-        detail.setForkIdx(planDTO.getForkIdx());
-        detail.setForkTitle(planDTO.getForkTitle());
-        detail.setReview(planDTO.getReview());
-        detail.setDescription(planDTO.getDescription());
-        detail.setColor(planDTO.getColor());
-        detail.setActivities(activities);
-        detail.setJobCateDTO(planDTO.getJobCateDTO());
-        detail.setJobEtcCateDTO(planDTO.getJobEtcCateDTO());
-        detail.setTargetCateDTO(planDTO.getTargetCateDTO());
-        detail.setFireInfo(planDTO.getFireInfo());
-        return detail;
-    }
 }
