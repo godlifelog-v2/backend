@@ -36,7 +36,7 @@ public class PlanDTO {
     @Schema(description =  "원본 제목", example = "원본 루틴 제목입니다.")
     private String forkTitle;
 
-    @Schema(description = "목표 개월 수", example = "7 : 시작일로부터 7일 후가 종료일이 됨.")
+    @Schema(description = "목표 일 수", example = "7 : 시작일로부터 7일 후가 종료일이 됨.")
     @Min(value = 7, message = "{writePlan.endTo.min}")
     private int endTo;
 
@@ -51,7 +51,7 @@ public class PlanDTO {
     @Min(value = 1, message = "{writePlan.jobIdx.min}")
     private int jobIdx;
 
-    @Schema(description = "루틴 중요도", example = "1 : 최하단 혹은 제일 마지막에 배치")
+    @Schema(description = "루틴 정렬 순서", example = "1 : 최하단 혹은 제일 마지막에 배치")
     @Min(value = 1, message = "{writePlan.planImp.min}")
     @Max(value = 10, message = "{writePlan.planImp.max}")
     private int planImp;

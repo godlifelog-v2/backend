@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.godLife.project.mapper.v2.ListMapperV2">
+
+    <!-- CustomPlanV2DTO resultMap (TypeHandler + boolean 수동 setter 호환) -->
+    <resultMap id="MyPlanInfoResultMap" type="com.godLife.project.dto.query.plan.v2.CustomPlanV2DTO">
+        <result property="planIdx"    column="PLAN_IDX"/>
+        <result property="planTitle"  column="PLAN_TITLE"/>
+        <result property="endTo"      column="END_TO"/>
+        <result property="planSubEnd" column="PLAN_SUB_END"/>
+        <result property="isShared"   column="IS_SHARED"/>
+        <result property="isActive"   column="IS_ACTIVE"/>
+        <result property="planImp"    column="PLAN_IMP"/>
+        <result property="certExp"    column="CERT_EXP"/>
+        <result property="repeatDays" column="REPEAT_DAYS"
+                typeHandler="com.godLife.project.handler.typehandler.ListStringTypeHandler"/>
+        <result property="fireState"  column="FIRE_STATE"/>
+        <result property="color"      column="COLOR"/>
+    </resultMap>
+
+    <!-- (개인용) 전체 조회 -->
+    <select id="getMyPlansByUserIdx" parameterType="int" resultMap="MyPlanInfoResultMap">
+        SELECT
+            PLAN_IDX, PLAN_TITLE, END_TO, PLAN_SUB_END,
+            IS_SHARED, IS_ACTIVE, PLAN_IMP, CERT_EXP,
+            REPEAT_DAYS, FIRE_STATE, COLOR
+        FROM PLAN_TABLE
+        WHERE USER_IDX = #{userIdx} AND IS_DELETED = 0 AND IS_COMPLETED = 0
+        ORDER BY IS_ACTIVE DESC, PLAN_IMP DESC, PLAN_SUB_START IS NULL, PLAN_SUB_START DESC
+    </select>
+
+    <!-- (개인용) 오늘 요일에 해당하는 활성 루틴 조회 -->
+    <select id="getTodayPlansByUserIdx" parameterType="map" resultMap="MyPlanInfoResultMap">
+        SELECT
+            PLAN_IDX, PLAN_TITLE, END_TO, PLAN_SUB_END,
+            IS_SHARED, IS_ACTIVE, PLAN_IMP, CERT_EXP,
+            REPEAT_DAYS, FIRE_STATE, COLOR
+        FROM PLAN_TABLE
+        WHERE USER_IDX = #{userIdx}
+          AND IS_DELETED = 0
+          AND IS_COMPLETED = 0
+          AND IS_ACTIVE = 1
+          AND FIND_IN_SET(#{dayOfWeek}, REPEAT_DAYS) > 0
+        ORDER BY PLAN_IMP DESC, PLAN_SUB_START IS NULL, PLAN_SUB_START DESC
+    </select>
+
+    <!-- 오늘 활성 루틴 총 수 -->
+    <select id="getTodayPlanCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM PLAN_TABLE
+        WHERE USER_IDX = #{userIdx}
+          AND IS_DELETED = 0
+          AND IS_COMPLETED = 0
+          AND IS_ACTIVE = 1
+          AND FIND_IN_SET(#{dayOfWeek}, REPEAT_DAYS) > 0
+    </select>
+
+    <!-- 오늘 모든 activity가 verified인 루틴 수 -->
+    <select id="getTodayCompletedPlanCount" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM PLAN_TABLE P
+        WHERE P.USER_IDX = #{userIdx}
+          AND P.IS_DELETED = 0
+          AND P.IS_COMPLETED = 0
+          AND P.IS_ACTIVE = 1
+          AND FIND_IN_SET(#{dayOfWeek}, P.REPEAT_DAYS) > 0
+          AND NOT EXISTS (
+              SELECT 1 FROM PLAN_ACTIVITY A
+              LEFT JOIN (
+                  SELECT ACTIVITY_IDX
+                  FROM VERIFY_TABLE
+                  WHERE VERIFY_DATE = CURDATE()
+              ) V ON A.ACTIVITY_IDX = V.ACTIVITY_IDX
+              WHERE A.PLAN_IDX = P.PLAN_IDX
+                AND A.IS_DELETED = 0
+                AND V.ACTIVITY_IDX IS NULL
+          )
+    </select>
+
+</mapper>

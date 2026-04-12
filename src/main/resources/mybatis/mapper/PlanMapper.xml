@@ -100,7 +100,7 @@
 
   <!-- 불꽃 정보 조회 -->
   <select id="detailFireByPlanIdx" parameterType="int">
-    SELECT F.LV_IDX, F.FIRE_NAME, F.FIRE_COLOR, F.FIRE_EFFECT
+    SELECT F.LV_IDX, F.FIRE_NAME, F.FIRE_COLOR, F.FIRE_EFFECT, F.MIN_EXP, F.MAX_EXP
     FROM PLAN_TABLE P
     JOIN FIRE_TABLE F ON P.CERT_EXP <![CDATA[ >= ]]> F.MIN_EXP AND P.CERT_EXP <![CDATA[ <= ]]> F.MAX_EXP
     WHERE PLAN_IDX = #{planIdx}

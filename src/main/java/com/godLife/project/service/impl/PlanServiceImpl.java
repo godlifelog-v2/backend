@@ -20,7 +20,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PlanServicelmpl implements PlanService {
+public class PlanServiceImpl implements PlanService {
 
   private final PlanMapper planMapper;
   private final CategoryService categoryService;
@@ -41,7 +41,7 @@ public class PlanServicelmpl implements PlanService {
       int userIdx = planDTO.getUserIdx();
       int isCompleted = planDTO.getIsCompleted(); // 0
       int isDeleted = planDTO.getIsDeleted();     // 0
-      int customJobIdx = categoryService.getIdxOfCustomJob(); // '직접입력' => 19
+      int customJobIdx = categoryService.getIdxOfCustomJob();
 
       if (planMapper.getCntOfPlanByUserIdxNIsCompleted(userIdx, isCompleted, isDeleted) > 4) {
         return 412;
