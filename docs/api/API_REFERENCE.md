@@ -1,6 +1,6 @@
 # GodLifeLog v2 Backend - REST API 레퍼런스
 
-> 작성일: 2026-04-07 / 최종 수정: 2026-04-12
+> 작성일: 2026-04-07 / 최종 수정: 2026-04-13
 > 기준 브랜치: `dev`
 > Base URL: `/api/v1`
 
@@ -13,12 +13,31 @@ WebSocket(`AdminChatController`, `QnaAdminController`) 및 테스트 컨트롤�
 | 도메인 | 포함 섹션 | 참조 파일 |
 |---|---|---|
 | 인증/공통 | §1 Common, §2 JWT, §3 User, §4 Verify, §5 Category | @.claude/docs/api/api-auth.md |
-| 루틴/리스트 | §6 Plan, §7 List | @.claude/docs/api/api-plan.md |
+| 루틴/리스트 | §6 Plan (v1+v2), §7 List (v1+v2) | @.claude/docs/api/api-plan.md |
 | 마이페이지 | §8 MyPage | @.claude/docs/api/api-mypage.md |
 | 챌린지 | §9 Challenge | @.claude/docs/api/api-challenge.md |
 | 콘텐츠/유틸 | §10 FAQ, §11 Notice, §12 QNA, §13 Report, §14 Search, §15 Image, §16 Analysis | @.claude/docs/api/api-content.md |
 | 관리자 | §17~23 Admin 전체 | @.claude/docs/api/api-admin.md |
-| DTO 정의 | PlanDTO, UserDTO, QnaDTO 등 공통 DTO | @.claude/docs/api/api-dto.md |
+| DTO 정의 | PlanDTO, UserDTO, QnaDTO 등 공통 DTO + v2 Request/Response DTO | @.claude/docs/api/api-dto.md |
+
+---
+
+## v2 엔드포인트 요약
+
+| Method | Path | 설명 | 인증 |
+|---|---|---|---|
+| GET | `/api/v2/plan/detail/{planIdx}` | 루틴 상세 조회 (boolean 플래그) | ❌ |
+| **POST** | **`/api/v2/plan/auth`** | **루틴 생성** (활동 미포함) | ✅ |
+| **PATCH** | **`/api/v2/plan/auth/{planIdx}`** | **루틴 부분 수정** | ✅ |
+| **DELETE** | **`/api/v2/plan/auth/{planIdx}`** | **루틴 삭제** | ✅ |
+| **POST** | **`/api/v2/plan/auth/{planIdx}/activities`** | **활동 생성** | ✅ |
+| **PATCH** | **`/api/v2/plan/auth/{planIdx}/activities/{activityIdx}`** | **활동 부분 수정** | ✅ |
+| **DELETE** | **`/api/v2/plan/auth/{planIdx}/activities/{activityIdx}`** | **활동 삭제** | ✅ |
+| GET | `/api/v2/list/auth/myPlans` | 내 루틴 전체 목록 | ✅ |
+| GET | `/api/v2/list/auth/todayPlans` | 오늘의 루틴 목록 | ✅ |
+| GET | `/api/v2/list/auth/todayStats` | 오늘 요약 통계 | ✅ |
+
+> **굵은 항목**: 2026-04-13 신규 추가 (루틴/활동 단일 책임 분리 + 부분 수정 지원)
 
 ---
 

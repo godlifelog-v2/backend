@@ -46,14 +46,98 @@
 
 **Base Path**: `/api/v2/plan`
 
+> 인증 필요 엔드포인트: `/auth/**` 경로 — `Authorization: Bearer {accessToken}` 헤더 필수
+
+#### 루틴 CRUD
+
 | Method | Path | 설명 | 파라미터 | 인증 |
 |---|---|---|---|---|
 | GET | `/detail/{planIdx}` | 루틴 상세 조회 (boolean 플래그, 읽기 전용 DTO) | Path: `planIdx`, Cookie: `viewed_plans` | ❌ |
+| POST | `/auth` | 루틴 생성 (활동 미포함) | Body: `PlanCreateRequestV2` | ✅ JWT |
+| PATCH | `/auth/{planIdx}` | 루틴 부분 수정 (null 필드 제외) | Path: `planIdx`, Body: `PlanUpdateRequestV2` | ✅ JWT |
+| DELETE | `/auth/{planIdx}` | 루틴 소프트 삭제 | Path: `planIdx` | ✅ JWT |
 
-**변경 내용 (v1 → v2)**
+#### 활동 CRUD
+
+| Method | Path | 설명 | 파라미터 | 인증 |
+|---|---|---|---|---|
+| POST | `/auth/{planIdx}/activities` | 활동 생성 (1개 이상) | Path: `planIdx`, Body: `ActivityCreateRequestV2` | ✅ JWT |
+| PATCH | `/auth/{planIdx}/activities/{activityIdx}` | 활동 부분 수정 (null 필드 제외) | Path: `planIdx`, `activityIdx`, Body: `ActivityUpdateRequestV2` | ✅ JWT |
+| DELETE | `/auth/{planIdx}/activities/{activityIdx}` | 활동 소프트 삭제 | Path: `planIdx`, `activityIdx` | ✅ JWT |
+
+**v1 → v2 변경 내용**
+- 단일 책임 원칙: `PlanDTO`(루틴+활동 혼합) → `PlanCreateRequestV2`(루틴 전용), `ActivityCreateRequestV2`(활동 전용) 분리
+- 부분 수정 지원: 수정 DTO의 모든 필드가 nullable → 변경하려는 필드만 전송 가능
+- RESTful 엔드포인트: 루틴과 활동 각각 독립 CRUD 엔드포인트
 - 응답 DTO: `PlanDTO`(읽기/쓰기 공용) → `PlanDetailDTO`(조회 전용) 분리
 - `isShared`, `isActive`, `isCompleted`, `isWriter` 타입: `int(0/1)` → **`boolean`**
 - 불필요 필드 제거: `userIdx`, `targetIdx`, `jobIdx`, `lastExp`, `isDeleted`, `deleteActivityIdx`, `planSubMod`
+- 신규 필드 추가: 루틴 `description`(간략 설명), `color`(헥사코드 색상)
+- 활동 필드 변경: `description` 삭제 → `event`(알림 활성화), `duration`(예상 소요 시간 분) 추가
+- 활동 응답 DTO: `ActivityDTO` → `ActivityV2DTO`
+
+**응답 상세**
+
+| 엔드포인트 | 응답 본문 | 상태 |
+|---|---|---|
+| GET `/plan/detail/{planIdx}` | `{ code, message: PlanDetailDTO, status }` | 200/404/500 |
+| POST `/plan/auth` | `{ code, message: String, status }` | 201/410/412/500 |
+| PATCH `/plan/auth/{planIdx}` | `{ code, message: String, status }` | 200/403/404/409/410/500 |
+| DELETE `/plan/auth/{planIdx}` | `{ code, message: String, status }` | 200/403/404/410/500 |
+| POST `/plan/auth/{planIdx}/activities` | `{ code, message: String, status }` | 201/403/404/410/500 |
+| PATCH `/plan/auth/{planIdx}/activities/{activityIdx}` | `{ code, message: String, status }` | 200/403/404/410/500 |
+| DELETE `/plan/auth/{planIdx}/activities/{activityIdx}` | `{ code, message: String, status }` | 200/403/404/410/500 |
+
+**루틴 생성 요청 예시 (`POST /auth`)**
+```json
+{
+  "planTitle": "아침 루틴",
+  "endTo": 30,
+  "repeatDays": ["mon", "tue", "wed", "thu", "fri"],
+  "targetIdx": 1,
+  "jobIdx": 1,
+  "planImp": 5,
+  "isShared": 0,
+  "isActive": 1,
+  "description": "매일 아침을 활기차게 시작하는 루틴",
+  "color": "#FF5733FF"
+}
+```
+
+**루틴 부분 수정 요청 예시 (`PATCH /auth/{planIdx}`) — 제목만 변경**
+```json
+{
+  "planTitle": "수정된 아침 루틴"
+}
+```
+
+**활동 생성 요청 예시 (`POST /auth/{planIdx}/activities`)**
+```json
+{
+  "activities": [
+    {
+      "activityName": "조깅 30분",
+      "setTime": "07:00",
+      "activityImp": 3,
+      "event": true,
+      "duration": 30
+    },
+    {
+      "activityName": "스트레칭",
+      "activityImp": 1,
+      "event": false,
+      "duration": 10
+    }
+  ]
+}
+```
+
+**활동 부분 수정 요청 예시 (`PATCH /auth/{planIdx}/activities/{activityIdx}`) — 알림 시간만 변경**
+```json
+{
+  "setTime": "08:00"
+}
+```
 
 **응답 (`/detail/{planIdx}`) 예시**
 ```json

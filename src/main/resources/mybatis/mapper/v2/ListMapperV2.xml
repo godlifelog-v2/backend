@@ -17,6 +17,7 @@
                 typeHandler="com.godLife.project.handler.typehandler.ListStringTypeHandler"/>
         <result property="fireState"  column="FIRE_STATE"/>
         <result property="color"      column="COLOR"/>
+        <result property="description" column="DESCRIPTION"/>
     </resultMap>
 
     <!-- (개인용) 전체 조회 -->
@@ -24,7 +25,7 @@
         SELECT
             PLAN_IDX, PLAN_TITLE, END_TO, PLAN_SUB_END,
             IS_SHARED, IS_ACTIVE, PLAN_IMP, CERT_EXP,
-            REPEAT_DAYS, FIRE_STATE, COLOR
+            REPEAT_DAYS, FIRE_STATE, COLOR, DESCRIPTION
         FROM PLAN_TABLE
         WHERE USER_IDX = #{userIdx} AND IS_DELETED = 0 AND IS_COMPLETED = 0
         ORDER BY IS_ACTIVE DESC, PLAN_IMP DESC, PLAN_SUB_START IS NULL, PLAN_SUB_START DESC
@@ -35,7 +36,7 @@
         SELECT
             PLAN_IDX, PLAN_TITLE, END_TO, PLAN_SUB_END,
             IS_SHARED, IS_ACTIVE, PLAN_IMP, CERT_EXP,
-            REPEAT_DAYS, FIRE_STATE, COLOR
+            REPEAT_DAYS, FIRE_STATE, COLOR, DESCRIPTION
         FROM PLAN_TABLE
         WHERE USER_IDX = #{userIdx}
           AND IS_DELETED = 0

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.godLife.project.mapper.v2.PlanMapperV2">
+
+  <!-- v2 활동 응답 ResultMap (event, duration 포함, description 없음) -->
+  <resultMap id="ActivityV2ResultMap" type="com.godLife.project.dto.response.plan.v2.ActivityV2DTO">
+    <result property="activityIdx"   column="ACTIVITY_IDX"/>
+    <result property="planIdx"       column="PLAN_IDX"/>
+    <result property="activityName"  column="ACTIVITY_NAME"/>
+    <result property="setTime"       column="SET_TIME"/>
+    <result property="activityImp"   column="ACTIVITY_IMP"/>
+    <result property="verified"      column="VERIFIED"/>
+    <result property="isEvent"       column="EVENT"/>
+    <result property="duration"      column="DURATION"/>
+  </resultMap>
+
+  <!-- 루틴 생성 (description, color 컬럼 추가) -->
+  <insert id="insertPlanV2" parameterType="com.godLife.project.dto.request.plan.v2.PlanCreateRequestV2"
+          useGeneratedKeys="true" keyProperty="planIdx">
+    INSERT INTO PLAN_TABLE (
+      USER_IDX, PLAN_TITLE, END_TO, TARGET_IDX, IS_SHARED, PLAN_IMP, JOB_IDX
+      <if test="isActive != null and isActive == 1">
+        , IS_ACTIVE, PLAN_SUB_START, PLAN_SUB_END
+      </if>
+      <if test="repeatDays != null">
+        , REPEAT_DAYS
+      </if>
+      <if test="forked == true">
+        , FORK_IDX
+      </if>
+      <if test="description != null">
+        , DESCRIPTION
+      </if>
+      <if test="color != null">
+        , COLOR
+      </if>
+    )
+    VALUES (
+      #{userIdx}, #{planTitle}, #{endTo}, #{targetIdx}, #{isShared}, #{planImp}, #{jobIdx}
+      <if test="isActive != null and isActive == 1">
+        , #{isActive}, NOW(), DATE_ADD(NOW(), INTERVAL #{endTo} DAY)
+      </if>
+      <if test="repeatDays != null">
+        , #{repeatDays, typeHandler=com.godLife.project.handler.typehandler.ListStringTypeHandler}
+      </if>
+      <if test="forked == true">
+        , #{forkIdx}
+      </if>
+      <if test="description != null">
+        , #{description}
+      </if>
+      <if test="color != null">
+        , #{color}
+      </if>
+    )
+  </insert>
+
+  <!-- 루틴 부분 수정 (null 필드 제외, 동적 SET) -->
+  <update id="updatePlanPartial" parameterType="com.godLife.project.dto.request.plan.v2.PlanUpdateRequestV2">
+    UPDATE PLAN_TABLE
+    <trim prefix="SET" suffixOverrides=",">
+      <if test="planTitle != null">PLAN_TITLE = #{planTitle},</if>
+      <if test="endTo != null">END_TO = #{endTo},</if>
+      <if test="repeatDays != null">
+        REPEAT_DAYS = #{repeatDays, typeHandler=com.godLife.project.handler.typehandler.ListStringTypeHandler},
+      </if>
+      <if test="targetIdx != null">TARGET_IDX = #{targetIdx},</if>
+      <if test="jobIdx != null">JOB_IDX = #{jobIdx},</if>
+      <if test="planImp != null">PLAN_IMP = #{planImp},</if>
+      <if test="isShared != null">IS_SHARED = #{isShared},</if>
+      <if test="description != null">DESCRIPTION = #{description},</if>
+      <if test="color != null">COLOR = #{color},</if>
+      PLAN_SUB_MOD = NOW()
+    </trim>
+    WHERE PLAN_IDX = #{planIdx} AND USER_IDX = #{userIdx}
+  </update>
+
+  <!-- 루틴 소프트 삭제 -->
+  <update id="softDeletePlan" parameterType="map">
+    UPDATE PLAN_TABLE
+       SET IS_DELETED = 1, IS_ACTIVE = 0, IS_COMPLETED = 0,
+           PLAN_SUB_START = NULL, PLAN_SUB_END = NULL
+     WHERE PLAN_IDX = #{planIdx} AND USER_IDX = #{userIdx}
+  </update>
+
+  <!-- 활동 생성 (description 없음, event/duration 추가) -->
+  <insert id="insertActivityV2" parameterType="com.godLife.project.dto.request.plan.v2.ActivityItemV2">
+    INSERT INTO PLAN_ACTIVITY (PLAN_IDX, ACTIVITY_NAME, ACTIVITY_IMP, EVENT, DURATION
+      <if test="setTime != null">, SET_TIME</if>
+    )
+    VALUES (#{planIdx}, #{activityName}, #{activityImp}, #{event}, #{duration}
+      <if test="setTime != null">, #{setTime}</if>
+    )
+  </insert>
+
+  <!-- 활동 부분 수정 (null 필드 제외, 동적 SET) -->
+  <update id="updateActivityPartial" parameterType="com.godLife.project.dto.request.plan.v2.ActivityUpdateRequestV2">
+    UPDATE PLAN_ACTIVITY
+    <trim prefix="SET" suffixOverrides=",">
+      <if test="activityName != null">ACTIVITY_NAME = #{activityName},</if>
+      <if test="activityImp != null">ACTIVITY_IMP = #{activityImp},</if>
+      <if test="event != null">EVENT = #{event},</if>
+      <if test="duration != null">DURATION = #{duration},</if>
+      <choose>
+        <when test="setTime != null">SET_TIME = #{setTime},</when>
+      </choose>
+    </trim>
+    WHERE PLAN_IDX = #{planIdx} AND ACTIVITY_IDX = #{activityIdx} AND IS_DELETED = 0
+  </update>
+
+  <!-- 활동 소프트 삭제 -->
+  <update id="softDeleteActivity" parameterType="map">
+    UPDATE PLAN_ACTIVITY
+       SET IS_DELETED = 1
+     WHERE PLAN_IDX = #{planIdx} AND ACTIVITY_IDX = #{activityIdx}
+  </update>
+
+  <!-- v2 활동 목록 조회 (event, duration 포함, description 없음) -->
+  <select id="getActivitiesByPlanIdx" parameterType="int" resultMap="ActivityV2ResultMap">
+    SELECT A.ACTIVITY_IDX,
+           A.PLAN_IDX,
+           A.ACTIVITY_NAME,
+           A.SET_TIME,
+           A.ACTIVITY_IMP,
+           A.EVENT,
+           A.DURATION,
+           COALESCE(V.VERIFIED, 0) AS VERIFIED
+    FROM PLAN_ACTIVITY A
+    LEFT JOIN (
+        SELECT V.ACTIVITY_IDX, COUNT(V.ACTIVITY_IDX) AS VERIFIED
+        FROM VERIFY_TABLE V
+        WHERE V.VERIFY_DATE = CURDATE()
+        GROUP BY V.ACTIVITY_IDX
+      ) V ON A.ACTIVITY_IDX = V.ACTIVITY_IDX
+    WHERE A.PLAN_IDX = #{planIdx}
+      AND A.IS_DELETED = 0
+    ORDER BY A.ACTIVITY_IMP DESC, A.ACTIVITY_IDX ASC
+  </select>
+
+</mapper>

@@ -3,10 +3,12 @@ package com.godLife.project.service.impl.v2;
 import com.godLife.project.dto.query.plan.v2.CustomPlanV2DTO;
 import com.godLife.project.dto.response.plan.v2.MyPlanV2DTO;
 import com.godLife.project.dto.response.plan.v2.TodayStatsDTO;
+import com.godLife.project.dto.response.plan.v2.ActivityV2DTO;
 import com.godLife.project.mapper.ListMapper;
 import com.godLife.project.mapper.PlanMapper;
 import com.godLife.project.mapper.VerifyMapper;
 import com.godLife.project.mapper.v2.ListMapperV2;
+import com.godLife.project.mapper.v2.PlanMapperV2;
 import com.godLife.project.service.interfaces.CategoryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -31,6 +33,7 @@ class ListServiceV2ImplTest {
     @Mock private ListMapperV2 listMapperV2;
     @Mock private ListMapper listMapper;
     @Mock private PlanMapper planMapper;
+    @Mock private PlanMapperV2 planMapperV2;
     @Mock private VerifyMapper verifyMapper;
     @Mock private CategoryService categoryService;
 
@@ -72,7 +75,7 @@ class ListServiceV2ImplTest {
             when(listMapperV2.getMyPlansByUserIdx(1)).thenReturn(List.of(dto));
             when(listMapper.getTargetIdxByPlanIdx(1)).thenReturn(1);
             when(listMapper.getJobIdxByPlanIdx(1)).thenReturn(1);
-            when(planMapper.detailActivityByPlanIdx(1)).thenReturn(List.of());
+            when(planMapperV2.getActivitiesByPlanIdx(1)).thenReturn(List.of(new ActivityV2DTO()));
             when(planMapper.getTargetCategoryByTargetIdx(1)).thenReturn(null);
             when(planMapper.detailFireByPlanIdx(1)).thenReturn(null);
             when(planMapper.getJOBCategoryByJobIdx(1)).thenReturn(null);

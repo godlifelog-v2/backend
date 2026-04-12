@@ -219,7 +219,7 @@
 | planTitle | String | |
 | endTo | int | |
 | repeatDays | List\<String\> | |
-| planImp | int | |
+| planImp | int | 정렬 우선순위 (1~10) |
 | certExp / verifyCount / viewCount / likeCount / forkCount | int | |
 | isShared / isActive / isCompleted / isWriter | **boolean** | int → boolean 변환 |
 | fireState / forked | boolean | |
@@ -227,10 +227,102 @@
 | forkIdx | Integer | |
 | forkTitle | String | |
 | review | String | |
-| activities | List\<ActivityDTO\> | |
+| **description** | String | 루틴 간략 설명 (신규) |
+| **color** | String | 루틴 색상 헥사코드 알파 포함 (신규) |
+| activities | List\<**ActivityV2DTO**\> | v2 활동 DTO (description 없음, event/duration 추가) |
 | jobCateDTO / jobEtcCateDTO / targetCateDTO | DTO | |
 | fireInfo | FireDTO | |
 | **제거된 필드** | | `userIdx`, `targetIdx`, `jobIdx`, `lastExp`, `isDeleted`, `deleteActivityIdx`, `planSubMod` |
+
+---
+
+### ActivityV2DTO (v2 활동 응답 전용) ✨ 신규
+
+> `PlanDetailDTO.activities`, `MyPlanV2DTO.activities` 안에 포함.
+> v1 `ActivityDTO` 대비: `description` 제거, `event`/`duration` 추가.
+
+| 필드 | 타입 | 비고 |
+|---|---|---|
+| activityIdx | int | PK |
+| planIdx | int | FK |
+| activityName | String | |
+| setTime | LocalTime | 알림 발송 시간 (HH:mm) |
+| activityImp | int | 정렬 우선순위 (1~20) |
+| verified | boolean | 오늘 인증 여부 |
+| event | boolean | 알림 활성화 여부 (신규) |
+| duration | int | 예상 소요 시간(분) (신규) |
+
+---
+
+### PlanCreateRequestV2 (루틴 생성 요청) ✨ 신규
+
+> `POST /api/v2/plan/auth` 요청 DTO. 활동 필드 없음.
+
+| 필드 | 타입 | 비고 |
+|---|---|---|
+| planTitle | String | NotBlank |
+| endTo | int | Min 7; 99999=종료 없음 |
+| repeatDays | List\<String\> | nullable |
+| targetIdx / jobIdx | int | Min 1 |
+| planImp | int | Min 1, Max 10 (기본 1) |
+| isShared / isActive | int | 0/1 |
+| **description** | String | 간략 설명 (nullable, 신규) |
+| **color** | String | 헥사코드 #RRGGBBAA (nullable, 신규) |
+| forked | boolean | |
+| forkIdx | Integer | nullable |
+| jobEtcCateDTO | JobEtcCateDTO | jobIdx=기타직업일 때 |
+
+---
+
+### PlanUpdateRequestV2 (루틴 부분 수정 요청) ✨ 신규
+
+> `PATCH /api/v2/plan/auth/{planIdx}` 요청 DTO. 모든 필드 nullable — 변경할 필드만 전송.
+
+| 필드 | 타입 | 비고 |
+|---|---|---|
+| planTitle | String | nullable |
+| endTo | Integer | nullable |
+| repeatDays | List\<String\> | nullable |
+| targetIdx / jobIdx | Integer | nullable |
+| planImp | Integer | nullable (1~10) |
+| isShared | Integer | nullable (0/1) |
+| description | String | nullable |
+| color | String | nullable |
+| jobEtcCateDTO | JobEtcCateDTO | nullable |
+
+---
+
+### ActivityCreateRequestV2 (활동 생성 요청) ✨ 신규
+
+> `POST /api/v2/plan/auth/{planIdx}/activities` 요청 DTO.
+
+| 필드 | 타입 | 비고 |
+|---|---|---|
+| activities | List\<ActivityItemV2\> | Size min 1, Valid |
+
+**ActivityItemV2 (단일 활동 항목)**
+
+| 필드 | 타입 | 비고 |
+|---|---|---|
+| activityName | String | NotBlank |
+| setTime | LocalTime | nullable (HH:mm) |
+| activityImp | int | Min 1, Max 20 (기본 1) |
+| **event** | boolean | 알림 활성화 여부 (신규, 기본 false) |
+| **duration** | int | 예상 소요 시간(분) (신규, 기본 0) |
+
+---
+
+### ActivityUpdateRequestV2 (활동 부분 수정 요청) ✨ 신규
+
+> `PATCH /api/v2/plan/auth/{planIdx}/activities/{activityIdx}` 요청 DTO. 모든 필드 nullable.
+
+| 필드 | 타입 | 비고 |
+|---|---|---|
+| activityName | String | nullable |
+| setTime | LocalTime | nullable |
+| activityImp | Integer | nullable (1~20) |
+| event | Boolean | nullable |
+| duration | Integer | nullable |
 
 ---
 
@@ -241,7 +333,7 @@
 | 필드 | 타입 | 비고 |
 |---|---|---|
 | planInfos | CustomPlanV2DTO | 루틴 기본 정보 |
-| activities | List\<ActivityDTO\> | |
+| activities | List\<**ActivityV2DTO**\> | v2 활동 DTO |
 | jobCateDTO | JobCateDTO | 직업(기본) |
 | jobEtcCateDTO | JobEtcCateDTO | 직업(직접입력) |
 | targetCateDTO | TargetCateDTO | 관심사 |
@@ -261,11 +353,12 @@
 | planSubEnd | LocalDateTime | |
 | isShared | **boolean** | 구: `int` |
 | isActive | **boolean** | 구: `int` |
-| planImp | int | |
+| planImp | int | 정렬 우선순위 (1~10) |
 | certExp | int | |
 | repeatDays | **List\<String\>** | 구: `String("mon,tue")` |
 | fireState | boolean | |
-| color | String | 루틴 색상 헥사코드 (DB 컬럼 추가 후 활성화) |
+| color | String | 루틴 색상 헥사코드 |
+| **description** | String | 루틴 간략 설명 (신규) |
 
 ---
 

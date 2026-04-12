@@ -36,4 +36,5 @@ public class CustomPlanV2DTO {
   private List<String> repeatDays;
   private boolean fireState;
   private String color;
+  private String description;
 }
