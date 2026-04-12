@@ -22,9 +22,10 @@ import java.io.PrintWriter;
 @Slf4j
 public class JWTFilter extends OncePerRequestFilter {
 
-  private static final RequestMatcher matcherAuth   = new AntPathRequestMatcher("/api/v1/*/auth/**");
-  private static final RequestMatcher matcherAdmin1 = new AntPathRequestMatcher("/api/v1/*/admin/**");
-  private static final RequestMatcher matcherAdmin2 = new AntPathRequestMatcher("/api/v1/admin/**");
+  private static final RequestMatcher matcherAuth    = new AntPathRequestMatcher("/api/v1/*/auth/**");
+  private static final RequestMatcher matcherAdmin1  = new AntPathRequestMatcher("/api/v1/*/admin/**");
+  private static final RequestMatcher matcherAdmin2  = new AntPathRequestMatcher("/api/v1/admin/**");
+  private static final RequestMatcher matcherAuthV2  = new AntPathRequestMatcher("/api/v2/*/auth/**");
 
   private final JWTUtil jwtUtil;
 
@@ -35,7 +36,7 @@ public class JWTFilter extends OncePerRequestFilter {
   @Override
   protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-    if (!(matcherAuth.matches(request) || matcherAdmin1.matches(request) || matcherAdmin2.matches(request))) {
+    if (!(matcherAuth.matches(request) || matcherAdmin1.matches(request) || matcherAdmin2.matches(request) || matcherAuthV2.matches(request))) {
       filterChain.doFilter(request, response);
       return;
     }
