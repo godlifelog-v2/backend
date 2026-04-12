@@ -2,11 +2,7 @@ package com.godLife.project.service.impl.v2;
 
 import com.godLife.project.dto.category.JobEtcCateDTO;
 import com.godLife.project.dto.model.plan.PlanDTO;
-import com.godLife.project.dto.request.plan.v2.ActivityCreateRequestV2;
-import com.godLife.project.dto.request.plan.v2.ActivityItemV2;
-import com.godLife.project.dto.request.plan.v2.ActivityUpdateRequestV2;
-import com.godLife.project.dto.request.plan.v2.PlanCreateRequestV2;
-import com.godLife.project.dto.request.plan.v2.PlanUpdateRequestV2;
+import com.godLife.project.dto.request.plan.v2.*;
 import com.godLife.project.dto.response.plan.v2.ActivityV2DTO;
 import com.godLife.project.dto.response.plan.v2.PlanDetailDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
@@ -104,7 +100,7 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
             int isDeleted = 0;
             int customJobIdx = categoryService.getIdxOfCustomJob();
 
-            if (planMapper.getCntOfPlanByUserIdxNIsCompleted(userIdx, isCompleted, isDeleted) > 4) {
+            if (planMapper.getCntOfPlanByUserIdxNIsCompleted(userIdx, isCompleted, isDeleted) > 19) {
                 return 412;
             }
             if (isUserDeleted(userIdx)) return 410;
