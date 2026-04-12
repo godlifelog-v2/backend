@@ -130,7 +130,7 @@ public class PlanController {
       }
 
       // 응답 메시지 설정
-      return ResponseEntity.ok().body(handler.createResponse(200, planDTO));
+      return ResponseEntity.ok().body(handler.createResponseWithData(200, "루틴 조회 성공", planDTO));
 
     } catch (NoSuchElementException e) {
       String msg = "루틴 조회 실패,, 조회하려는 루틴이 존재하지 않습니다.";
@@ -282,7 +282,7 @@ public class PlanController {
     boolean result = planService.checkLike(planIdx, userIdx);
 
     return ResponseEntity.status(handler.getHttpStatus(200))
-        .body(handler.createResponse(200, result));
+        .body(handler.createResponseWithData(200, "좋아요 여부 조회 성공", result));
   }
 
   // 루틴 추천 취소

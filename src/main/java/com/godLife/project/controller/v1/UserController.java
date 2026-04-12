@@ -154,7 +154,7 @@ public class UserController {
     if (result == null) {
       return ResponseEntity.status(404).body(handler.createResponse(404, "유저 정보가 없습니다."));
     }
-    return ResponseEntity.ok(handler.createResponse(200, result));
+    return ResponseEntity.ok(handler.createResponseWithData(200, "유저 프로필 조회 성공", result));
   }
 
 }

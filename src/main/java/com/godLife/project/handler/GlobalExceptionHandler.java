@@ -36,12 +36,8 @@ public class GlobalExceptionHandler {
   // JSON 파싱 오류 처리 메소드
   @ExceptionHandler(HttpMessageNotReadableException.class)
   public ResponseEntity<Map<String, Object>> handleJsonParseException(HttpMessageNotReadableException ex) {
-    Map<String, Object> errorResponse = new HashMap<>();
-    errorResponse.put("status", "error");
-    errorResponse.put("message", "잘못된 JSON 형식입니다. 필드값이 누락되었거나, 필드명의 오타가 있을 수 있습니다.");
-    errorResponse.put("code", 400);
-
-    return ResponseEntity.badRequest().body(errorResponse);
+    return ResponseEntity.badRequest()
+        .body(createResponse(400, "잘못된 JSON 형식입니다. 필드값이 누락되었거나, 필드명의 오타가 있을 수 있습니다."));
   }
 
   // 커스텀 예외 처리 메소드
@@ -90,25 +86,12 @@ public class GlobalExceptionHandler {
     };
   }
 
-  // 응답 메시지 생성
-  public Map<String, Object> createResponse(int result, Object msg) {
+  // 응답 메시지 생성 (message에는 문자열 메시지만 담음)
+  public Map<String, Object> createResponse(int result, String msg) {
     Map<String, Object> message = new HashMap<>();
     message.put("status", (result == 200 || result == 201 || result == 204) ? "success" : "error");
     message.put("code", result);
-
-    switch (result) {
-      case 200 -> message.put("message", msg);
-      case 201 -> message.put("message", msg);
-      case 204 -> message.put("message", msg);
-      case 403 -> message.put("message", msg);
-      case 404 -> message.put("message", msg);
-      case 409 -> message.put("message", msg);
-      case 410 -> message.put("message", msg);
-      case 412 -> message.put("message", msg);
-      case 422 -> message.put("message", msg);
-      case 500 -> message.put("message", msg);
-      default -> message.put("message", msg);
-    }
+    message.put("message", msg);
     return message;
   }
 
@@ -127,8 +110,10 @@ public class GlobalExceptionHandler {
     return jwtUtil.getUsername(token);
   }
 
+  // 응답 메시지 + 데이터 생성 (data에 실제 JSON 데이터를 담음)
   public Map<String, Object> createResponseWithData(int code, String message, Object data) {
     Map<String, Object> response = new HashMap<>();
+    response.put("status", (code == 200 || code == 201 || code == 204) ? "success" : "error");
     response.put("code", code);
     response.put("message", message);
     response.put("data", data);

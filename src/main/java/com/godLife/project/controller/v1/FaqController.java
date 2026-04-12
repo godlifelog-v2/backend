@@ -37,7 +37,7 @@ public class FaqController {
               .body(handler.createResponse(404, "게시글이 존재하지 않습니다."));
     }
 
-    return ResponseEntity.ok(handler.createResponse(200, faqList));
+    return ResponseEntity.ok(handler.createResponseWithData(200, "FAQ 전체 조회 성공", faqList));
   }
 
   // FAQ 카테고리 조회
@@ -51,7 +51,7 @@ public class FaqController {
               .body(handler.createResponse(404, "게시글이 존재하지 않습니다."));
     }
 
-    return ResponseEntity.ok(handler.createResponse(200, faqList));
+    return ResponseEntity.ok(handler.createResponseWithData(200, "카테고리별 FAQ 조회 성공", faqList));
   }
 
 
@@ -70,7 +70,7 @@ public class FaqController {
     }
 
     // 정상적인 경우 응답
-    return ResponseEntity.ok(handler.createResponse(200, faq));
+    return ResponseEntity.ok(handler.createResponseWithData(200, "FAQ 상세 조회 성공", faq));
   }
 
 @PostMapping("/admin/write")

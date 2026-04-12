@@ -155,7 +155,7 @@ public class QnaController {
 
     QnaDetailDTO response = qnaService.setQnaDetailForUser(base);
 
-    return ResponseEntity.ok().body(handler.createResponse(200, response));
+    return ResponseEntity.ok().body(handler.createResponseWithData(200, "문의 상세 조회 성공", response));
   }
 
   // 문의 완료 처리 api

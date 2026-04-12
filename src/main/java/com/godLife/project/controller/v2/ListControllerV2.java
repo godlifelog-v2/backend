@@ -38,7 +38,7 @@ public class ListControllerV2 {
       if (myPlanList.isEmpty()) {
         throw new NoSuchElementException("진행/대기중인 루틴 없음.");
       }
-      return ResponseEntity.ok().body(handler.createResponse(200, myPlanList));
+      return ResponseEntity.ok().body(handler.createResponseWithData(200, "루틴 리스트 조회 성공", myPlanList));
 
     } catch (NoSuchElementException e) {
       return ResponseEntity.status(handler.getHttpStatus(204)).build();
@@ -64,7 +64,7 @@ public class ListControllerV2 {
         throw new NoSuchElementException("오늘 진행할 루틴 없음.");
       }
 
-      return ResponseEntity.ok().body(handler.createResponse(200, todayPlanList));
+      return ResponseEntity.ok().body(handler.createResponseWithData(200, "오늘의 루틴 조회 성공", todayPlanList));
 
     } catch (NoSuchElementException e) {
       return ResponseEntity.status(handler.getHttpStatus(204)).build();
@@ -82,7 +82,7 @@ public class ListControllerV2 {
     try {
       int userIdx = handler.getUserIdxFromToken(authHeader);
       TodayStatsDTO stats = listServiceV2.getTodayStats(userIdx);
-      return ResponseEntity.ok().body(handler.createResponse(200, stats));
+      return ResponseEntity.ok().body(handler.createResponseWithData(200, "통계 조회 성공", stats));
     } catch (Exception e) {
       String msg = "통계 조회 중 오류가 발생했습니다.";
       log.error("e: ", e);
