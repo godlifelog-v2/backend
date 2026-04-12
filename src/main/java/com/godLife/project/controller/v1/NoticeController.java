@@ -65,7 +65,7 @@ public class NoticeController {
       }
 
 
-      return ResponseEntity.ok().body(handler.createResponse(200, notice));
+      return ResponseEntity.ok().body(handler.createResponseWithData(200, "공지 조회 성공", notice));
 
     } catch (NoSuchElementException e) {
       String msg = "공지 조회 실패, 조회하려는 공지가 존재하지 않습니다.";
@@ -84,9 +84,7 @@ public class NoticeController {
     List<NoticeDTO> popupNotice = noticeService.getActivePopupNoticeList();
 
     if (popupNotice != null) {
-      Map<String, Object> response = handler.createResponse(200, "팝업 공지사항 조회 성공");
-      response.put("notice", popupNotice);
-      return ResponseEntity.ok(response);
+      return ResponseEntity.ok(handler.createResponseWithData(200, "팝업 공지사항 조회 성공", Map.of("notice", popupNotice)));
     } else {
       return ResponseEntity.status(HttpStatus.NO_CONTENT)
               .body(handler.createResponse(204, "현재 표시할 팝업 공지사항이 없습니다."));

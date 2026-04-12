@@ -52,7 +52,7 @@ public class MyPageController {
       return ResponseEntity.status(404).body(handler.createResponse(404, "유저 정보가 없습니다."));
     }
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(200)).body(handler.createResponse(200, result));
+    return ResponseEntity.status(handler.getHttpStatus(200)).body(handler.createResponseWithData(200, "유저 정보 조회 성공", result));
   }
 
   // 개인 정보 수정

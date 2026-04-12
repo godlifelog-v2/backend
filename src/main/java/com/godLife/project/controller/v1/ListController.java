@@ -41,7 +41,7 @@ public class ListController {
         throw new NoSuchElementException("진행/대기중인 루틴 없음.");
       }
       // 응답 메시지 설정
-      return ResponseEntity.ok().body(handler.createResponse(200, myPlanList));
+      return ResponseEntity.ok().body(handler.createResponseWithData(200, "루틴 리스트 조회 성공", myPlanList));
 
     } catch (NoSuchElementException e) {
       return ResponseEntity.status(handler.getHttpStatus(204)).build();

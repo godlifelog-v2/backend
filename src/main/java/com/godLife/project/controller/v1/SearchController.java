@@ -154,7 +154,7 @@ public class SearchController {
   private ResponseEntity<Map<String, Object>> getKeywords(SearchLogDTO searchLogDTO) {
     List<SearchLogsResponseDTO> searchLogs = searchService.getSearchLogs(searchLogDTO);
     return searchLogs.isEmpty() ? ResponseEntity.status(handler.getHttpStatus(204)).build()
-        : ResponseEntity.ok().body(handler.createResponse(200, searchLogs));
+        : ResponseEntity.ok().body(handler.createResponseWithData(200, "검색 기록 조회 성공", searchLogs));
   }
 
   // 응답 메세지 설정 함수

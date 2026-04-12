@@ -82,7 +82,7 @@ public class PlanControllerV2 {
             PlanDetailDTO planDetailDTO = planServiceV2.detailRoutine(planIdx, 0, request);
             if (planDetailDTO == null) throw new NoSuchElementException("조회하려는 루틴이 존재하지 않습니다.");
 
-            return ResponseEntity.ok().body(handler.createResponse(200, planDetailDTO));
+            return ResponseEntity.ok().body(handler.createResponseWithData(200, "루틴 조회 성공", planDetailDTO));
 
         } catch (NoSuchElementException e) {
             log.info("PlanControllerV2 - detail :: {}", e.getMessage());

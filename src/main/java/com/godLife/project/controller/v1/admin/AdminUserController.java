@@ -108,10 +108,7 @@ public class AdminUserController {
                         .body(handler.createResponse(404, "등록된 권한이 없습니다."));
             }
 
-            Map<String, Object> response = handler.createResponse(200, "권한 목록 조회 성공");
-            response.put("authorityList", authorityList);
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(handler.createResponseWithData(200, "권한 목록 조회 성공", Map.of("authorityList", authorityList)));
         } catch (Exception e) {
             log.error("권한 목록 조회 실패: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -130,10 +127,7 @@ public class AdminUserController {
                         .body(handler.createResponse(404, "관리자 권한을 가진 유저가 없습니다."));
             }
 
-            Map<String, Object> response = handler.createResponse(200, "권한별 유저 조회 성공");
-            response.put("userList", userList);
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(handler.createResponseWithData(200, "권한별 유저 조회 성공", Map.of("userList", userList)));
         } catch (Exception e) {
             log.error("관리자 권한 유저 조회 실패: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -154,10 +148,7 @@ public class AdminUserController {
                         .body(handler.createResponse(404, "해당 권한을 가진 유저가 없습니다."));
             }
 
-            Map<String, Object> response = handler.createResponse(200, "권한별 유저 조회 성공");
-            response.put("userList", userList);
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(handler.createResponseWithData(200, "권한별 유저 조회 성공", Map.of("userList", userList)));
         } catch (Exception e) {
             log.error("권한별 유저 조회 실패: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

@@ -18,7 +18,6 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,23 +44,16 @@ public class PlanAdminController {
 
     if (plans.isEmpty()) {
       return ResponseEntity.status(HttpStatus.NO_CONTENT)
-              .body(createResponse(204, "관리자 루틴이 없습니다."));
+              .body(handler.createResponse(204, "관리자 루틴이 없습니다."));
     }
 
-    Map<String, Object> response = createResponse(200, "관리자 루틴 조회 성공");
-    response.put("plans", plans);
-    response.put("totalPages", totalPages);
-    response.put("currentPage", page);
-    response.put("pageSize", size);
-
-    return ResponseEntity.ok(response);
-  }
-
-  private Map<String, Object> createResponse(int statusCode, String message) {
-    Map<String, Object> response = new HashMap<>();
-    response.put("status", statusCode);
-    response.put("message", message);
-    return response;
+    Map<String, Object> data = Map.of(
+        "plans", plans,
+        "totalPages", totalPages,
+        "currentPage", page,
+        "pageSize", size
+    );
+    return ResponseEntity.ok(handler.createResponseWithData(200, "관리자 루틴 조회 성공", data));
   }
 
   // ----------- 관리자가 작성한 루틴 카테고리 리스트 조회 ---------------
@@ -77,16 +69,16 @@ public class PlanAdminController {
 
     if (plans.isEmpty()) {
       return ResponseEntity.status(HttpStatus.NO_CONTENT)
-              .body(createResponse(204, "카테고리별 관리자 루틴이 없습니다."));
+              .body(handler.createResponse(204, "카테고리별 관리자 루틴이 없습니다."));
     }
 
-    Map<String, Object> response = createResponse(200, "카테고리별 관리자 루틴 조회 성공");
-    response.put("plans", plans);
-    response.put("totalPages", totalPages);
-    response.put("currentPage", page);
-    response.put("pageSize", size);
-
-    return ResponseEntity.ok(response);
+    Map<String, Object> data = Map.of(
+        "plans", plans,
+        "totalPages", totalPages,
+        "currentPage", page,
+        "pageSize", size
+    );
+    return ResponseEntity.ok(handler.createResponseWithData(200, "카테고리별 관리자 루틴 조회 성공", data));
   }
   //    ----------- 상세보기는 해당 url 사용 : api/plan/detail/{planIdx}
 
@@ -102,16 +94,16 @@ public class PlanAdminController {
 
     if (plans.isEmpty()) {
       return ResponseEntity.status(HttpStatus.NO_CONTENT)
-              .body(createResponse(204, "루틴이 없습니다."));
+              .body(handler.createResponse(204, "루틴이 없습니다."));
     }
 
-    Map<String, Object> response = createResponse(200, "루틴 조회 성공");
-    response.put("plans", plans);
-    response.put("totalPages", totalPages);
-    response.put("currentPage", page);
-    response.put("pageSize", size);
-
-    return ResponseEntity.ok(response);
+    Map<String, Object> data = Map.of(
+        "plans", plans,
+        "totalPages", totalPages,
+        "currentPage", page,
+        "pageSize", size
+    );
+    return ResponseEntity.ok(handler.createResponseWithData(200, "루틴 조회 성공", data));
   }
 
 }
