@@ -9,7 +9,7 @@ import com.godLife.project.dto.category.JobCateDTO;
 import com.godLife.project.dto.category.JobEtcCateDTO;
 import com.godLife.project.dto.category.TargetCateDTO;
 import com.godLife.project.dto.model.common.FireDTO;
-import com.godLife.project.dto.model.plan.ActivityDTO;
+import com.godLife.project.dto.response.plan.v2.ActivityV2DTO;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
@@ -79,11 +79,15 @@ public class PlanDetailDTO {
     private Integer forkIdx;
     private String forkTitle;
 
+    // 루틴 설명 / 색상 (신규)
+    private String description;
+    private String color;
+
     // 완료 후기
     private String review;
 
     // 활동 목록 (myPlans와 동일 키)
-    private List<ActivityDTO> activities;
+    private List<ActivityV2DTO> activities;
 
     // 카테고리 정보 (myPlans와 동일 키)
     private JobCateDTO jobCateDTO;

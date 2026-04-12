@@ -107,6 +107,12 @@ public class PlanDTO {
     @Schema(description = "종료 여부", example = "0 : 진행중")
     private int isCompleted;
 
+    @Schema(description = "루틴 간략 설명", example = "이 루틴은 체력 향상을 위한 루틴입니다.")
+    private String description;
+
+    @Schema(description = "루틴 고유 색상 (헥사코드, 알파값 포함)", example = "#FF5733FF")
+    private String color;
+
     @Schema(description = "완료 후기", example = "후기 작성입니다.")
     private String review;
 

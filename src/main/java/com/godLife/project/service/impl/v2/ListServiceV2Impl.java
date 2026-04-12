@@ -7,6 +7,7 @@ import com.godLife.project.mapper.ListMapper;
 import com.godLife.project.mapper.PlanMapper;
 import com.godLife.project.mapper.VerifyMapper;
 import com.godLife.project.mapper.v2.ListMapperV2;
+import com.godLife.project.mapper.v2.PlanMapperV2;
 import com.godLife.project.service.interfaces.CategoryService;
 import com.godLife.project.service.interfaces.v2.ListServiceV2;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class ListServiceV2Impl implements ListServiceV2 {
   private final ListMapperV2 listMapperV2;
   private final ListMapper listMapper;       // target/job idx 조회 (v1 공용)
   private final PlanMapper planMapper;
+  private final PlanMapperV2 planMapperV2;   // v2 활동 목록 조회
   private final VerifyMapper verifyMapper;
   private final CategoryService categoryService;
 
@@ -101,7 +103,7 @@ public class ListServiceV2Impl implements ListServiceV2 {
       int jobIdx = listMapper.getJobIdxByPlanIdx(planIdx);
 
       myPlanDTO.setPlanInfos(planDTO);
-      myPlanDTO.setActivities(planMapper.detailActivityByPlanIdx(planIdx));
+      myPlanDTO.setActivities(planMapperV2.getActivitiesByPlanIdx(planIdx));
       myPlanDTO.setTargetCateDTO(planMapper.getTargetCategoryByTargetIdx(targetIdx));
       myPlanDTO.setFireInfo(planMapper.detailFireByPlanIdx(planIdx));
 

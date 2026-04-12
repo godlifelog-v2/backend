@@ -105,6 +105,10 @@ public class SecurityConfig {
             .requestMatchers("/api/v1/qna/auth/**").authenticated()
         // 업로드 관련
             .requestMatchers("/api/v1/upload/auth/**").authenticated()
+        // v2 루틴 관련
+            .requestMatchers("/api/v2/plan/auth/**").authenticated()
+        // v2 리스트 관련
+            .requestMatchers("/api/v2/list/auth/**").authenticated()
 
 
 
