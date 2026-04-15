@@ -22,12 +22,12 @@
 
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
-| GET `/admin/users/` | `{ status, message, data: { users: List<AdminUserDTO>, page, size, count, total, totalPages } }` | 200/204/500 |
-| PATCH `/admin/users/ban/{userIdx}` | `{ status, message }` | 200/404/500 |
-| GET `/admin/users/authority/list` | `{ status, message, authorityList: List<AuthorityCateDTO> }` | 200/404/500 |
-| GET `/admin/users/authority/adminList` | `{ status, message, userList: List<AdminListDTO> }` | 200/404/500 |
-| GET `/admin/users/authority/{authorityIdx}` | `{ status, message, userList: List<AdminUserDTO> }` | 200/404/500 |
-| PATCH `/admin/users/authority/updateAuth/{userIdx}` | `{ status, message }` | 200/404/500 |
+| GET `/admin/users/` | `{ code, status, message: String, data: { users: List<AdminUserDTO>, page, size, count, total, totalPages } }` | 200/204/500 |
+| PATCH `/admin/users/ban/{userIdx}` | `{ code, status, message: String }` | 200/404/500 |
+| GET `/admin/users/authority/list` | `{ code, status, message: String, data: { authorityList: List<AuthorityCateDTO> } }` | 200/404/500 |
+| GET `/admin/users/authority/adminList` | `{ code, status, message: String, data: { userList: List<AdminListDTO> } }` | 200/404/500 |
+| GET `/admin/users/authority/{authorityIdx}` | `{ code, status, message: String, data: { userList: List<AdminUserDTO> } }` | 200/404/500 |
+| PATCH `/admin/users/authority/updateAuth/{userIdx}` | `{ code, status, message: String }` | 200/404/500 |
 
 ---
 
@@ -50,14 +50,14 @@
 
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
-| GET `/admin/challenges/latest` | `{ status, message, challenges: List<ChallengeDTO>, totalPages, currentPage, pageSize }` | 200 |
-| GET `/admin/challenges/detail/{challIdx}` | `ChallengeDTO` | 200 |
-| POST `/admin/challenges/create` | `{ status, message }` | 201/400/500 |
-| PATCH `/admin/challenges/modify` | `{ status, message }` | 200/400/404/500 |
-| PATCH `/admin/challenges/delete` | `{ status, message }` | 200/400/404/500 |
-| POST `/admin/challenges/visibility/{challIdx}` | `{ status, message }` | 200/404/500 |
-| POST `/admin/challenges/type/{challIdx}` | `{ status, message }` | 200/404/500 |
-| PUT `/admin/challenges/earlyFinish/{challIdx}` | `String` | 200/400 |
+| GET `/admin/challenges/latest` | `{ code, status, message: String, data: { challenges: List<ChallengeDTO>, totalPages, currentPage, pageSize } }` | 200 |
+| GET `/admin/challenges/detail/{challIdx}` | `{ code, status, message: String, data: ChallengeDTO }` | 200 |
+| POST `/admin/challenges/create` | `{ code, status, message: String }` | 201/400/500 |
+| PATCH `/admin/challenges/modify` | `{ code, status, message: String }` | 200/400/404/500 |
+| PATCH `/admin/challenges/delete` | `{ code, status, message: String }` | 200/400/404/500 |
+| POST `/admin/challenges/visibility/{challIdx}` | `{ code, status, message: String }` | 200/404/500 |
+| POST `/admin/challenges/type/{challIdx}` | `{ code, status, message: String }` | 200/404/500 |
+| PUT `/admin/challenges/earlyFinish/{challIdx}` | `{ code, status, message: String }` | 200/400 |
 
 ---
 
@@ -65,7 +65,7 @@
 
 **Base Path**: `/api/v1/admin/compContent`
 
-모두 `{ status, message }` 형태의 단순 응답.
+모두 `{ code, status, message: String }` 형태의 단순 응답.
 
 ### 목표 카테고리
 | Method | Path | Body | 상태 |
@@ -101,7 +101,7 @@
 
 **Base Path**: `/api/v1/admin/compSystem`
 
-기본 형태는 `{ status, message }`. 일부 삭제 API는 충돌 시 데이터 목록도 반환.
+기본 형태는 `{ code, status, message: String }`. 일부 삭제 API는 충돌 시 data 필드에 목록도 반환.
 
 ### FAQ 카테고리
 | Method | Path | Body | 상태 |
@@ -147,9 +147,9 @@
 
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
-| GET `/admin/plans/` | `{ status, message, plans: List<CustomAdminPlanListDTO>, totalPages, currentPage, pageSize }` | 200/204 |
-| GET `/admin/plans/{targetIdx}` | `{ status, message, plans: List<CustomAdminPlanListDTO>, totalPages, currentPage, pageSize }` | 200/204 |
-| GET `/admin/plans/all` | `{ status, message, plans: List<CustomAdminPlanListDTO>, totalPages, currentPage, pageSize }` | 200/204 |
+| GET `/admin/plans/` | `{ code, status, message: String, data: { plans: List<CustomAdminPlanListDTO>, totalPages, currentPage, pageSize } }` | 200/204 |
+| GET `/admin/plans/{targetIdx}` | `{ code, status, message: String, data: { plans: List<CustomAdminPlanListDTO>, totalPages, currentPage, pageSize } }` | 200/204 |
+| GET `/admin/plans/all` | `{ code, status, message: String, data: { plans: List<CustomAdminPlanListDTO>, totalPages, currentPage, pageSize } }` | 200/204 |
 
 ---
 
@@ -168,10 +168,10 @@
 
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
-| GET `/admin/report/userReport` | `{ total, reports: List<UserReportDTO>, page, size }` | 200 |
-| POST `/admin/report/userReportState` | `{ status, message }` | 200/400/500 |
-| GET `/admin/report/planReport` | `{ page, size, total, list: List<PlanReportDTO> }` | 200 |
-| PATCH `/admin/report/plans/{planIdx}/reports/{planReportIdx}/status` | `String` | 200/403/500 |
+| GET `/admin/report/userReport` | `{ code, status, message: String, data: { total, reports: List<UserReportDTO>, page, size } }` | 200 |
+| POST `/admin/report/userReportState` | `{ code, status, message: String }` | 200/400/500 |
+| GET `/admin/report/planReport` | `{ code, status, message: String, data: { page, size, total, list: List<PlanReportDTO> } }` | 200 |
+| PATCH `/admin/report/plans/{planIdx}/reports/{planReportIdx}/status` | `{ code, status, message: String }` | 200/403/500 |
 
 ---
 
@@ -189,6 +189,6 @@
 
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
-| GET `/service/admin/get/status` | `{ status, message, data: String }` | 200 |
-| PATCH `/service/admin/switch/status` | `{ status, message, data: String }` | 200 |
-| POST `/service/admin/autoMatch/wakeUp` | `{ status, message }` | 200 |
+| GET `/service/admin/get/status` | `{ code, status, message: String, data: String }` | 200 |
+| PATCH `/service/admin/switch/status` | `{ code, status, message: String, data: String }` | 200 |
+| POST `/service/admin/autoMatch/wakeUp` | `{ code, status, message: String }` | 200 |

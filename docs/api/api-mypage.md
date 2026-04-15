@@ -47,7 +47,7 @@
 
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
-| GET `/myPage/auth/myAccount` | `{ code, message: MyPageUserInfosResponseDTO, status }` | 200/404 |
+| GET `/myPage/auth/myAccount` | `{ code, message: String, status, data: MyPageUserInfosResponseDTO }` | 200/404 |
 | PATCH `/myPage/auth/myAccount/modify/personal` | `{ code, message: String, status }` | 200/400/404/500 |
 | PATCH `/myPage/auth/myAccount/modify/nickName` | `{ code, message: String, status }` | 200/400/404/500 |
 | PATCH `/myPage/auth/myAccount/modify/email` | `{ code, message: String, status }` | 200/400/404/412/500 |
@@ -58,6 +58,6 @@
 | GET `/myPage/auth/list/myPlan` | `{ plans: List<PlanListDTO>, totalPages, currentPage, pageSize }` | 200/204 |
 | PATCH `/myPage/auth/delete/plans` | `{ code, message: String, status }` | 200/400/404/500 |
 | PATCH `/myPage/auth/switch/isShared` | `{ code, message: String, status }` | 200/400/404/500 |
-| GET `/myPage/auth/list/myChall` | `{ code, message: List<MyChallengeDTO>, status }` | 200 |
+| GET `/myPage/auth/list/myChall` | `{ code, message: String, status, data: List<MyChallengeDTO> }` | 200 |
 | GET `/myPage/auth/list/myLike` | `{ plans: List<PlanListDTO>, totalPages, currentPage, pageSize }` | 200/204 |
 | DELETE `/myPage/auth/delete/likes` | `{ code, message: String, status }` | 200/400/404/500 |

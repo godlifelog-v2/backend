@@ -113,6 +113,10 @@ public class PlanControllerV2 {
             case 412 -> "루틴은 최대 5개까지 생성 가능합니다.";
             default  -> "서버 내부 오류로 루틴 생성에 실패했습니다.";
         };
+        if (status == 201) {
+            return ResponseEntity.status(handler.getHttpStatus(status))
+                    .body(handler.createResponseWithData(status, msg, Map.of("planIdx", dto.getPlanIdx())));
+        }
         return ResponseEntity.status(handler.getHttpStatus(status))
                 .body(handler.createResponse(status, msg));
     }

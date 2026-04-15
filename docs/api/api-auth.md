@@ -217,12 +217,13 @@ Spring Security 필터(`CustomLogoutFilter`)에서 처리됩니다.
 ```json
 {
   "code": 200,
-  "message": {
+  "status": "success",
+  "message": "프로필 조회 성공",
+  "data": {
     "userNick": "철수짱", "nickTag": "#1",
     "jobIdx": 1, "targetIdx": 1,
     "combo": 18, "userExp": 1770, "userLv": 6
-  },
-  "status": "success"
+  }
 }
 ```
 

@@ -23,11 +23,11 @@
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
 | GET `/challenges/latest` | `{ challenges: List<ChallengeDTO>, totalPages, currentPage, pageSize }` | 200/401 |
-| GET `/challenges/{challIdx}` | `{ code, message: ChallengeDTO, status }` | 200/404 |
-| GET `/challenges/verify-records/{challIdx}` | `{ code, message: List<VerifyRecordDTO>, status }` | 200/401 |
-| POST `/challenges/auth/join/{challIdx}` | `{ code, message: ChallengeDTO, status }` | 200/400/403/500 |
-| POST `/challenges/auth/verify/{challIdx}` | `{ code, message: { timestamp: LocalDateTime }, status }` | 200/400/500 |
-| GET `/challenges/search` | `{ code, message: List<ChallengeDTO>, status }` | 200 |
+| GET `/challenges/{challIdx}` | `{ code, message: String, status, data: ChallengeDTO }` | 200/404 |
+| GET `/challenges/verify-records/{challIdx}` | `{ code, message: String, status, data: List<VerifyRecordDTO> }` | 200/401 |
+| POST `/challenges/auth/join/{challIdx}` | `{ code, message: String, status, data: ChallengeDTO }` | 200/400/403/500 |
+| POST `/challenges/auth/verify/{challIdx}` | `{ code, message: String, status, data: { timestamp: LocalDateTime } }` | 200/400/500 |
+| GET `/challenges/search` | `{ code, message: String, status, data: List<ChallengeDTO> }` | 200 |
 
 ---
 

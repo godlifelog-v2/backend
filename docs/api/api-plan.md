@@ -29,12 +29,12 @@
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
 | POST `/plan/auth/write` | `{ code, message: String, status }` | 201/400/410/412/500 |
-| GET `/plan/detail/{planIdx}` | `{ code, message: PlanDTO, status }` | 200/404/500 |
+| GET `/plan/detail/{planIdx}` | `{ code, message: String, status, data: PlanDTO }` | 200/404/500 |
 | PATCH `/plan/auth/modify` | `{ code, message: String, status }` | 200/400/403/404/409/410/500 |
 | PATCH `/plan/auth/delete/{planIdx}` | `{ code, message: String, status }` | 200/403/404/410/500 |
 | PATCH `/plan/auth/stopNgo` | `{ code, message: String, status }` | 200/400/403/404/410/500 |
 | POST `/plan/auth/likePlan/{planIdx}` | `{ code, message: String, status }` | 200/404/409/410/500 |
-| GET `/plan/checkLike/{planIdx}` | `{ code, message: Boolean, status }` | 200 |
+| GET `/plan/checkLike/{planIdx}` | `{ code, message: String, status, data: Boolean }` | 200 |
 | DELETE `/plan/auth/unLikePlan/{planIdx}` | `{ code, message: String, status }` | 200/404/410/500 |
 | PATCH `/plan/auth/earlyComplete/{planIdx}` | `{ code, message: String, status }` | 200/403/404/409/410/412/500 |
 | PATCH `/plan/auth/addReview` | `{ code, message: String, status }` | 200/403/404/409/410/412/500 |
@@ -80,7 +80,7 @@
 
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
-| GET `/plan/detail/{planIdx}` | `{ code, message: PlanDetailDTO, status }` | 200/404/500 |
+| GET `/plan/detail/{planIdx}` | `{ code, message: String, status, data: PlanDetailDTO }` | 200/404/500 |
 | POST `/plan/auth` | `{ code, message: String, status }` | 201/410/412/500 |
 | PATCH `/plan/auth/{planIdx}` | `{ code, message: String, status }` | 200/403/404/409/410/500 |
 | DELETE `/plan/auth/{planIdx}` | `{ code, message: String, status }` | 200/403/404/410/500 |
@@ -143,7 +143,9 @@
 ```json
 {
   "code": 200,
-  "message": {
+  "status": "success",
+  "message": "루틴 상세 조회 성공",
+  "data": {
     "planIdx": 1,
     "planTitle": "루틴 제목",
     "endTo": 30,
@@ -171,8 +173,7 @@
     "jobEtcCateDTO": null,
     "targetCateDTO": { "idx": 1, "name": "카테고리명", "color": "#FF9500", "icon": "Sunrise", "iconKey": "sunrise" },
     "fireInfo": { "lvIdx": 3, "fireName": "불꽃 3단계", "fireColor": "#FF6666", "fireEffect": null }
-  },
-  "status": "success"
+  }
 }
 ```
 
@@ -180,7 +181,7 @@
 
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
-| GET `/plan/detail/{planIdx}` | `{ code, message: PlanDetailDTO, status }` | 200/404/500 |
+| GET `/plan/detail/{planIdx}` | `{ code, message: String, status, data: PlanDetailDTO }` | 200/404/500 |
 
 ---
 
@@ -202,7 +203,7 @@
 
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
-| GET `/list/auth/myPlans` | `{ code, message: List<MyPlanDTO>, status }` | 200/204/500 |
+| GET `/list/auth/myPlans` | `{ code, message: String, status, data: List<MyPlanDTO> }` | 200/204/500 |
 | GET `/list/plan/{mode}` | `{ plans: List<PlanListDTO>, totalPages, currentPage, pageSize }` | 200/204 |
 | GET `/list/auth/qna` | `{ qnaList: List<QnaListDTO>, totalPages, currentPage, pageSize }` | 200 |
 
@@ -231,7 +232,9 @@
 ```json
 {
   "code": 200,
-  "message": [
+  "status": "success",
+  "message": "내 루틴 목록 조회 성공",
+  "data": [
     {
       "planInfos": {
         "planIdx": 4,
@@ -252,26 +255,26 @@
       "targetCateDTO": { "idx": 5, "name": "카테고리명", "color": "#008080", "icon": "BookOpen", "iconKey": "book-open" },
       "fireInfo": { "lvIdx": 4, "fireName": "불꽃 4단계", "fireColor": "#FF3333", "fireEffect": null }
     }
-  ],
-  "status": "success"
+  ]
 }
 ```
 
 **`/auth/todayPlans` 응답 예시**
 ```json
-{ "code": 200, "message": [ /* MyPlanV2DTO[] — 오늘 요일 해당 & IS_ACTIVE=1 루틴만 */ ], "status": "success" }
+{ "code": 200, "status": "success", "message": "오늘의 루틴 조회 성공", "data": [ /* MyPlanV2DTO[] — 오늘 요일 해당 & IS_ACTIVE=1 루틴만 */ ] }
 ```
 
 **`/auth/todayStats` 응답 예시**
 ```json
 {
   "code": 200,
-  "message": {
+  "status": "success",
+  "message": "오늘 통계 조회 성공",
+  "data": {
     "totalToday": 3,
     "completedToday": 1,
     "combo": 13
-  },
-  "status": "success"
+  }
 }
 ```
 
@@ -279,6 +282,6 @@
 
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
-| GET `/list/auth/myPlans` | `{ code, message: List<MyPlanV2DTO>, status }` | 200/204/500 |
-| GET `/list/auth/todayPlans` | `{ code, message: List<MyPlanV2DTO>, status }` | 200/204/500 |
-| GET `/list/auth/todayStats` | `{ code, message: TodayStatsDTO, status }` | 200/500 |
+| GET `/list/auth/myPlans` | `{ code, message: String, status, data: List<MyPlanV2DTO> }` | 200/204/500 |
+| GET `/list/auth/todayPlans` | `{ code, message: String, status, data: List<MyPlanV2DTO> }` | 200/204/500 |
+| GET `/list/auth/todayStats` | `{ code, message: String, status, data: TodayStatsDTO }` | 200/500 |

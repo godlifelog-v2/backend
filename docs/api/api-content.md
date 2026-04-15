@@ -23,10 +23,10 @@
 
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
-| GET `/faq/` | `{ code, message: List<FaqListDTO>, status }` | 200/404 |
-| GET `/faq/category/{faqCategory}` | `{ code, message: List<FaqListDTO>, status }` | 200/404 |
-| GET `/faq/{faqIdx}` | `{ code, message: FaQDTO, status }` | 200/404 |
-| GET `/faq/search` | `{ code, message: List<FaQDTO>, status }` | 200 |
+| GET `/faq/` | `{ code, message: String, status, data: List<FaqListDTO> }` | 200/404 |
+| GET `/faq/category/{faqCategory}` | `{ code, message: String, status, data: List<FaqListDTO> }` | 200/404 |
+| GET `/faq/{faqIdx}` | `{ code, message: String, status, data: FaQDTO }` | 200/404 |
+| GET `/faq/search` | `{ code, message: String, status, data: List<FaQDTO> }` | 200 |
 | POST `/faq/admin/write` | `{ code, message: String, status }` | 200/500 |
 | PATCH `/faq/admin/{faqIdx}` | `{ code, message: String, status }` | 200/500 |
 | DELETE `/faq/admin/{faqIdx}` | `{ code, message: String, status }` | 200/500 |
@@ -52,8 +52,8 @@
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
 | GET `/notice/` | `{ notices: List<NoticeDTO>, totalPages, currentPage, pageSize }` | 200/500 |
-| GET `/notice/{noticeIdx}` | `{ code, message: NoticeDTO, status }` | 200/404/500 |
-| GET `/notice/popup` | `{ code, message: List<NoticeDTO>, status }` | 200/204 |
+| GET `/notice/{noticeIdx}` | `{ code, message: String, status, data: NoticeDTO }` | 200/404/500 |
+| GET `/notice/popup` | `{ code, message: String, status, data: List<NoticeDTO> }` | 200/204 |
 | PATCH `/notice/admin/popup` | `{ code, message: String, status }` | 200/400/404/500 |
 | POST `/notice/admin/create` | `{ code, message: String, status }` | 201/403/409/500 |
 | PATCH `/notice/admin/{noticeIdx}` | `{ code, message: String, status }` | 200/400/403/404/500 |
@@ -88,7 +88,7 @@
 | PATCH `/qna/auth/modify/reply` | `{ code, message: String, status }` | 200/400 |
 | DELETE `/qna/auth/delete/{qnaIdx}` | `{ code, message: String, status }` | 200 |
 | DELETE `/qna/auth/delete/reply/{qnaIdx}` | `{ code, message: String, status }` | 200 |
-| GET `/qna/auth/{qnaIdx}` | `{ code, message: QnaDetailDTO, status }` | 200/400 |
+| GET `/qna/auth/{qnaIdx}` | `{ code, message: String, status, data: QnaDetailDTO }` | 200/400 |
 | PATCH `/qna/auth/complete/{qnaIdx}` | `{ code, message: String, status }` | 200/400 |
 
 ---
@@ -130,7 +130,7 @@
 
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
-| GET `/search/log` | `{ code, message: List<SearchLogsResponseDTO>, status }` | 200/204/500 |
+| GET `/search/log` | `{ code, message: String, status, data: List<SearchLogsResponseDTO> }` | 200/204/500 |
 | PATCH `/search/log/{logIdx}` | `{ code, message: String, status }` | 200/400/412/422/500 |
 
 ---
@@ -145,12 +145,12 @@
 
 **응답**
 ```json
-{ "code": 200, "message": { "url": "https://.../uploaded.png" }, "status": "success" }
+{ "code": 200, "status": "success", "message": "이미지 업로드 성공", "data": { "url": "https://.../uploaded.png" } }
 ```
 
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
-| POST `/upload/auth/image-upload/{category}` | `{ code, message: { url: String }, status }` | 200/400/500 |
+| POST `/upload/auth/image-upload/{category}` | `{ code, message: String, status, data: { url: String } }` | 200/400/500 |
 
 ---
 

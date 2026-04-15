@@ -56,17 +56,17 @@ Authorization: Bearer {accessToken}
 ### 공통 응답 포맷
 
 ```json
-// 패턴 A — 단일 리소스 (data가 message 필드 안에 포함)
-{ "code": 200, "message": { /* DTO */ }, "status": "success" }
+// 패턴 A — 단일 리소스 / 목록 (data 필드에 DTO 또는 배열 포함)
+{ "code": 200, "status": "success", "message": "조회 성공", "data": { /* DTO */ } }
 
 // 패턴 B — 페이징 목록 (루트 레벨에 페이징 정보 포함, 엔드포인트마다 루트 키 이름 상이)
 { "plans": [ /* DTO[] */ ], "totalPages": 5, "currentPage": 1, "pageSize": 10 }
 
-// 패턴 C — 단순 결과 (message가 문자열)
-{ "code": 200, "message": "처리 완료", "status": "success" }
+// 패턴 C — 단순 결과 (data 없음, message만 문자열)
+{ "code": 200, "status": "success", "message": "처리 완료" }
 ```
 
-> ⚠️ **주의**: `data` 필드는 존재하지 않음. 리소스 데이터는 `message` 필드에 직접 담겨 있음.
+> **필드 규칙**: `message`는 항상 **문자열**. 리소스 데이터(DTO, 배열 등)는 `data` 필드에 담김.
 > 페이징 응답은 엔드포인트별로 루트 키 이름이 다름 (`plans`, `challenges`, `qnaList` 등).
 
 ### 페이징 파라미터(공통)
