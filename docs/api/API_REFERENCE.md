@@ -35,7 +35,7 @@ WebSocket(`AdminChatController`, `QnaAdminController`) 및 테스트 컨트롤�
 | **DELETE** | **`/api/v2/plan/auth/{planIdx}/activities/{activityIdx}`** | **활동 삭제** | ✅ |
 | GET | `/api/v2/list/auth/myPlans` | 내 루틴 전체 목록 | ✅ |
 | GET | `/api/v2/list/auth/todayPlans` | 오늘의 루틴 목록 | ✅ |
-| GET | `/api/v2/list/auth/todayStats` | 오늘 요약 통계 | ✅ |
+| GET | `/api/v2/analysis/auth/todayStats` | 오늘 요약 통계 | ✅ |
 
 > **굵은 항목**: 2026-04-13 신규 추가 (루틴/활동 단일 책임 분리 + 부분 수정 지원)
 

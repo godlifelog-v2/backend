@@ -57,7 +57,7 @@
           AND FIND_IN_SET(#{dayOfWeek}, REPEAT_DAYS) > 0
     </select>
 
-    <!-- 오늘 모든 activity가 verified인 루틴 수 -->
+    <!-- 오늘 모든 activity가 verified인 루틴 수 (activity가 1개 이상인 루틴만 집계) -->
     <select id="getTodayCompletedPlanCount" parameterType="map" resultType="int">
         SELECT COUNT(*)
         FROM PLAN_TABLE P
@@ -66,6 +66,10 @@
           AND P.IS_COMPLETED = 0
           AND P.IS_ACTIVE = 1
           AND FIND_IN_SET(#{dayOfWeek}, P.REPEAT_DAYS) > 0
+          AND EXISTS (
+              SELECT 1 FROM PLAN_ACTIVITY
+              WHERE PLAN_IDX = P.PLAN_IDX AND IS_DELETED = 0
+          )
           AND NOT EXISTS (
               SELECT 1 FROM PLAN_ACTIVITY A
               LEFT JOIN (

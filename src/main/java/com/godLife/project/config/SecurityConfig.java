@@ -109,6 +109,8 @@ public class SecurityConfig {
             .requestMatchers("/api/v2/plan/auth/**").authenticated()
         // v2 리스트 관련
             .requestMatchers("/api/v2/list/auth/**").authenticated()
+        // v2 분석 관련
+            .requestMatchers("/api/v2/analysis/auth/**").authenticated()
 
 
 

@@ -219,14 +219,13 @@
 |---|---|---|---|---|
 | GET | `/auth/myPlans` | 내 루틴 전체 목록 | - | ✅ JWT |
 | GET | `/auth/todayPlans` | 오늘의 루틴 목록 | - | ✅ JWT |
-| GET | `/auth/todayStats` | 오늘 요약 통계 | - | ✅ JWT |
 
 **변경 내용 (v1 → v2)**
 - `/auth/myPlans` 응답 DTO: `MyPlanDTO` → `MyPlanV2DTO`
   - `myPlanInfos` → `planInfos`, `myActivities` → `activities`, `targetInfos` → `targetCateDTO`, `fireInfos` → `fireInfo`, `jobDefaultInfos` → `jobCateDTO`, `jobAddedInfos` → `jobEtcCateDTO`
   - `isShared`, `isActive`: `int(0/1)` → **`boolean`**
   - `repeatDays`: `"mon,tue"` (String) → `["mon","tue"]` (Array)
-- `/auth/todayPlans`, `/auth/todayStats`: v2 신규 추가
+- `/auth/todayPlans`: v2 신규 추가
 
 **`/auth/myPlans` 응답 예시**
 ```json
@@ -264,12 +263,33 @@
 { "code": 200, "status": "success", "message": "오늘의 루틴 조회 성공", "data": [ /* MyPlanV2DTO[] — 오늘 요일 해당 & IS_ACTIVE=1 루틴만 */ ] }
 ```
 
+**응답 상세**
+
+| 엔드포인트 | 응답 본문 | 상태 |
+|---|---|---|
+| GET `/list/auth/myPlans` | `{ code, message: String, status, data: List<MyPlanV2DTO> }` | 200/204/500 |
+| GET `/list/auth/todayPlans` | `{ code, message: String, status, data: List<MyPlanV2DTO> }` | 200/204/500 |
+
+---
+
+## Analysis (v2)
+
+**Base Path**: `/api/v2/analysis`
+
+> 인증: `Authorization: Bearer {accessToken}` 헤더 사용
+
+| Method | Path | 설명 | 파라미터 | 인증 |
+|---|---|---|---|---|
+| GET | `/auth/todayStats` | 오늘 요약 통계 | - | ✅ JWT |
+
+> `completedToday`: 활동이 1개 이상이고 모든 활동이 오늘 인증된 루틴만 집계 (활동 0개 루틴 제외)
+
 **`/auth/todayStats` 응답 예시**
 ```json
 {
   "code": 200,
   "status": "success",
-  "message": "오늘 통계 조회 성공",
+  "message": "통계 조회 성공",
   "data": {
     "totalToday": 3,
     "completedToday": 1,
@@ -282,6 +302,4 @@
 
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
-| GET `/list/auth/myPlans` | `{ code, message: String, status, data: List<MyPlanV2DTO> }` | 200/204/500 |
-| GET `/list/auth/todayPlans` | `{ code, message: String, status, data: List<MyPlanV2DTO> }` | 200/204/500 |
-| GET `/list/auth/todayStats` | `{ code, message: String, status, data: TodayStatsDTO }` | 200/500 |
+| GET `/analysis/auth/todayStats` | `{ code, message: String, status, data: TodayStatsDTO }` | 200/500 |
