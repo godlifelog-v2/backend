@@ -68,7 +68,6 @@
       </if>
       <if test="targetIdx != null">TARGET_IDX = #{targetIdx},</if>
       <if test="jobIdx != null">JOB_IDX = #{jobIdx},</if>
-      <if test="planImp != null">PLAN_IMP = #{planImp},</if>
       <if test="isShared != null">IS_SHARED = #{isShared},</if>
       <if test="description != null">DESCRIPTION = #{description},</if>
       <if test="color != null">COLOR = #{color},</if>
@@ -100,7 +99,6 @@
     UPDATE PLAN_ACTIVITY
     <trim prefix="SET" suffixOverrides=",">
       <if test="activityName != null">ACTIVITY_NAME = #{activityName},</if>
-      <if test="activityImp != null">ACTIVITY_IMP = #{activityImp},</if>
       <if test="event != null">EVENT = #{event},</if>
       <if test="duration != null">DURATION = #{duration},</if>
       <choose>
@@ -110,12 +108,69 @@
     WHERE PLAN_IDX = #{planIdx} AND ACTIVITY_IDX = #{activityIdx} AND IS_DELETED = 0
   </update>
 
+  <!-- 루틴 정렬 우선순위 일괄 수정 (CASE WHEN) -->
+  <update id="updatePlansImpBulk" parameterType="map">
+    UPDATE PLAN_TABLE
+    SET PLAN_IMP = CASE PLAN_IDX
+        <foreach item="item" collection="planImps">
+            WHEN #{item.planIdx} THEN #{item.imp}
+        </foreach>
+        ELSE PLAN_IMP END,
+    PLAN_SUB_MOD = NOW()
+    WHERE USER_IDX = #{userIdx}
+      AND IS_DELETED = 0
+      AND PLAN_IDX IN (
+        <foreach item="item" collection="planImps" separator=",">#{item.planIdx}</foreach>
+      )
+  </update>
+
+  <!-- 활동 정렬 우선순위 일괄 수정 (CASE WHEN) -->
+  <update id="updateActivitiesImpBulk" parameterType="map">
+    UPDATE PLAN_ACTIVITY
+    SET ACTIVITY_IMP = CASE ACTIVITY_IDX
+        <foreach item="item" collection="activityImps">
+            WHEN #{item.activityIdx} THEN #{item.imp}
+        </foreach>
+        ELSE ACTIVITY_IMP END
+    WHERE PLAN_IDX = #{planIdx}
+      AND IS_DELETED = 0
+      AND ACTIVITY_IDX IN (
+        <foreach item="item" collection="activityImps" separator=",">#{item.activityIdx}</foreach>
+      )
+  </update>
+
   <!-- 활동 소프트 삭제 -->
   <update id="softDeleteActivity" parameterType="map">
     UPDATE PLAN_ACTIVITY
        SET IS_DELETED = 1
      WHERE PLAN_IDX = #{planIdx} AND ACTIVITY_IDX = #{activityIdx}
   </update>
+
+  <!-- 루틴 추가 정보 조회 (포크·날짜·카운트·완료·후기) -->
+  <resultMap id="PlanExtraInfoMap" type="com.godLife.project.dto.response.plan.v2.PlanExtraInfoDTO">
+    <id     property="planIdx"      column="PLAN_IDX"/>
+    <result property="forkIdx"      column="FORK_IDX"/>
+    <result property="forkTitle"    column="FORK_TITLE"/>
+    <result property="planSubDate"  column="PLAN_SUB_DATE"/>
+    <result property="planSubMod"   column="PLAN_SUB_MOD"/>
+    <result property="planSubStart" column="PLAN_SUB_START"/>
+    <result property="viewCount"    column="VIEW_COUNT"/>
+    <result property="forkCount"    column="FORK_COUNT"/>
+    <result property="likeCount"    column="LIKE_COUNT"/>
+    <result property="isCompleted"  column="IS_COMPLETED"/>
+    <result property="review"       column="REVIEW"/>
+  </resultMap>
+
+  <select id="getPlanExtraInfo" parameterType="map" resultMap="PlanExtraInfoMap">
+    SELECT P.PLAN_IDX, P.FORK_IDX, F.PLAN_TITLE AS FORK_TITLE,
+           P.PLAN_SUB_DATE, P.PLAN_SUB_MOD, P.PLAN_SUB_START,
+           P.VIEW_COUNT, P.FORK_COUNT, P.LIKE_COUNT, P.IS_COMPLETED, P.REVIEW
+    FROM PLAN_TABLE P
+    LEFT JOIN PLAN_TABLE F ON P.FORK_IDX = F.PLAN_IDX AND F.IS_DELETED = 0
+    WHERE P.PLAN_IDX = #{planIdx}
+      AND P.USER_IDX = #{userIdx}
+      AND P.IS_DELETED = 0
+  </select>
 
   <!-- v2 활동 목록 조회 (event, duration 포함, description 없음) -->
   <select id="getActivitiesByPlanIdx" parameterType="int" resultMap="ActivityV2ResultMap">

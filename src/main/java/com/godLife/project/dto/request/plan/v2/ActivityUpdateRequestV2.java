@@ -33,9 +33,6 @@ public class ActivityUpdateRequestV2 {
     @JsonFormat(pattern = "HH:mm")
     private LocalTime setTime;
 
-    @Schema(description = "활동 정렬 우선순위 (1~20)", example = "3")
-    private Integer activityImp;
-
     @Schema(description = "알림 활성화 여부", example = "true")
     private Boolean event;
 

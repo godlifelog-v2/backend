@@ -53,8 +53,9 @@
 | Method | Path | 설명 | 파라미터 | 인증 |
 |---|---|---|---|---|
 | GET | `/detail/{planIdx}` | 루틴 상세 조회 (boolean 플래그, 읽기 전용 DTO) | Path: `planIdx`, Cookie: `viewed_plans` | ❌ |
+| GET | `/auth/{planIdx}/extra` | 루틴 추가 정보 조회 (포크·날짜·카운트·완료·후기) | Path: `planIdx` | ✅ JWT |
 | POST | `/auth` | 루틴 생성 (활동 미포함) | Body: `PlanCreateRequestV2` | ✅ JWT |
-| PATCH | `/auth/{planIdx}` | 루틴 부분 수정 (null 필드 제외) | Path: `planIdx`, Body: `PlanUpdateRequestV2` | ✅ JWT |
+| PATCH | `/auth/{planIdx}` | 루틴 부분 수정 (null 필드 제외, planImp 제외) | Path: `planIdx`, Body: `PlanUpdateRequestV2` | ✅ JWT |
 | DELETE | `/auth/{planIdx}` | 루틴 소프트 삭제 | Path: `planIdx` | ✅ JWT |
 
 #### 활동 CRUD
@@ -62,8 +63,15 @@
 | Method | Path | 설명 | 파라미터 | 인증 |
 |---|---|---|---|---|
 | POST | `/auth/{planIdx}/activities` | 활동 생성 (1개 이상) | Path: `planIdx`, Body: `ActivityCreateRequestV2` | ✅ JWT |
-| PATCH | `/auth/{planIdx}/activities/{activityIdx}` | 활동 부분 수정 (null 필드 제외) | Path: `planIdx`, `activityIdx`, Body: `ActivityUpdateRequestV2` | ✅ JWT |
+| PATCH | `/auth/{planIdx}/activities/{activityIdx}` | 활동 부분 수정 (null 필드 제외, activityImp 제외) | Path: `planIdx`, `activityIdx`, Body: `ActivityUpdateRequestV2` | ✅ JWT |
 | DELETE | `/auth/{planIdx}/activities/{activityIdx}` | 활동 소프트 삭제 | Path: `planIdx`, `activityIdx` | ✅ JWT |
+
+#### 정렬 우선순위 일괄 수정
+
+| Method | Path | 설명 | 파라미터 | 인증 |
+|---|---|---|---|---|
+| PATCH | `/auth/bulk-imp` | 루틴 정렬 우선순위 일괄 수정 | Body: `BulkPlanImpUpdateRequest` | ✅ JWT |
+| PATCH | `/auth/{planIdx}/activities/bulk-imp` | 활동 정렬 우선순위 일괄 수정 | Path: `planIdx`, Body: `BulkActivityImpUpdateRequest` | ✅ JWT |
 
 **v1 → v2 변경 내용**
 - 단일 책임 원칙: `PlanDTO`(루틴+활동 혼합) → `PlanCreateRequestV2`(루틴 전용), `ActivityCreateRequestV2`(활동 전용) 분리
@@ -81,12 +89,59 @@
 | 엔드포인트 | 응답 본문 | 상태 |
 |---|---|---|
 | GET `/plan/detail/{planIdx}` | `{ code, message: String, status, data: PlanDetailDTO }` | 200/404/500 |
+| GET `/plan/auth/{planIdx}/extra` | `{ code, message: String, status, data: PlanExtraInfoDTO }` | 200/404/500 |
 | POST `/plan/auth` | `{ code, message: String, status }` | 201/410/412/500 |
 | PATCH `/plan/auth/{planIdx}` | `{ code, message: String, status }` | 200/403/404/409/410/500 |
 | DELETE `/plan/auth/{planIdx}` | `{ code, message: String, status }` | 200/403/404/410/500 |
 | POST `/plan/auth/{planIdx}/activities` | `{ code, message: String, status }` | 201/403/404/410/500 |
 | PATCH `/plan/auth/{planIdx}/activities/{activityIdx}` | `{ code, message: String, status }` | 200/403/404/410/500 |
 | DELETE `/plan/auth/{planIdx}/activities/{activityIdx}` | `{ code, message: String, status }` | 200/403/404/410/500 |
+| PATCH `/plan/auth/bulk-imp` | `{ code, message: String, status }` | 200/400/403/410/500 |
+| PATCH `/plan/auth/{planIdx}/activities/bulk-imp` | `{ code, message: String, status }` | 200/400/403/404/410/500 |
+
+**루틴 추가 정보 응답 예시 (`GET /auth/{planIdx}/extra`)**
+```json
+{
+  "code": 200,
+  "status": "success",
+  "message": "루틴 추가 정보 조회 성공",
+  "data": {
+    "planIdx": 123,
+    "forkIdx": 45,
+    "forkTitle": "원본 루틴 제목",
+    "planSubDate": "2026-01-01 10:00:00",
+    "planSubMod": "2026-04-16 02:12:48",
+    "planSubStart": "2026-01-05 00:00:00",
+    "viewCount": 0,
+    "forkCount": 2,
+    "likeCount": 5,
+    "isCompleted": false,
+    "review": null
+  }
+}
+```
+
+**루틴 IMP 일괄 수정 요청 예시 (`PATCH /auth/bulk-imp`)**
+```json
+{
+  "planImps": [
+    { "planIdx": 10, "imp": 5 },
+    { "planIdx": 11, "imp": 3 },
+    { "planIdx": 12, "imp": 1 }
+  ]
+}
+```
+
+**활동 IMP 일괄 수정 요청 예시 (`PATCH /auth/{planIdx}/activities/bulk-imp`)**
+```json
+{
+  "activityImps": [
+    { "activityIdx": 1, "imp": 10 },
+    { "activityIdx": 2, "imp": 7 },
+    { "activityIdx": 3, "imp": 4 }
+  ]
+}
+```
 
 **루틴 생성 요청 예시 (`POST /auth`)**
 ```json

@@ -35,9 +35,6 @@ public class PlanUpdateRequestV2 {
     @Schema(description = "직업 카테고리 인덱스", example = "3")
     private Integer jobIdx;
 
-    @Schema(description = "루틴 정렬 우선순위 (1~10)", example = "5")
-    private Integer planImp;
-
     @Schema(description = "공개 여부 (0: 비공개, 1: 공개)", example = "1")
     private Integer isShared;
 
