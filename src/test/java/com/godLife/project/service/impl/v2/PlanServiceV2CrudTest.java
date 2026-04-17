@@ -1,12 +1,18 @@
 package com.godLife.project.service.impl.v2;
 
 import com.godLife.project.dto.request.plan.v2.ActivityCreateRequestV2;
+import com.godLife.project.dto.request.plan.v2.ActivityImpItemDTO;
 import com.godLife.project.dto.request.plan.v2.ActivityItemV2;
 import com.godLife.project.dto.request.plan.v2.ActivityUpdateRequestV2;
+import com.godLife.project.dto.request.plan.v2.BulkActivityImpUpdateRequest;
+import com.godLife.project.dto.request.plan.v2.BulkPlanImpUpdateRequest;
 import com.godLife.project.dto.request.plan.v2.PlanCreateRequestV2;
+import com.godLife.project.dto.request.plan.v2.PlanImpItemDTO;
 import com.godLife.project.dto.request.plan.v2.PlanUpdateRequestV2;
+import com.godLife.project.dto.response.plan.v2.PlanExtraInfoDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.mapper.PlanMapper;
+import com.godLife.project.mapper.dto.PlanDetailMapper;
 import com.godLife.project.mapper.v2.PlanMapperV2;
 import com.godLife.project.service.interfaces.CategoryService;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +39,7 @@ class PlanServiceV2CrudTest {
 
     @Mock private PlanMapper planMapper;
     @Mock private PlanMapperV2 planMapperV2;
+    @Mock private PlanDetailMapper planDetailMapper;
     @Mock private CategoryService categoryService;
     @Mock private GlobalExceptionHandler handler;
 
@@ -82,9 +89,9 @@ class PlanServiceV2CrudTest {
         }
 
         @Test
-        @DisplayName("루틴 5개 초과 → 412")
+        @DisplayName("루틴 20개 초과 → 412")
         void createPlan_overLimit_returns412() {
-            when(planMapper.getCntOfPlanByUserIdxNIsCompleted(userIdx, 0, 0)).thenReturn(5);
+            when(planMapper.getCntOfPlanByUserIdxNIsCompleted(userIdx, 0, 0)).thenReturn(20);
 
             int result = planServiceV2.createPlan(buildDto(), userIdx);
 
@@ -324,6 +331,179 @@ class PlanServiceV2CrudTest {
             int result = planServiceV2.updateActivity(planIdx, activityIdx, new ActivityUpdateRequestV2(), userIdx);
 
             assertThat(result).isEqualTo(403);
+        }
+    }
+
+    // ===========================================
+    // 루틴 추가 정보 조회
+    // ===========================================
+
+    @Nested
+    @DisplayName("getPlanExtraInfo")
+    class GetPlanExtraInfoTest {
+
+        @BeforeEach
+        void planSetup() {
+            when(planMapper.checkPlanByPlanIdx(planIdx, 0)).thenReturn(true);
+            when(planMapper.getUserIdxByPlanIdx(planIdx)).thenReturn(userIdx);
+        }
+
+        @Test
+        @DisplayName("조회 성공 → DTO 반환")
+        void getPlanExtraInfo_success_returnsDto() {
+            PlanExtraInfoDTO dto = new PlanExtraInfoDTO();
+            dto.setPlanIdx(planIdx);
+            when(planMapperV2.getPlanExtraInfo(planIdx, userIdx)).thenReturn(dto);
+
+            PlanExtraInfoDTO result = planServiceV2.getPlanExtraInfo(planIdx, userIdx);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getPlanIdx()).isEqualTo(planIdx);
+        }
+
+        @Test
+        @DisplayName("루틴 없음 → null 반환")
+        void getPlanExtraInfo_planNotFound_returnsNull() {
+            when(planMapper.checkPlanByPlanIdx(planIdx, 0)).thenReturn(false);
+
+            PlanExtraInfoDTO result = planServiceV2.getPlanExtraInfo(planIdx, userIdx);
+
+            assertThat(result).isNull();
+        }
+
+        @Test
+        @DisplayName("타인 소유 → null 반환")
+        void getPlanExtraInfo_notOwner_returnsNull() {
+            when(planMapper.getUserIdxByPlanIdx(planIdx)).thenReturn(999);
+
+            PlanExtraInfoDTO result = planServiceV2.getPlanExtraInfo(planIdx, userIdx);
+
+            assertThat(result).isNull();
+        }
+    }
+
+    // ===========================================
+    // 루틴 IMP 일괄 수정
+    // ===========================================
+
+    @Nested
+    @DisplayName("updatePlansImpBulk")
+    class UpdatePlansImpBulkTest {
+
+        private BulkPlanImpUpdateRequest buildDto() {
+            PlanImpItemDTO item = new PlanImpItemDTO();
+            item.setPlanIdx(planIdx);
+            item.setImp(3);
+            BulkPlanImpUpdateRequest dto = new BulkPlanImpUpdateRequest();
+            dto.setPlanImps(List.of(item));
+            return dto;
+        }
+
+        @Test
+        @DisplayName("일괄 수정 성공 → 200")
+        void updatePlansImpBulk_success_returns200() {
+            when(planMapperV2.updatePlansImpBulk(eq(userIdx), any())).thenReturn(1);
+
+            int result = planServiceV2.updatePlansImpBulk(buildDto(), userIdx);
+
+            assertThat(result).isEqualTo(200);
+            verify(planMapperV2).updatePlansImpBulk(eq(userIdx), any());
+        }
+
+        @Test
+        @DisplayName("미소유 루틴 포함 (affected != size) → 403")
+        void updatePlansImpBulk_notOwned_returns403() {
+            when(planMapperV2.updatePlansImpBulk(eq(userIdx), any())).thenReturn(0);
+
+            int result = planServiceV2.updatePlansImpBulk(buildDto(), userIdx);
+
+            assertThat(result).isEqualTo(403);
+        }
+
+        @Test
+        @DisplayName("탈퇴한 유저 → 410")
+        void updatePlansImpBulk_deletedUser_returns410() {
+            when(planMapper.getUserIsDeleted(userIdx)).thenReturn("Y");
+
+            int result = planServiceV2.updatePlansImpBulk(buildDto(), userIdx);
+
+            assertThat(result).isEqualTo(410);
+            verify(planMapperV2, never()).updatePlansImpBulk(anyInt(), any());
+        }
+    }
+
+    // ===========================================
+    // 활동 IMP 일괄 수정
+    // ===========================================
+
+    @Nested
+    @DisplayName("updateActivitiesImpBulk")
+    class UpdateActivitiesImpBulkTest {
+
+        @BeforeEach
+        void planSetup() {
+            when(planMapper.checkPlanByPlanIdx(planIdx, 0)).thenReturn(true);
+            when(planMapper.getUserIdxByPlanIdx(planIdx)).thenReturn(userIdx);
+        }
+
+        private BulkActivityImpUpdateRequest buildDto() {
+            ActivityImpItemDTO item = new ActivityImpItemDTO();
+            item.setActivityIdx(activityIdx);
+            item.setImp(2);
+            BulkActivityImpUpdateRequest dto = new BulkActivityImpUpdateRequest();
+            dto.setActivityImps(List.of(item));
+            return dto;
+        }
+
+        @Test
+        @DisplayName("일괄 수정 성공 → 200")
+        void updateActivitiesImpBulk_success_returns200() {
+            when(planMapperV2.updateActivitiesImpBulk(eq(planIdx), any())).thenReturn(1);
+
+            int result = planServiceV2.updateActivitiesImpBulk(planIdx, buildDto(), userIdx);
+
+            assertThat(result).isEqualTo(200);
+            verify(planMapperV2).updateActivitiesImpBulk(eq(planIdx), any());
+        }
+
+        @Test
+        @DisplayName("루틴 없음 → 404")
+        void updateActivitiesImpBulk_planNotFound_returns404() {
+            when(planMapper.checkPlanByPlanIdx(planIdx, 0)).thenReturn(false);
+
+            int result = planServiceV2.updateActivitiesImpBulk(planIdx, buildDto(), userIdx);
+
+            assertThat(result).isEqualTo(404);
+        }
+
+        @Test
+        @DisplayName("루틴 권한 없음 → 403")
+        void updateActivitiesImpBulk_notOwner_returns403() {
+            when(planMapper.getUserIdxByPlanIdx(planIdx)).thenReturn(999);
+
+            int result = planServiceV2.updateActivitiesImpBulk(planIdx, buildDto(), userIdx);
+
+            assertThat(result).isEqualTo(403);
+        }
+
+        @Test
+        @DisplayName("탈퇴한 유저 → 410")
+        void updateActivitiesImpBulk_deletedUser_returns410() {
+            when(planMapper.getUserIsDeleted(userIdx)).thenReturn("Y");
+
+            int result = planServiceV2.updateActivitiesImpBulk(planIdx, buildDto(), userIdx);
+
+            assertThat(result).isEqualTo(410);
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 활동 포함 (affected != size) → 404")
+        void updateActivitiesImpBulk_activityNotFound_returns404() {
+            when(planMapperV2.updateActivitiesImpBulk(eq(planIdx), any())).thenReturn(0);
+
+            int result = planServiceV2.updateActivitiesImpBulk(planIdx, buildDto(), userIdx);
+
+            assertThat(result).isEqualTo(404);
         }
     }
 

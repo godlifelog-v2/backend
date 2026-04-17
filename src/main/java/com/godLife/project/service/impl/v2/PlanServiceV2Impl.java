@@ -5,6 +5,7 @@ import com.godLife.project.dto.model.plan.PlanDTO;
 import com.godLife.project.dto.request.plan.v2.*;
 import com.godLife.project.dto.response.plan.v2.ActivityV2DTO;
 import com.godLife.project.dto.response.plan.v2.PlanDetailDTO;
+import com.godLife.project.dto.response.plan.v2.PlanExtraInfoDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.mapper.PlanMapper;
 import com.godLife.project.mapper.dto.PlanDetailMapper;
@@ -231,6 +232,51 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
             return 200;
         } catch (Exception e) {
             log.error("deleteActivity error: ", e);
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return 500;
+        }
+    }
+
+    // ========================= 루틴 추가 정보 조회 =========================
+
+    @Override
+    public PlanExtraInfoDTO getPlanExtraInfo(int planIdx, int userIdx) {
+        if (planNotFound(planIdx)) return null;
+        if (notOwner(planIdx, userIdx)) return null;
+        return planMapperV2.getPlanExtraInfo(planIdx, userIdx);
+    }
+
+    // ========================= IMP 일괄 수정 =========================
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int updatePlansImpBulk(BulkPlanImpUpdateRequest dto, int userIdx) {
+        if (isUserDeleted(userIdx)) return 410;
+
+        try {
+            int affected = planMapperV2.updatePlansImpBulk(userIdx, dto.getPlanImps());
+            if (affected != dto.getPlanImps().size()) return 403;
+            return 200;
+        } catch (Exception e) {
+            log.error("updatePlansImpBulk error: ", e);
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return 500;
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int updateActivitiesImpBulk(int planIdx, BulkActivityImpUpdateRequest dto, int userIdx) {
+        if (planNotFound(planIdx)) return 404;
+        if (notOwner(planIdx, userIdx)) return 403;
+        if (isUserDeleted(userIdx)) return 410;
+
+        try {
+            int affected = planMapperV2.updateActivitiesImpBulk(planIdx, dto.getActivityImps());
+            if (affected != dto.getActivityImps().size()) return 404;
+            return 200;
+        } catch (Exception e) {
+            log.error("updateActivitiesImpBulk error: ", e);
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return 500;
         }

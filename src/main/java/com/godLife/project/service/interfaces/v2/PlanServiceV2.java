@@ -2,15 +2,21 @@ package com.godLife.project.service.interfaces.v2;
 
 import com.godLife.project.dto.request.plan.v2.ActivityCreateRequestV2;
 import com.godLife.project.dto.request.plan.v2.ActivityUpdateRequestV2;
+import com.godLife.project.dto.request.plan.v2.BulkActivityImpUpdateRequest;
+import com.godLife.project.dto.request.plan.v2.BulkPlanImpUpdateRequest;
 import com.godLife.project.dto.request.plan.v2.PlanCreateRequestV2;
 import com.godLife.project.dto.request.plan.v2.PlanUpdateRequestV2;
 import com.godLife.project.dto.response.plan.v2.PlanDetailDTO;
+import com.godLife.project.dto.response.plan.v2.PlanExtraInfoDTO;
 import jakarta.servlet.http.HttpServletRequest;
 
 public interface PlanServiceV2 {
 
     // 루틴과 활동 상세 조회 — PlanDetailDTO (boolean 플래그, 읽기 전용 응답)
     PlanDetailDTO detailRoutine(int planIdx, int isDeleted, HttpServletRequest request);
+
+    // 루틴 추가 정보 조회 (포크·날짜·카운트·완료·후기)
+    PlanExtraInfoDTO getPlanExtraInfo(int planIdx, int userIdx);
 
     // 루틴 생성 (활동 없이 단독 생성)
     int createPlan(PlanCreateRequestV2 dto, int userIdx);
@@ -29,4 +35,10 @@ public interface PlanServiceV2 {
 
     // 활동 소프트 삭제
     int deleteActivity(int planIdx, int activityIdx, int userIdx);
+
+    // 루틴 정렬 우선순위 일괄 수정
+    int updatePlansImpBulk(BulkPlanImpUpdateRequest dto, int userIdx);
+
+    // 활동 정렬 우선순위 일괄 수정
+    int updateActivitiesImpBulk(int planIdx, BulkActivityImpUpdateRequest dto, int userIdx);
 }

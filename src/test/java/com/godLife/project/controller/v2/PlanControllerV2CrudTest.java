@@ -3,10 +3,15 @@ package com.godLife.project.controller.v2;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.godLife.project.dto.request.plan.v2.ActivityCreateRequestV2;
+import com.godLife.project.dto.request.plan.v2.ActivityImpItemDTO;
 import com.godLife.project.dto.request.plan.v2.ActivityItemV2;
 import com.godLife.project.dto.request.plan.v2.ActivityUpdateRequestV2;
+import com.godLife.project.dto.request.plan.v2.BulkActivityImpUpdateRequest;
+import com.godLife.project.dto.request.plan.v2.BulkPlanImpUpdateRequest;
 import com.godLife.project.dto.request.plan.v2.PlanCreateRequestV2;
+import com.godLife.project.dto.request.plan.v2.PlanImpItemDTO;
 import com.godLife.project.dto.request.plan.v2.PlanUpdateRequestV2;
+import com.godLife.project.dto.response.plan.v2.PlanExtraInfoDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.service.interfaces.PlanService;
 import com.godLife.project.service.interfaces.v2.PlanServiceV2;
@@ -111,7 +116,7 @@ class PlanControllerV2CrudTest {
         }
 
         @Test
-        @DisplayName("루틴 5개 초과 → 412")
+        @DisplayName("루틴 20개 초과 → 412")
         void createPlan_overLimit_returns412() throws Exception {
             when(planServiceV2.createPlan(any(), eq(userIdx))).thenReturn(412);
 
@@ -310,6 +315,162 @@ class PlanControllerV2CrudTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{}"))
                 .andExpect(status().isNotFound());
+        }
+    }
+
+    // ===========================================
+    // 루틴 추가 정보 조회
+    // ===========================================
+
+    @Nested
+    @DisplayName("GET /api/v2/plan/auth/{planIdx}/extra - 루틴 추가 정보 조회")
+    class GetPlanExtraInfoTest {
+
+        @Test
+        @DisplayName("조회 성공 → 200")
+        void getPlanExtraInfo_success_returns200() throws Exception {
+            PlanExtraInfoDTO dto = new PlanExtraInfoDTO();
+            dto.setPlanIdx(planIdx);
+            dto.setViewCount(10);
+            when(planServiceV2.getPlanExtraInfo(planIdx, userIdx)).thenReturn(dto);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("data", dto);
+            when(handler.createResponseWithData(eq(200), any(), any())).thenReturn(response);
+
+            mockMvc.perform(get("/api/v2/plan/auth/" + planIdx + "/extra")
+                    .header("Authorization", authHeader))
+                .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("루틴 없음 또는 타인 소유 → 404")
+        void getPlanExtraInfo_notFound_returns404() throws Exception {
+            when(planServiceV2.getPlanExtraInfo(planIdx, userIdx)).thenReturn(null);
+
+            mockMvc.perform(get("/api/v2/plan/auth/" + planIdx + "/extra")
+                    .header("Authorization", authHeader))
+                .andExpect(status().isNotFound());
+        }
+    }
+
+    // ===========================================
+    // 루틴 정렬 우선순위 일괄 수정
+    // ===========================================
+
+    @Nested
+    @DisplayName("PATCH /api/v2/plan/auth/bulk-imp - 루틴 IMP 일괄 수정")
+    class UpdatePlansImpBulkTest {
+
+        private BulkPlanImpUpdateRequest validDto() {
+            PlanImpItemDTO item = new PlanImpItemDTO();
+            item.setPlanIdx(planIdx);
+            item.setImp(3);
+            BulkPlanImpUpdateRequest dto = new BulkPlanImpUpdateRequest();
+            dto.setPlanImps(List.of(item));
+            return dto;
+        }
+
+        @Test
+        @DisplayName("일괄 수정 성공 → 200")
+        void updatePlansImpBulk_success_returns200() throws Exception {
+            when(planServiceV2.updatePlansImpBulk(any(), eq(userIdx))).thenReturn(200);
+
+            mockMvc.perform(patch("/api/v2/plan/auth/bulk-imp")
+                    .header("Authorization", authHeader)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(validDto())))
+                .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("소유하지 않은 루틴 포함 → 403")
+        void updatePlansImpBulk_notOwner_returns403() throws Exception {
+            when(planServiceV2.updatePlansImpBulk(any(), eq(userIdx))).thenReturn(403);
+
+            mockMvc.perform(patch("/api/v2/plan/auth/bulk-imp")
+                    .header("Authorization", authHeader)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(validDto())))
+                .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("탈퇴 유저 → 410")
+        void updatePlansImpBulk_deletedUser_returns410() throws Exception {
+            when(planServiceV2.updatePlansImpBulk(any(), eq(userIdx))).thenReturn(410);
+
+            mockMvc.perform(patch("/api/v2/plan/auth/bulk-imp")
+                    .header("Authorization", authHeader)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(validDto())))
+                .andExpect(status().isGone());
+        }
+    }
+
+    // ===========================================
+    // 활동 정렬 우선순위 일괄 수정
+    // ===========================================
+
+    @Nested
+    @DisplayName("PATCH /api/v2/plan/auth/{planIdx}/activities/bulk-imp - 활동 IMP 일괄 수정")
+    class UpdateActivitiesImpBulkTest {
+
+        private BulkActivityImpUpdateRequest validDto() {
+            ActivityImpItemDTO item = new ActivityImpItemDTO();
+            item.setActivityIdx(5);
+            item.setImp(2);
+            BulkActivityImpUpdateRequest dto = new BulkActivityImpUpdateRequest();
+            dto.setActivityImps(List.of(item));
+            return dto;
+        }
+
+        @Test
+        @DisplayName("일괄 수정 성공 → 200")
+        void updateActivitiesImpBulk_success_returns200() throws Exception {
+            when(planServiceV2.updateActivitiesImpBulk(eq(planIdx), any(), eq(userIdx))).thenReturn(200);
+
+            mockMvc.perform(patch("/api/v2/plan/auth/" + planIdx + "/activities/bulk-imp")
+                    .header("Authorization", authHeader)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(validDto())))
+                .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("루틴 또는 활동 없음 → 404")
+        void updateActivitiesImpBulk_notFound_returns404() throws Exception {
+            when(planServiceV2.updateActivitiesImpBulk(eq(planIdx), any(), eq(userIdx))).thenReturn(404);
+
+            mockMvc.perform(patch("/api/v2/plan/auth/" + planIdx + "/activities/bulk-imp")
+                    .header("Authorization", authHeader)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(validDto())))
+                .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("루틴 권한 없음 → 403")
+        void updateActivitiesImpBulk_forbidden_returns403() throws Exception {
+            when(planServiceV2.updateActivitiesImpBulk(eq(planIdx), any(), eq(userIdx))).thenReturn(403);
+
+            mockMvc.perform(patch("/api/v2/plan/auth/" + planIdx + "/activities/bulk-imp")
+                    .header("Authorization", authHeader)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(validDto())))
+                .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("탈퇴 유저 → 410")
+        void updateActivitiesImpBulk_deletedUser_returns410() throws Exception {
+            when(planServiceV2.updateActivitiesImpBulk(eq(planIdx), any(), eq(userIdx))).thenReturn(410);
+
+            mockMvc.perform(patch("/api/v2/plan/auth/" + planIdx + "/activities/bulk-imp")
+                    .header("Authorization", authHeader)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(validDto())))
+                .andExpect(status().isGone());
         }
     }
 
