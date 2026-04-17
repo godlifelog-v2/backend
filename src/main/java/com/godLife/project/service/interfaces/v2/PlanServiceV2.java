@@ -5,6 +5,7 @@ import com.godLife.project.dto.request.plan.v2.ActivityUpdateRequestV2;
 import com.godLife.project.dto.request.plan.v2.BulkActivityImpUpdateRequest;
 import com.godLife.project.dto.request.plan.v2.BulkPlanImpUpdateRequest;
 import com.godLife.project.dto.request.plan.v2.PlanCreateRequestV2;
+import com.godLife.project.dto.request.plan.v2.PlanForkRequestV2;
 import com.godLife.project.dto.request.plan.v2.PlanUpdateRequestV2;
 import com.godLife.project.dto.response.plan.v2.PlanDetailDTO;
 import com.godLife.project.dto.response.plan.v2.PlanExtraInfoDTO;
@@ -26,6 +27,9 @@ public interface PlanServiceV2 {
 
     // 루틴 소프트 삭제
     int deletePlan(int planIdx, int userIdx);
+
+    // 포크를 통한 루틴 생성 (공개 루틴만 가능, null 필드는 원본 값 사용)
+    int forkPlan(int sourcePlanIdx, PlanForkRequestV2 dto, int userIdx);
 
     // 활동 생성 (특정 루틴에 활동 추가)
     int createActivities(int planIdx, ActivityCreateRequestV2 dto, int userIdx);

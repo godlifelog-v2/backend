@@ -61,10 +61,10 @@ public class PlanCreateRequestV2 {
     @Schema(description = "루틴 고유 색상 (헥사코드, 알파값 포함)", example = "#FF5733FF")
     private String color;
 
-    @Schema(description = "포크 여부", example = "false")
+    @Schema(hidden = true)
     private boolean forked;
 
-    @Schema(description = "원본 루틴 인덱스 (포크 시)", example = "5")
+    @Schema(hidden = true)
     private Integer forkIdx;
 
     @Schema(description = "기타 직업 정보 (jobIdx가 기타 직업일 때 필수)")

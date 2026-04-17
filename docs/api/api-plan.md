@@ -55,6 +55,7 @@
 | GET | `/detail/{planIdx}` | 루틴 상세 조회 (boolean 플래그, 읽기 전용 DTO) | Path: `planIdx`, Cookie: `viewed_plans` | ❌ |
 | GET | `/auth/{planIdx}/extra` | 루틴 추가 정보 조회 (포크·날짜·카운트·완료·후기) | Path: `planIdx` | ✅ JWT |
 | POST | `/auth` | 루틴 생성 (활동 미포함) | Body: `PlanCreateRequestV2` | ✅ JWT |
+| POST | `/auth/{sourcePlanIdx}/fork` | 공개 루틴 포크 생성 (null 필드는 원본 값 사용) | Path: `sourcePlanIdx`, Body: `PlanForkRequestV2` | ✅ JWT |
 | PATCH | `/auth/{planIdx}` | 루틴 부분 수정 (null 필드 제외, planImp 제외) | Path: `planIdx`, Body: `PlanUpdateRequestV2` | ✅ JWT |
 | DELETE | `/auth/{planIdx}` | 루틴 소프트 삭제 | Path: `planIdx` | ✅ JWT |
 
@@ -90,7 +91,8 @@
 |---|---|---|
 | GET `/plan/detail/{planIdx}` | `{ code, message: String, status, data: PlanDetailDTO }` | 200/404/500 |
 | GET `/plan/auth/{planIdx}/extra` | `{ code, message: String, status, data: PlanExtraInfoDTO }` | 200/404/500 |
-| POST `/plan/auth` | `{ code, message: String, status }` | 201/410/412/500 |
+| POST `/plan/auth` | `{ code, message: String, status, data: { planIdx } }` | 201/410/412/500 |
+| POST `/plan/auth/{sourcePlanIdx}/fork` | `{ code, message: String, status, data: { planIdx } }` | 201/403/404/410/412/500 |
 | PATCH `/plan/auth/{planIdx}` | `{ code, message: String, status }` | 200/403/404/409/410/500 |
 | DELETE `/plan/auth/{planIdx}` | `{ code, message: String, status }` | 200/403/404/410/500 |
 | POST `/plan/auth/{planIdx}/activities` | `{ code, message: String, status }` | 201/403/404/410/500 |
@@ -158,6 +160,39 @@
   "color": "#FF5733FF"
 }
 ```
+
+**포크 요청 예시 (`POST /auth/{sourcePlanIdx}/fork`) — 제목과 색상만 오버라이드**
+```json
+{
+  "planTitle": "내 버전의 아침 루틴",
+  "color": "#3A86FFFF"
+}
+```
+> 미입력 필드(`endTo`, `repeatDays`, `targetIdx`, `jobIdx`, `description` 등)는 원본 루틴 값이 자동 적용됨.
+> `isShared`, `isActive`의 기본값은 각각 `0`(비공개), `0`(비활성).
+
+**포크 응답 예시**
+```json
+{
+  "code": 201,
+  "status": "created",
+  "message": "루틴 포크 성공",
+  "data": {
+    "planIdx": 87
+  }
+}
+```
+
+**포크 오류 상태 코드**
+
+| 상태 | 의미 |
+|---|---|
+| 403 | 비공개 루틴은 포크할 수 없음 |
+| 404 | 원본 루틴(`sourcePlanIdx`)이 존재하지 않음 |
+| 410 | 탈퇴한 유저 |
+| 412 | 루틴 20개 초과 |
+
+---
 
 **루틴 부분 수정 요청 예시 (`PATCH /auth/{planIdx}`) — 제목만 변경**
 ```json

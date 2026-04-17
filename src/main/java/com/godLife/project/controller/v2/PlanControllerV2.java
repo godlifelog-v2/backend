@@ -5,6 +5,7 @@ import com.godLife.project.dto.request.plan.v2.ActivityUpdateRequestV2;
 import com.godLife.project.dto.request.plan.v2.BulkActivityImpUpdateRequest;
 import com.godLife.project.dto.request.plan.v2.BulkPlanImpUpdateRequest;
 import com.godLife.project.dto.request.plan.v2.PlanCreateRequestV2;
+import com.godLife.project.dto.request.plan.v2.PlanForkRequestV2;
 import com.godLife.project.dto.request.plan.v2.PlanUpdateRequestV2;
 import com.godLife.project.dto.response.plan.v2.PlanDetailDTO;
 import com.godLife.project.dto.response.plan.v2.PlanExtraInfoDTO;
@@ -136,6 +137,35 @@ public class PlanControllerV2 {
             case 410 -> "탈퇴한 유저는 루틴을 생성할 수 없습니다.";
             case 412 -> "루틴은 최대 5개까지 생성 가능합니다.";
             default  -> "서버 내부 오류로 루틴 생성에 실패했습니다.";
+        };
+        if (status == 201) {
+            return ResponseEntity.status(handler.getHttpStatus(status))
+                    .body(handler.createResponseWithData(status, msg, Map.of("planIdx", dto.getPlanIdx())));
+        }
+        return ResponseEntity.status(handler.getHttpStatus(status))
+                .body(handler.createResponse(status, msg));
+    }
+
+    // ========================= 포크를 통한 루틴 생성 =========================
+
+    @PostMapping("/auth/{sourcePlanIdx}/fork")
+    public ResponseEntity<Map<String, Object>> forkPlan(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable int sourcePlanIdx,
+            @Valid @RequestBody PlanForkRequestV2 dto,
+            BindingResult result) {
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest().body(handler.getValidationErrors(result));
+        }
+        int userIdx = handler.getUserIdxFromToken(authHeader);
+        int status = planServiceV2.forkPlan(sourcePlanIdx, dto, userIdx);
+        String msg = switch (status) {
+            case 201 -> "루틴 포크 성공";
+            case 403 -> "비공개 루틴은 포크할 수 없습니다.";
+            case 404 -> "원본 루틴이 존재하지 않습니다.";
+            case 410 -> "탈퇴한 유저는 루틴을 생성할 수 없습니다.";
+            case 412 -> "루틴은 최대 5개까지 생성 가능합니다.";
+            default  -> "서버 내부 오류로 루틴 포크에 실패했습니다.";
         };
         if (status == 201) {
             return ResponseEntity.status(handler.getHttpStatus(status))
