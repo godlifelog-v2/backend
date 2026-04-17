@@ -2,6 +2,7 @@ package com.godLife.project.service.interfaces.v2;
 
 import com.godLife.project.dto.request.plan.v2.ActivityCreateRequestV2;
 import com.godLife.project.dto.request.plan.v2.ActivityUpdateRequestV2;
+import com.godLife.project.dto.request.plan.v2.BulkActivityDeleteRequest;
 import com.godLife.project.dto.request.plan.v2.BulkActivityImpUpdateRequest;
 import com.godLife.project.dto.request.plan.v2.BulkPlanImpUpdateRequest;
 import com.godLife.project.dto.request.plan.v2.PlanCreateRequestV2;
@@ -39,6 +40,9 @@ public interface PlanServiceV2 {
 
     // 활동 소프트 삭제
     int deleteActivity(int planIdx, int activityIdx, int userIdx);
+
+    // 활동 일괄 소프트 삭제
+    int deleteActivitiesBulk(int planIdx, BulkActivityDeleteRequest dto, int userIdx);
 
     // 루틴 정렬 우선순위 일괄 수정
     int updatePlansImpBulk(BulkPlanImpUpdateRequest dto, int userIdx);
