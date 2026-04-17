@@ -34,6 +34,9 @@ public interface PlanMapperV2 {
     // 활동 소프트 삭제
     void softDeleteActivity(@Param("planIdx") int planIdx, @Param("activityIdx") int activityIdx);
 
+    // 활동 일괄 소프트 삭제
+    int softDeleteActivitiesBulk(@Param("planIdx") int planIdx, @Param("activityIdxList") List<Integer> activityIdxList);
+
     // v2 활동 목록 조회 (event, duration 포함, description 없음)
     List<ActivityV2DTO> getActivitiesByPlanIdx(int planIdx);
 

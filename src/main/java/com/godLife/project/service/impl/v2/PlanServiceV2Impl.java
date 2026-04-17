@@ -289,6 +289,24 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
         }
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int deleteActivitiesBulk(int planIdx, BulkActivityDeleteRequest dto, int userIdx) {
+        if (planNotFound(planIdx)) return 404;
+        if (notOwner(planIdx, userIdx)) return 403;
+        if (isUserDeleted(userIdx)) return 410;
+
+        try {
+            int affected = planMapperV2.softDeleteActivitiesBulk(planIdx, dto.getActivityIdxList());
+            if (affected != dto.getActivityIdxList().size()) return 404;
+            return 200;
+        } catch (Exception e) {
+            log.error("deleteActivitiesBulk error: ", e);
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return 500;
+        }
+    }
+
     // ========================= 루틴 추가 정보 조회 =========================
 
     @Override

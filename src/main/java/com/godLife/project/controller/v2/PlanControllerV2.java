@@ -2,6 +2,7 @@ package com.godLife.project.controller.v2;
 
 import com.godLife.project.dto.request.plan.v2.ActivityCreateRequestV2;
 import com.godLife.project.dto.request.plan.v2.ActivityUpdateRequestV2;
+import com.godLife.project.dto.request.plan.v2.BulkActivityDeleteRequest;
 import com.godLife.project.dto.request.plan.v2.BulkActivityImpUpdateRequest;
 import com.godLife.project.dto.request.plan.v2.BulkPlanImpUpdateRequest;
 import com.godLife.project.dto.request.plan.v2.PlanCreateRequestV2;
@@ -321,6 +322,30 @@ public class PlanControllerV2 {
             case 404 -> "루틴 또는 활동이 존재하지 않습니다.";
             case 410 -> "탈퇴한 유저는 활동을 삭제할 수 없습니다.";
             default  -> "서버 내부 오류로 활동 삭제에 실패했습니다.";
+        };
+        return ResponseEntity.status(handler.getHttpStatus(status))
+                .body(handler.createResponse(status, msg));
+    }
+
+    // ========================= 활동 일괄 삭제 =========================
+
+    @DeleteMapping("/auth/{planIdx}/activities/bulk")
+    public ResponseEntity<Map<String, Object>> deleteActivitiesBulk(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable int planIdx,
+            @Valid @RequestBody BulkActivityDeleteRequest dto,
+            BindingResult result) {
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest().body(handler.getValidationErrors(result));
+        }
+        int userIdx = handler.getUserIdxFromToken(authHeader);
+        int status = planServiceV2.deleteActivitiesBulk(planIdx, dto, userIdx);
+        String msg = switch (status) {
+            case 200 -> "활동 일괄 삭제 성공";
+            case 403 -> "활동 삭제 권한이 없습니다.";
+            case 404 -> "루틴 또는 활동이 존재하지 않습니다.";
+            case 410 -> "탈퇴한 유저는 활동을 삭제할 수 없습니다.";
+            default  -> "서버 내부 오류로 활동 일괄 삭제에 실패했습니다.";
         };
         return ResponseEntity.status(handler.getHttpStatus(status))
                 .body(handler.createResponse(status, msg));
