@@ -268,8 +268,27 @@
 | isShared / isActive | int | 0/1 |
 | **description** | String | 간략 설명 (nullable, 신규) |
 | **color** | String | 헥사코드 #RRGGBBAA (nullable, 신규) |
-| forked | boolean | |
-| forkIdx | Integer | nullable |
+| jobEtcCateDTO | JobEtcCateDTO | jobIdx=기타직업일 때 |
+
+> `forked`, `forkIdx`는 내부 전용 필드로 API 요청에서 사용하지 않음. 포크 생성은 `PlanForkRequestV2` 사용.
+
+---
+
+### PlanForkRequestV2 (포크 루틴 생성 요청) ✨ 신규
+
+> `POST /api/v2/plan/auth/{sourcePlanIdx}/fork` 요청 DTO.
+> null 필드는 원본 루틴 값이 자동 적용됨. `isShared`, `isActive` 기본값은 각각 `0`.
+
+| 필드 | 타입 | 비고 |
+|---|---|---|
+| planTitle | String | nullable (null → 원본 제목 사용) |
+| endTo | Integer | nullable; Min 7 |
+| repeatDays | List\<String\> | nullable |
+| targetIdx / jobIdx | Integer | nullable; Min 1 |
+| planImp | int | Min 1, Max 10 (기본 1) |
+| isShared / isActive | int | 0/1 (기본 0) |
+| description | String | nullable |
+| color | String | nullable; 헥사코드 #RRGGBBAA |
 | jobEtcCateDTO | JobEtcCateDTO | jobIdx=기타직업일 때 |
 
 ---

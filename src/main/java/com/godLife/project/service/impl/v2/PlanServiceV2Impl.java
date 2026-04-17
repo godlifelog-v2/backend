@@ -177,6 +177,58 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
         }
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int forkPlan(int sourcePlanIdx, PlanForkRequestV2 dto, int userIdx) {
+        try {
+            PlanDTO source = planMapper.detailPlanByPlanIdx(sourcePlanIdx, 0);
+            if (source == null) return 404;
+            if (source.getIsShared() == 0) return 403;
+
+            if (isUserDeleted(userIdx)) return 410;
+
+            int isCompleted = 0;
+            int isDeleted = 0;
+            if (planMapper.getCntOfPlanByUserIdxNIsCompleted(userIdx, isCompleted, isDeleted) > 19) return 412;
+
+            int customJobIdx = categoryService.getIdxOfCustomJob();
+            int resolvedJobIdx = dto.getJobIdx() != null ? dto.getJobIdx() : source.getJobIdx();
+
+            PlanCreateRequestV2 createDto = new PlanCreateRequestV2();
+            createDto.setUserIdx(userIdx);
+            createDto.setPlanTitle(dto.getPlanTitle() != null ? dto.getPlanTitle() : source.getPlanTitle());
+            createDto.setEndTo(dto.getEndTo() != null ? dto.getEndTo() : source.getEndTo());
+            createDto.setRepeatDays(dto.getRepeatDays() != null ? dto.getRepeatDays() : source.getRepeatDays());
+            createDto.setTargetIdx(dto.getTargetIdx() != null ? dto.getTargetIdx() : source.getTargetIdx());
+            createDto.setJobIdx(resolvedJobIdx);
+            createDto.setPlanImp(dto.getPlanImp());
+            createDto.setIsShared(dto.getIsShared());
+            createDto.setIsActive(dto.getIsActive());
+            createDto.setDescription(dto.getDescription() != null ? dto.getDescription() : source.getDescription());
+            createDto.setColor(dto.getColor() != null ? dto.getColor() : source.getColor());
+            createDto.setForked(true);
+            createDto.setForkIdx(sourcePlanIdx);
+
+            planMapperV2.insertPlanV2(createDto);
+            int newPlanIdx = createDto.getPlanIdx();
+            dto.setPlanIdx(newPlanIdx);
+
+            if (resolvedJobIdx == customJobIdx && dto.getJobEtcCateDTO() != null) {
+                JobEtcCateDTO jobEtcCateDTO = dto.getJobEtcCateDTO();
+                jobEtcCateDTO.setPlanIdx(newPlanIdx);
+                planMapper.insertJobEtc(jobEtcCateDTO);
+            }
+
+            planMapper.modifyForkCount(sourcePlanIdx, isDeleted);
+
+            return 201;
+        } catch (Exception e) {
+            log.error("forkPlan error: ", e);
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return 500;
+        }
+    }
+
     // ========================= 활동 CRUD =========================
 
     @Override
