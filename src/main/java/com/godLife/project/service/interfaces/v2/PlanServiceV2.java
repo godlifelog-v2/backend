@@ -1,5 +1,6 @@
 package com.godLife.project.service.interfaces.v2;
 
+import com.godLife.project.dto.request.plan.v2.ActivityBatchRequestV2;
 import com.godLife.project.dto.request.plan.v2.ActivityCreateRequestV2;
 import com.godLife.project.dto.request.plan.v2.ActivityUpdateRequestV2;
 import com.godLife.project.dto.request.plan.v2.BulkActivityDeleteRequest;
@@ -8,9 +9,12 @@ import com.godLife.project.dto.request.plan.v2.BulkPlanImpUpdateRequest;
 import com.godLife.project.dto.request.plan.v2.PlanCreateRequestV2;
 import com.godLife.project.dto.request.plan.v2.PlanForkRequestV2;
 import com.godLife.project.dto.request.plan.v2.PlanUpdateRequestV2;
+import com.godLife.project.dto.response.plan.v2.ActivityV2DTO;
 import com.godLife.project.dto.response.plan.v2.PlanDetailDTO;
 import com.godLife.project.dto.response.plan.v2.PlanExtraInfoDTO;
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.List;
 
 public interface PlanServiceV2 {
 
@@ -49,4 +53,11 @@ public interface PlanServiceV2 {
 
     // 활동 정렬 우선순위 일괄 수정
     int updateActivitiesImpBulk(int planIdx, BulkActivityImpUpdateRequest dto, int userIdx);
+
+    // 활동 일괄 처리 (삭제/수정/생성/순서 단일 트랜잭션)
+    // 반환: status(int) + 성공 시 activities(List<ActivityV2DTO>)
+    java.util.Map<String, Object> batchUpdateActivities(int planIdx, ActivityBatchRequestV2 dto, int userIdx);
+
+    // 활동 인증 v2 (변경된 활동 리스트 반환)
+    java.util.Map<String, Object> verifyActivityV2(int planIdx, int activityIdx, int userIdx);
 }

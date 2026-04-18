@@ -4,7 +4,7 @@
 
 <mapper namespace="com.godLife.project.mapper.v2.PlanMapperV2">
 
-  <!-- v2 활동 응답 ResultMap (event, duration 포함, description 없음) -->
+  <!-- v2 활동 응답 ResultMap (event, duration, version 포함, description 없음) -->
   <resultMap id="ActivityV2ResultMap" type="com.godLife.project.dto.response.plan.v2.ActivityV2DTO">
     <result property="activityIdx"   column="ACTIVITY_IDX"/>
     <result property="planIdx"       column="PLAN_IDX"/>
@@ -14,6 +14,7 @@
     <result property="verified"      column="VERIFIED"/>
     <result property="isEvent"       column="EVENT"/>
     <result property="duration"      column="DURATION"/>
+    <result property="version"       column="VERSION"/>
   </resultMap>
 
   <!-- 루틴 생성 (description, color 컬럼 추가) -->
@@ -85,7 +86,8 @@
   </update>
 
   <!-- 활동 생성 (description 없음, event/duration 추가) -->
-  <insert id="insertActivityV2" parameterType="com.godLife.project.dto.request.plan.v2.ActivityItemV2">
+  <insert id="insertActivityV2" parameterType="com.godLife.project.dto.request.plan.v2.ActivityItemV2"
+          useGeneratedKeys="true" keyProperty="activityIdx">
     INSERT INTO PLAN_ACTIVITY (PLAN_IDX, ACTIVITY_NAME, ACTIVITY_IMP, EVENT, DURATION
       <if test="setTime != null">, SET_TIME</if>
     )
@@ -106,6 +108,23 @@
       </choose>
     </trim>
     WHERE PLAN_IDX = #{planIdx} AND ACTIVITY_IDX = #{activityIdx} AND IS_DELETED = 0
+  </update>
+
+  <!-- 활동 부분 수정 + 낙관적 락 버전 체크 (배치 처리용) -->
+  <!-- affected=0 이면 VERSION 불일치(충돌) 또는 IS_DELETED=1 -->
+  <update id="updateActivityWithVersion" parameterType="com.godLife.project.dto.request.plan.v2.ActivityBatchUpdateItem">
+    UPDATE PLAN_ACTIVITY
+    <trim prefix="SET" suffixOverrides=",">
+      <if test="activityName != null">ACTIVITY_NAME = #{activityName},</if>
+      <if test="event != null">EVENT = #{event},</if>
+      <if test="duration != null">DURATION = #{duration},</if>
+      <if test="setTime != null">SET_TIME = #{setTime},</if>
+      VERSION = VERSION + 1
+    </trim>
+    WHERE PLAN_IDX = #{planIdx}
+      AND ACTIVITY_IDX = #{activityIdx}
+      AND IS_DELETED = 0
+      AND VERSION = #{version}
   </update>
 
   <!-- 루틴 정렬 우선순위 일괄 수정 (CASE WHEN) -->
@@ -183,7 +202,7 @@
       AND P.IS_DELETED = 0
   </select>
 
-  <!-- v2 활동 목록 조회 (event, duration 포함, description 없음) -->
+  <!-- v2 활동 목록 조회 (event, duration, version 포함, description 없음) -->
   <select id="getActivitiesByPlanIdx" parameterType="int" resultMap="ActivityV2ResultMap">
     SELECT A.ACTIVITY_IDX,
            A.PLAN_IDX,
@@ -192,6 +211,7 @@
            A.ACTIVITY_IMP,
            A.EVENT,
            A.DURATION,
+           A.VERSION,
            COALESCE(V.VERIFIED, 0) AS VERIFIED
     FROM PLAN_ACTIVITY A
     LEFT JOIN (
