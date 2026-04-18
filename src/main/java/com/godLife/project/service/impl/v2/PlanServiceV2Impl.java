@@ -3,6 +3,7 @@ package com.godLife.project.service.impl.v2;
 import com.godLife.project.dto.category.JobEtcCateDTO;
 import com.godLife.project.dto.model.plan.PlanDTO;
 import com.godLife.project.dto.request.plan.v2.*;
+import com.godLife.project.dto.request.verify.VerifyRequestDTO;
 import com.godLife.project.dto.response.plan.v2.ActivityV2DTO;
 import com.godLife.project.dto.response.plan.v2.PlanDetailDTO;
 import com.godLife.project.dto.response.plan.v2.PlanExtraInfoDTO;
@@ -11,6 +12,7 @@ import com.godLife.project.mapper.PlanMapper;
 import com.godLife.project.mapper.dto.PlanDetailMapper;
 import com.godLife.project.mapper.v2.PlanMapperV2;
 import com.godLife.project.service.interfaces.CategoryService;
+import com.godLife.project.service.interfaces.VerifyService;
 import com.godLife.project.service.interfaces.v2.PlanServiceV2;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +21,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -31,6 +36,7 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
     private final PlanDetailMapper planDetailMapper;
     private final CategoryService categoryService;
     private final GlobalExceptionHandler handler;
+    private final VerifyService verifyService;
 
     // ========================= 공통 가드 메서드 =========================
 
@@ -349,6 +355,118 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
             log.error("updateActivitiesImpBulk error: ", e);
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return 500;
+        }
+    }
+
+    // ========================= 활동 배치 처리 =========================
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Map<String, Object> batchUpdateActivities(int planIdx, ActivityBatchRequestV2 dto, int userIdx) {
+        Map<String, Object> result = new HashMap<>();
+
+        if (planNotFound(planIdx)) { result.put("status", 404); return result; }
+        if (notOwner(planIdx, userIdx)) { result.put("status", 403); return result; }
+        if (isUserDeleted(userIdx)) { result.put("status", 410); return result; }
+
+        try {
+            // 1. 삭제
+            if (!dto.getDeleted().isEmpty()) {
+                planMapperV2.softDeleteActivitiesBulk(planIdx, dto.getDeleted());
+            }
+
+            // 2. 수정 (낙관적 락 버전 체크)
+            for (ActivityBatchUpdateItem item : dto.getUpdated()) {
+                item.setPlanIdx(planIdx);
+                int affected = planMapperV2.updateActivityWithVersion(item);
+                if (affected == 0) {
+                    result.put("status", 409);
+                    result.put("error", "CONFLICT");
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return result;
+                }
+            }
+
+            // 3. 생성 (clientTempId → activityIdx 맵 구성)
+            Map<String, Integer> tempIdMap = new HashMap<>();
+            for (ActivityBatchCreateItem c : dto.getCreated()) {
+                ActivityItemV2 item = new ActivityItemV2();
+                item.setPlanIdx(planIdx);
+                item.setActivityName(c.getActivityName());
+                item.setSetTime(c.getSetTime());
+                item.setEvent(c.isEvent());
+                item.setDuration(c.getDuration());
+                item.setActivityImp(1);
+                planMapperV2.insertActivityV2(item);
+                tempIdMap.put(c.getClientTempId(), item.getActivityIdx());
+            }
+
+            // 4. 순서 처리
+            if (!dto.getOrder().isEmpty()) {
+                List<ActivityImpItemDTO> impList = new ArrayList<>();
+                List<ActivityBatchOrderItem> order = dto.getOrder();
+                int size = order.size();
+                for (int i = 0; i < size; i++) {
+                    ActivityBatchOrderItem orderItem = order.get(i);
+                    Integer activityIdx;
+                    if (orderItem.getActivityIdx() != null) {
+                        activityIdx = orderItem.getActivityIdx();
+                    } else if (orderItem.getClientTempId() != null) {
+                        activityIdx = tempIdMap.get(orderItem.getClientTempId());
+                        if (activityIdx == null) {
+                            result.put("status", 400);
+                            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                            return result;
+                        }
+                    } else {
+                        result.put("status", 400);
+                        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                        return result;
+                    }
+                    ActivityImpItemDTO impItem = new ActivityImpItemDTO();
+                    impItem.setActivityIdx(activityIdx);
+                    impItem.setImp(size - i);
+                    impList.add(impItem);
+                }
+                planMapperV2.updateActivitiesImpBulk(planIdx, impList);
+            }
+
+            List<ActivityV2DTO> activities = planMapperV2.getActivitiesByPlanIdx(planIdx);
+            result.put("status", 200);
+            result.put("activities", activities);
+            return result;
+        } catch (Exception e) {
+            log.error("batchUpdateActivities error: ", e);
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            result.put("status", 500);
+            return result;
+        }
+    }
+
+    // ========================= 활동 인증 v2 =========================
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Map<String, Object> verifyActivityV2(int planIdx, int activityIdx, int userIdx) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            VerifyRequestDTO verifyDto = new VerifyRequestDTO();
+            verifyDto.setPlanIdx(planIdx);
+            verifyDto.setActivityIdx(activityIdx);
+            verifyDto.setUserIdx(userIdx);
+
+            int status = verifyService.verifyActivity(verifyDto);
+            result.put("status", status);
+
+            if (status == 200) {
+                result.put("activities", planMapperV2.getActivitiesByPlanIdx(planIdx));
+            }
+            return result;
+        } catch (Exception e) {
+            log.error("verifyActivityV2 error: ", e);
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            result.put("status", 500);
+            return result;
         }
     }
 

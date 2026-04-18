@@ -1,5 +1,6 @@
 package com.godLife.project.controller.v2;
 
+import com.godLife.project.dto.request.plan.v2.ActivityBatchRequestV2;
 import com.godLife.project.dto.request.plan.v2.ActivityCreateRequestV2;
 import com.godLife.project.dto.request.plan.v2.ActivityUpdateRequestV2;
 import com.godLife.project.dto.request.plan.v2.BulkActivityDeleteRequest;
@@ -24,6 +25,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -323,6 +325,75 @@ public class PlanControllerV2 {
             case 410 -> "탈퇴한 유저는 활동을 삭제할 수 없습니다.";
             default  -> "서버 내부 오류로 활동 삭제에 실패했습니다.";
         };
+        return ResponseEntity.status(handler.getHttpStatus(status))
+                .body(handler.createResponse(status, msg));
+    }
+
+    // ========================= 활동 일괄 처리 (Batch) =========================
+
+    @PostMapping("/auth/{planIdx}/activities/batch")
+    public ResponseEntity<Map<String, Object>> batchUpdateActivities(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable int planIdx,
+            @Valid @RequestBody ActivityBatchRequestV2 dto,
+            BindingResult result) {
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest().body(handler.getValidationErrors(result));
+        }
+        int userIdx = handler.getUserIdxFromToken(authHeader);
+        Map<String, Object> serviceResult = planServiceV2.batchUpdateActivities(planIdx, dto, userIdx);
+        int status = (int) serviceResult.get("status");
+        String msg = switch (status) {
+            case 200 -> "활동 일괄 처리 성공";
+            case 400 -> "order 항목에 유효하지 않은 값이 포함되어 있습니다.";
+            case 403 -> "활동 수정 권한이 없습니다.";
+            case 404 -> "루틴이 존재하지 않습니다.";
+            case 409 -> "데이터가 변경되었습니다. 최신 데이터를 다시 불러와 주세요.";
+            case 410 -> "탈퇴한 유저는 활동을 수정할 수 없습니다.";
+            default  -> "서버 내부 오류로 활동 일괄 처리에 실패했습니다.";
+        };
+        if (status == 200) {
+            @SuppressWarnings("unchecked")
+            List<?> activities = (List<?>) serviceResult.get("activities");
+            return ResponseEntity.ok().body(
+                handler.createResponseWithData(200, msg, Map.of("activities", activities))
+            );
+        }
+        if (status == 409) {
+            return ResponseEntity.status(handler.getHttpStatus(409))
+                    .body(handler.createResponseWithData(409, msg,
+                            Map.of("success", false, "error", "CONFLICT")));
+        }
+        return ResponseEntity.status(handler.getHttpStatus(status))
+                .body(handler.createResponse(status, msg));
+    }
+
+    // ========================= 활동 인증 v2 =========================
+
+    @PostMapping("/auth/{planIdx}/activities/{activityIdx}/verify")
+    public ResponseEntity<Map<String, Object>> verifyActivityV2(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable int planIdx,
+            @PathVariable int activityIdx) {
+        int userIdx = handler.getUserIdxFromToken(authHeader);
+        Map<String, Object> serviceResult = planServiceV2.verifyActivityV2(planIdx, activityIdx, userIdx);
+        int status = (int) serviceResult.get("status");
+        String msg = switch (status) {
+            case 200 -> "활동 인증이 정상적으로 처리되었습니다.";
+            case 403 -> "작성자가 아닙니다. 재로그인 해주세요.";
+            case 404 -> "루틴 혹은 활동이 존재하지 않거나, 삭제 처리된 상태입니다.";
+            case 409 -> "이미 인증한 활동입니다.";
+            case 410 -> "회원 탈퇴한 계정입니다.";
+            case 412 -> "활성화 된 루틴이 아닙니다. 루틴 활성화 후 실행해 주세요.";
+            default  -> "서버 내부 오류로 활동 인증에 실패했습니다.";
+        };
+        if (status == 200) {
+            @SuppressWarnings("unchecked")
+            List<?> activities = (List<?>) serviceResult.get("activities");
+            return ResponseEntity.ok().body(
+                handler.createResponseWithData(200, msg, Map.of("activities", activities))
+            );
+        }
         return ResponseEntity.status(handler.getHttpStatus(status))
                 .body(handler.createResponse(status, msg));
     }

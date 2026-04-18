@@ -50,4 +50,7 @@ public class ActivityV2DTO {
 
     @Schema(description = "활동 예상 소요 시간 (분 단위)", example = "30")
     private int duration;
+
+    @Schema(description = "낙관적 락 버전 (배치 수정 시 version 필드로 그대로 전송)", example = "0")
+    private int version;
 }

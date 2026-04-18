@@ -22,6 +22,9 @@ import java.time.LocalTime;
 @Data
 public class ActivityItemV2 {
 
+    @Schema(description = "활동 인덱스 (생성 후 서버에서 설정)", hidden = true)
+    private int activityIdx;
+
     @Schema(description = "루틴 인덱스 (서버에서 설정)", hidden = true)
     private int planIdx;
 

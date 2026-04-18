@@ -1,5 +1,6 @@
 package com.godLife.project.mapper.v2;
 
+import com.godLife.project.dto.request.plan.v2.ActivityBatchUpdateItem;
 import com.godLife.project.dto.request.plan.v2.ActivityImpItemDTO;
 import com.godLife.project.dto.request.plan.v2.ActivityItemV2;
 import com.godLife.project.dto.request.plan.v2.ActivityUpdateRequestV2;
@@ -30,6 +31,9 @@ public interface PlanMapperV2 {
 
     // 활동 부분 수정 (null 필드는 제외)
     int updateActivityPartial(ActivityUpdateRequestV2 dto);
+
+    // 활동 부분 수정 + 낙관적 락 버전 체크 (배치 처리용)
+    int updateActivityWithVersion(ActivityBatchUpdateItem item);
 
     // 활동 소프트 삭제
     void softDeleteActivity(@Param("planIdx") int planIdx, @Param("activityIdx") int activityIdx);
