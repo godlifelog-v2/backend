@@ -380,6 +380,7 @@ public class PlanControllerV2 {
         int status = (int) serviceResult.get("status");
         String msg = switch (status) {
             case 200 -> "활동 인증이 정상적으로 처리되었습니다.";
+            case 400 -> "오늘 요일에 해당하는 루틴이 아닙니다.";
             case 403 -> "작성자가 아닙니다. 재로그인 해주세요.";
             case 404 -> "루틴 혹은 활동이 존재하지 않거나, 삭제 처리된 상태입니다.";
             case 409 -> "이미 인증한 활동입니다.";

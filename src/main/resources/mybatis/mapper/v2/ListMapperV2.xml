@@ -20,52 +20,78 @@
         <result property="description" column="DESCRIPTION"/>
     </resultMap>
 
-    <!-- (개인용) 전체 조회 -->
+    <!-- (개인용) 전체 조회 — PLAN_REPEAT_DAYS에서 요일 GROUP_CONCAT -->
     <select id="getMyPlansByUserIdx" parameterType="int" resultMap="MyPlanInfoResultMap">
         SELECT
-            PLAN_IDX, PLAN_TITLE, END_TO, PLAN_SUB_END,
-            IS_SHARED, IS_ACTIVE, PLAN_IMP, CERT_EXP,
-            REPEAT_DAYS, FIRE_STATE, COLOR, DESCRIPTION
-        FROM PLAN_TABLE
-        WHERE USER_IDX = #{userIdx} AND IS_DELETED = 0 AND IS_COMPLETED = 0
-        ORDER BY IS_ACTIVE DESC, PLAN_IMP DESC, PLAN_SUB_START IS NULL, PLAN_SUB_START DESC
+            p.PLAN_IDX, p.PLAN_TITLE, p.END_TO, p.PLAN_SUB_END,
+            p.IS_SHARED, p.IS_ACTIVE, p.PLAN_IMP, p.CERT_EXP,
+            GROUP_CONCAT(
+                CASE prd.DAY_IDX
+                    WHEN 1 THEN 'sun' WHEN 2 THEN 'mon' WHEN 3 THEN 'tue'
+                    WHEN 4 THEN 'wed' WHEN 5 THEN 'thu' WHEN 6 THEN 'fri'
+                    WHEN 7 THEN 'sat'
+                END
+                ORDER BY prd.DAY_IDX SEPARATOR ','
+            ) AS REPEAT_DAYS,
+            p.FIRE_STATE, p.COLOR, p.DESCRIPTION
+        FROM PLAN_TABLE p
+        LEFT JOIN PLAN_REPEAT_DAYS prd ON p.PLAN_IDX = prd.PLAN_IDX
+        WHERE p.USER_IDX = #{userIdx} AND p.IS_DELETED = 0 AND p.IS_COMPLETED = 0
+        GROUP BY p.PLAN_IDX, p.PLAN_TITLE, p.END_TO, p.PLAN_SUB_END,
+                 p.IS_SHARED, p.IS_ACTIVE, p.PLAN_IMP, p.CERT_EXP,
+                 p.FIRE_STATE, p.COLOR, p.DESCRIPTION
+        ORDER BY p.IS_ACTIVE DESC, p.PLAN_IMP DESC, p.PLAN_SUB_START IS NULL, p.PLAN_SUB_START DESC
     </select>
 
-    <!-- (개인용) 오늘 요일에 해당하는 활성 루틴 조회 -->
+    <!-- (개인용) 오늘 요일에 해당하는 활성 루틴 조회 — PLAN_REPEAT_DAYS JOIN -->
     <select id="getTodayPlansByUserIdx" parameterType="map" resultMap="MyPlanInfoResultMap">
         SELECT
-            PLAN_IDX, PLAN_TITLE, END_TO, PLAN_SUB_END,
-            IS_SHARED, IS_ACTIVE, PLAN_IMP, CERT_EXP,
-            REPEAT_DAYS, FIRE_STATE, COLOR, DESCRIPTION
-        FROM PLAN_TABLE
-        WHERE USER_IDX = #{userIdx}
-          AND IS_DELETED = 0
-          AND IS_COMPLETED = 0
-          AND IS_ACTIVE = 1
-          AND FIND_IN_SET(#{dayOfWeek}, REPEAT_DAYS) > 0
-        ORDER BY PLAN_IMP DESC, PLAN_SUB_START IS NULL, PLAN_SUB_START DESC
+            p.PLAN_IDX, p.PLAN_TITLE, p.END_TO, p.PLAN_SUB_END,
+            p.IS_SHARED, p.IS_ACTIVE, p.PLAN_IMP, p.CERT_EXP,
+            GROUP_CONCAT(
+                CASE prd.DAY_IDX
+                    WHEN 1 THEN 'sun' WHEN 2 THEN 'mon' WHEN 3 THEN 'tue'
+                    WHEN 4 THEN 'wed' WHEN 5 THEN 'thu' WHEN 6 THEN 'fri'
+                    WHEN 7 THEN 'sat'
+                END
+                ORDER BY prd.DAY_IDX SEPARATOR ','
+            ) AS REPEAT_DAYS,
+            p.FIRE_STATE, p.COLOR, p.DESCRIPTION
+        FROM PLAN_TABLE p
+        JOIN PLAN_REPEAT_DAYS prd ON p.PLAN_IDX = prd.PLAN_IDX
+        WHERE p.USER_IDX = #{userIdx}
+          AND p.IS_DELETED = 0
+          AND p.IS_COMPLETED = 0
+          AND p.IS_ACTIVE = 1
+          AND prd.DAY_IDX = #{dayIdx}
+        GROUP BY p.PLAN_IDX, p.PLAN_TITLE, p.END_TO, p.PLAN_SUB_END,
+                 p.IS_SHARED, p.IS_ACTIVE, p.PLAN_IMP, p.CERT_EXP,
+                 p.FIRE_STATE, p.COLOR, p.DESCRIPTION
+        ORDER BY p.PLAN_IMP DESC, p.PLAN_SUB_START IS NULL, p.PLAN_SUB_START DESC
     </select>
 
     <!-- 오늘 활성 루틴 총 수 -->
     <select id="getTodayPlanCount" parameterType="map" resultType="int">
-        SELECT COUNT(*)
-        FROM PLAN_TABLE
-        WHERE USER_IDX = #{userIdx}
-          AND IS_DELETED = 0
-          AND IS_COMPLETED = 0
-          AND IS_ACTIVE = 1
-          AND FIND_IN_SET(#{dayOfWeek}, REPEAT_DAYS) > 0
+        SELECT COUNT(DISTINCT p.PLAN_IDX)
+        FROM PLAN_TABLE p
+        JOIN PLAN_REPEAT_DAYS prd ON p.PLAN_IDX = prd.PLAN_IDX
+        WHERE p.USER_IDX = #{userIdx}
+          AND p.IS_DELETED = 0
+          AND p.IS_COMPLETED = 0
+          AND p.IS_ACTIVE = 1
+          AND prd.DAY_IDX = #{dayIdx}
     </select>
 
     <!-- 오늘 모든 activity가 verified인 루틴 수 (activity가 1개 이상인 루틴만 집계) -->
     <select id="getTodayCompletedPlanCount" parameterType="map" resultType="int">
-        SELECT COUNT(*)
+        SELECT COUNT(DISTINCT P.PLAN_IDX)
         FROM PLAN_TABLE P
+        JOIN PLAN_REPEAT_DAYS prd ON P.PLAN_IDX = prd.PLAN_IDX
         WHERE P.USER_IDX = #{userIdx}
           AND P.IS_DELETED = 0
           AND P.IS_COMPLETED = 0
           AND P.IS_ACTIVE = 1
-          AND FIND_IN_SET(#{dayOfWeek}, P.REPEAT_DAYS) > 0
+          AND prd.DAY_IDX = #{dayIdx}
           AND EXISTS (
               SELECT 1 FROM PLAN_ACTIVITY
               WHERE PLAN_IDX = P.PLAN_IDX AND IS_DELETED = 0

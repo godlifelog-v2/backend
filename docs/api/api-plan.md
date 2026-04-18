@@ -106,7 +106,7 @@
 | PATCH `/plan/auth/{planIdx}/activities/{activityIdx}` | `{ code, message: String, status }` | 200/403/404/410/500 |
 | DELETE `/plan/auth/{planIdx}/activities/{activityIdx}` | `{ code, message: String, status }` | 200/403/404/410/500 |
 | **POST** `/plan/auth/{planIdx}/activities/batch` | `{ code, message, status, data: { activities } }` (성공) / `{ ..., data: { success, error } }` (409) | **200/400/403/404/409/410/500** |
-| **POST** `/plan/auth/{planIdx}/activities/{activityIdx}/verify` | `{ code, message, status, data: { activities } }` | **200/403/404/409/410/412/500** |
+| **POST** `/plan/auth/{planIdx}/activities/{activityIdx}/verify` | `{ code, message, status, data: { activities } }` | **200/400/403/404/409/410/412/500** |
 | PATCH `/plan/auth/bulk-imp` | `{ code, message: String, status }` | 200/400/403/410/500 |
 | PATCH `/plan/auth/{planIdx}/activities/bulk-imp` | `{ code, message: String, status }` | 200/400/403/404/410/500 |
 
@@ -367,6 +367,7 @@
 | 상태 | 의미 |
 |---|---|
 | 200 | 인증 성공. `data.activities`에 해당 루틴 전체 활동 목록 포함 |
+| 400 | 오늘 요일이 루틴의 반복 요일에 해당하지 않음 (PLAN_REPEAT_DAYS 기준) |
 | 403 | 소유자 아님 |
 | 404 | 루틴 또는 활동이 존재하지 않거나 삭제됨 |
 | 409 | 이미 인증한 활동 |

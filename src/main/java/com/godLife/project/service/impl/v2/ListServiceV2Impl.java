@@ -3,6 +3,7 @@ package com.godLife.project.service.impl.v2;
 import com.godLife.project.dto.query.plan.v2.CustomPlanV2DTO;
 import com.godLife.project.dto.response.plan.v2.MyPlanV2DTO;
 import com.godLife.project.dto.response.plan.v2.TodayStatsDTO;
+import com.godLife.project.enums.RepeatDay;
 import com.godLife.project.mapper.ListMapper;
 import com.godLife.project.mapper.PlanMapper;
 import com.godLife.project.mapper.VerifyMapper;
@@ -16,10 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 @Slf4j
 @Service
@@ -58,8 +57,8 @@ public class ListServiceV2Impl implements ListServiceV2 {
     try {
       if (!planMapper.getUserIsDeleted(userIdx).contains("N")) { return null; }
 
-      String dayOfWeek = getDayOfWeek();
-      List<CustomPlanV2DTO> planDtos = listMapperV2.getTodayPlansByUserIdx(userIdx, dayOfWeek);
+      int dayOfWeekIdx = getDayOfWeekIdx();
+      List<CustomPlanV2DTO> planDtos = listMapperV2.getTodayPlansByUserIdx(userIdx, dayOfWeekIdx);
 
       if (planDtos == null || planDtos.isEmpty()) {
         return new ArrayList<>();
@@ -74,21 +73,18 @@ public class ListServiceV2Impl implements ListServiceV2 {
 
   @Override
   public TodayStatsDTO getTodayStats(int userIdx) {
-    String dayOfWeek = getDayOfWeek();
-    int total = listMapperV2.getTodayPlanCount(userIdx, dayOfWeek);
-    int completed = listMapperV2.getTodayCompletedPlanCount(userIdx, dayOfWeek);
+    int dayOfWeekIdx = getDayOfWeekIdx();
+    int total = listMapperV2.getTodayPlanCount(userIdx, dayOfWeekIdx);
+    int completed = listMapperV2.getTodayCompletedPlanCount(userIdx, dayOfWeekIdx);
     int combo = verifyMapper.getComboByUserIdx(userIdx);
     return new TodayStatsDTO(total, completed, combo);
   }
 
   /* -----------------------------------------// 함수 구현 //------------------------------------------------------- */
 
-  /** 오늘 요일을 "mon" ~ "sun" 형태로 반환 */
-  private String getDayOfWeek() {
-    return LocalDate.now()
-        .getDayOfWeek()
-        .getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
-        .toLowerCase();
+  /** 오늘 요일을 PLAN_REPEAT_DAYS.DAY_IDX (1=일 ~ 7=토) 형태로 반환 */
+  private int getDayOfWeekIdx() {
+    return RepeatDay.toDayIdx(LocalDate.now().getDayOfWeek());
   }
 
   /** CustomPlanV2DTO 리스트를 MyPlanV2DTO 리스트로 변환 (공통 조립 로직) */
