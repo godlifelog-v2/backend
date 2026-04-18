@@ -67,6 +67,13 @@
 | PATCH | `/auth/{planIdx}/activities/{activityIdx}` | 활동 부분 수정 (null 필드 제외, activityImp 제외) | Path: `planIdx`, `activityIdx`, Body: `ActivityUpdateRequestV2` | ✅ JWT |
 | DELETE | `/auth/{planIdx}/activities/{activityIdx}` | 활동 소프트 삭제 | Path: `planIdx`, `activityIdx` | ✅ JWT |
 
+#### 활동 일괄 처리 (Batch) ✨ 신규
+
+| Method | Path | 설명 | 파라미터 | 인증 |
+|---|---|---|---|---|
+| POST | `/auth/{planIdx}/activities/batch` | 활동 삭제·수정·생성·순서를 단일 트랜잭션으로 처리 | Path: `planIdx`, Body: `ActivityBatchRequestV2` | ✅ JWT |
+| POST | `/auth/{planIdx}/activities/{activityIdx}/verify` | 활동 인증 v2 (성공 시 해당 루틴 전체 활동 목록 반환) | Path: `planIdx`, `activityIdx` | ✅ JWT |
+
 #### 정렬 우선순위 일괄 수정
 
 | Method | Path | 설명 | 파라미터 | 인증 |
@@ -98,6 +105,8 @@
 | POST `/plan/auth/{planIdx}/activities` | `{ code, message: String, status }` | 201/403/404/410/500 |
 | PATCH `/plan/auth/{planIdx}/activities/{activityIdx}` | `{ code, message: String, status }` | 200/403/404/410/500 |
 | DELETE `/plan/auth/{planIdx}/activities/{activityIdx}` | `{ code, message: String, status }` | 200/403/404/410/500 |
+| **POST** `/plan/auth/{planIdx}/activities/batch` | `{ code, message, status, data: { activities } }` (성공) / `{ ..., data: { success, error } }` (409) | **200/400/403/404/409/410/500** |
+| **POST** `/plan/auth/{planIdx}/activities/{activityIdx}/verify` | `{ code, message, status, data: { activities } }` | **200/403/404/409/410/412/500** |
 | PATCH `/plan/auth/bulk-imp` | `{ code, message: String, status }` | 200/400/403/410/500 |
 | PATCH `/plan/auth/{planIdx}/activities/bulk-imp` | `{ code, message: String, status }` | 200/400/403/404/410/500 |
 
@@ -228,6 +237,142 @@
   "setTime": "08:00"
 }
 ```
+
+---
+
+**활동 일괄 처리 요청 예시 (`POST /auth/{planIdx}/activities/batch`)**
+
+> `deleted` / `updated` / `created` / `order` 중 필요한 항목만 전송해도 됨. 빈 배열(`[]`) 또는 필드 생략 모두 가능.
+
+```json
+{
+  "deleted": [311],
+  "updated": [
+    {
+      "activityIdx": 339,
+      "version": 2,
+      "activityName": "수정된 활동명",
+      "setTime": "08:00",
+      "event": false,
+      "duration": 30
+    }
+  ],
+  "created": [
+    {
+      "clientTempId": "tmp-1",
+      "activityName": "새 활동",
+      "setTime": "09:00",
+      "event": false,
+      "duration": 20
+    }
+  ],
+  "order": [
+    { "activityIdx": 339 },
+    { "clientTempId": "tmp-1" },
+    { "activityIdx": 401 }
+  ]
+}
+```
+
+> **처리 순서 (단일 트랜잭션, ALL OR NOTHING)**
+> 1. `deleted` → 소프트 삭제
+> 2. `updated` → 낙관적 락 버전 체크 후 수정 (`VERSION` 불일치 시 즉시 409 반환 + 전체 롤백)
+> 3. `created` → 생성 (`clientTempId` → 서버 발급 `activityIdx` 매핑)
+> 4. `order` → `imp` 값 일괄 반영 (`order` 배열 앞 = 높은 imp = 상단 노출)
+> 5. 성공 시 최신 활동 전체 목록 반환
+
+**성공 응답 (`200`)**
+```json
+{
+  "code": 200,
+  "status": "success",
+  "message": "활동 일괄 처리 성공",
+  "data": {
+    "activities": [
+      {
+        "activityIdx": 339,
+        "planIdx": 10,
+        "activityName": "수정된 활동명",
+        "setTime": "08:00",
+        "activityImp": 3,
+        "verified": false,
+        "event": false,
+        "duration": 30,
+        "version": 3
+      }
+    ]
+  }
+}
+```
+
+**409 충돌 응답 — 낙관적 락 버전 불일치**
+```json
+{
+  "code": 409,
+  "status": "conflict",
+  "message": "데이터가 변경되었습니다. 최신 데이터를 다시 불러와 주세요.",
+  "data": {
+    "success": false,
+    "error": "CONFLICT"
+  }
+}
+```
+
+> 409 수신 시 프론트는 루틴 상세(`GET /plan/detail/{planIdx}`)를 재조회하여 최신 `version` 값을 갱신한 후 재시도.
+
+**활동 일괄 처리 상태 코드**
+
+| 상태 | 의미 |
+|---|---|
+| 200 | 성공. `data.activities`에 최신 활동 목록 포함 |
+| 400 | Validation 오류 또는 `order`에 유효하지 않은 `clientTempId` 포함 |
+| 403 | 소유자 아님 |
+| 404 | 루틴이 존재하지 않음 |
+| 409 | 낙관적 락 충돌 (`error: "CONFLICT"`) — 재조회 후 재시도 필요 |
+| 410 | 탈퇴한 유저 |
+| 500 | 서버 오류 |
+
+---
+
+**활동 인증 v2 응답 예시 (`POST /auth/{planIdx}/activities/{activityIdx}/verify`)**
+
+> 요청 Body 없음. Path variable만 사용.
+
+**성공 응답 (`200`)**
+```json
+{
+  "code": 200,
+  "status": "success",
+  "message": "활동 인증이 정상적으로 처리되었습니다.",
+  "data": {
+    "activities": [
+      {
+        "activityIdx": 101,
+        "planIdx": 10,
+        "activityName": "조깅 30분",
+        "setTime": "07:00",
+        "activityImp": 3,
+        "verified": true,
+        "event": true,
+        "duration": 30,
+        "version": 0
+      }
+    ]
+  }
+}
+```
+
+**활동 인증 v2 상태 코드**
+
+| 상태 | 의미 |
+|---|---|
+| 200 | 인증 성공. `data.activities`에 해당 루틴 전체 활동 목록 포함 |
+| 403 | 소유자 아님 |
+| 404 | 루틴 또는 활동이 존재하지 않거나 삭제됨 |
+| 409 | 이미 인증한 활동 |
+| 410 | 탈퇴한 유저 |
+| 412 | 활성화되지 않은 루틴 |
+| 500 | 서버 오류 |
 
 **응답 (`/detail/{planIdx}`) 예시**
 ```json

@@ -238,8 +238,8 @@
 
 ### ActivityV2DTO (v2 활동 응답 전용) ✨ 신규
 
-> `PlanDetailDTO.activities`, `MyPlanV2DTO.activities` 안에 포함.
-> v1 `ActivityDTO` 대비: `description` 제거, `event`/`duration` 추가.
+> `PlanDetailDTO.activities`, `MyPlanV2DTO.activities`, 배치/인증 v2 응답의 `activities` 배열에 포함.
+> v1 `ActivityDTO` 대비: `description` 제거, `event`/`duration`/`version` 추가.
 
 | 필드 | 타입 | 비고 |
 |---|---|---|
@@ -251,6 +251,63 @@
 | verified | boolean | 오늘 인증 여부 |
 | event | boolean | 알림 활성화 여부 (신규) |
 | duration | int | 예상 소요 시간(분) (신규) |
+| **version** | int | **낙관적 락 버전** — batch 수정 시 이 값을 그대로 `updated[].version`에 전송 (신규) |
+
+---
+
+### ActivityBatchRequestV2 (활동 일괄 처리 요청) ✨ 신규
+
+> `POST /api/v2/plan/auth/{planIdx}/activities/batch` 요청 DTO.
+> 4개 배열 모두 선택적(생략 or 빈 배열 허용). 모든 처리는 단일 트랜잭션.
+
+| 필드 | 타입 | 비고 |
+|---|---|---|
+| deleted | List\<Integer\> | 삭제할 `activityIdx` 목록 (nullable, 기본 빈 배열) |
+| updated | List\<ActivityBatchUpdateItem\> | 수정할 활동 목록 (nullable, 기본 빈 배열) |
+| created | List\<ActivityBatchCreateItem\> | 새로 생성할 활동 목록 (nullable, 기본 빈 배열) |
+| order | List\<ActivityBatchOrderItem\> | 최종 순서 전체 목록 (nullable, 기본 빈 배열) |
+
+---
+
+### ActivityBatchUpdateItem (배치 수정 단일 항목) ✨ 신규
+
+> `ActivityBatchRequestV2.updated[]` 안의 각 항목. null 필드는 수정하지 않음.
+
+| 필드 | 타입 | 비고 |
+|---|---|---|
+| activityIdx | int | 수정할 활동 PK (필수) |
+| version | int | 현재 버전 — `ActivityV2DTO.version` 값 그대로 전송 (필수). 서버 값과 불일치 시 **409** |
+| activityName | String | nullable |
+| setTime | LocalTime | nullable (HH:mm) |
+| event | Boolean | nullable |
+| duration | Integer | nullable |
+
+---
+
+### ActivityBatchCreateItem (배치 생성 단일 항목) ✨ 신규
+
+> `ActivityBatchRequestV2.created[]` 안의 각 항목.
+
+| 필드 | 타입 | 비고 |
+|---|---|---|
+| clientTempId | String | 클라이언트 임시 ID (NotBlank). `order[]`에서 신규 항목 참조에 사용 |
+| activityName | String | NotBlank |
+| setTime | LocalTime | nullable (HH:mm) |
+| event | boolean | 알림 활성화 여부 (기본 false) |
+| duration | int | 예상 소요 시간(분) (기본 0) |
+
+---
+
+### ActivityBatchOrderItem (배치 순서 단일 항목) ✨ 신규
+
+> `ActivityBatchRequestV2.order[]` 안의 각 항목. `activityIdx` 또는 `clientTempId` 중 하나만 지정.
+
+| 필드 | 타입 | 비고 |
+|---|---|---|
+| activityIdx | Integer | 기존 활동의 PK (nullable) |
+| clientTempId | String | 신규 생성 항목의 임시 ID (nullable). `created[].clientTempId`와 매칭 |
+
+> **순서 → imp 변환 규칙**: 배열 앞 항목이 높은 imp를 가짐 (index 0 → imp = 배열 길이, index N → imp = 1). 즉 `order` 배열의 앞 = 화면 상단.
 
 ---
 
