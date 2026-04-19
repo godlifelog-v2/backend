@@ -1,4 +1,4 @@
-package com.godLife.project.mapper.dto;
+package com.godLife.project.mapstruct;
 
 import com.godLife.project.dto.model.plan.PlanDTO;
 import com.godLife.project.dto.response.plan.v2.ActivityV2DTO;

@@ -433,7 +433,19 @@
 | GET | `/plan/{mode}` | 루틴 목록(필터) | Path: `mode`, Query: `page,size,status,target,job,sort,order,search` | ❌ |
 | GET | `/auth/qna` | 내 1:1 문의 목록 | Query: `page,size,status,sort,order,search` | ✅ JWT |
 
-`mode`: `all`, `popular`, `latest` 등
+**`/plan/{mode}` 쿼리 파라미터 상세**
+
+| 파라미터 | 타입 | 기본값 | 허용값 | 설명 |
+|---|---|---|---|---|
+| `mode` | String (Path) | — | `rank` \| `myLike` \| `private` \| 그 외 | 조회 모드. `rank`: 랭킹(활성·미완료·certExp≥100), `myLike`: 추천한 루틴, `private`: 내 루틴, 그 외: 공개 루틴 전체 |
+| `page` | int | `1` | 1 이상 | 페이지 번호 (1부터 시작) |
+| `size` | int | `10` | 1 이상 | 페이지당 결과 수 |
+| `status` | int | `0` | `0` \| `1` \| `2` \| `3` \| `4` | 루틴 상태 필터. `0`: 전체, `1`: 활성(IS_ACTIVE=1, 미완료), `2`: 비활성(IS_ACTIVE=0, 미완료), `3`: 완료+비활성, `4`: 완료+활성 |
+| `target` | List\<int\> | — | 카테고리 idx | 목표 카테고리 필터 (복수 선택 가능) |
+| `job` | List\<int\> | — | 직업 카테고리 idx | 직업 카테고리 필터 (복수 선택 가능) |
+| `sort` | String | `latest` | `latest` \| `view` \| `like` \| `fork` \| `fire` | 정렬 기준. `latest`: 등록일, `view`: 조회수, `like`: 추천수, `fork`: 포크수, `fire`: 불꽃 경험치 |
+| `order` | String | `desc` | `desc` \| `asc` | 정렬 차순 |
+| `search` | String | — | 임의 문자열 | 검색어 |
 
 **응답 상세**
 

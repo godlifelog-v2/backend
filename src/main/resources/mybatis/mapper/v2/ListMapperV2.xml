@@ -49,21 +49,21 @@
             p.PLAN_IDX, p.PLAN_TITLE, p.END_TO, p.PLAN_SUB_END,
             p.IS_SHARED, p.IS_ACTIVE, p.PLAN_IMP, p.CERT_EXP,
             GROUP_CONCAT(
-                CASE prd.DAY_IDX
+                CASE all_prd.DAY_IDX
                     WHEN 1 THEN 'sun' WHEN 2 THEN 'mon' WHEN 3 THEN 'tue'
                     WHEN 4 THEN 'wed' WHEN 5 THEN 'thu' WHEN 6 THEN 'fri'
                     WHEN 7 THEN 'sat'
                 END
-                ORDER BY prd.DAY_IDX SEPARATOR ','
+                ORDER BY all_prd.DAY_IDX SEPARATOR ','
             ) AS REPEAT_DAYS,
             p.FIRE_STATE, p.COLOR, p.DESCRIPTION
         FROM PLAN_TABLE p
-        JOIN PLAN_REPEAT_DAYS prd ON p.PLAN_IDX = prd.PLAN_IDX
+        JOIN PLAN_REPEAT_DAYS today_prd ON p.PLAN_IDX = today_prd.PLAN_IDX AND today_prd.DAY_IDX = #{dayIdx}
+        LEFT JOIN PLAN_REPEAT_DAYS all_prd ON p.PLAN_IDX = all_prd.PLAN_IDX
         WHERE p.USER_IDX = #{userIdx}
           AND p.IS_DELETED = 0
           AND p.IS_COMPLETED = 0
           AND p.IS_ACTIVE = 1
-          AND prd.DAY_IDX = #{dayIdx}
         GROUP BY p.PLAN_IDX, p.PLAN_TITLE, p.END_TO, p.PLAN_SUB_END,
                  p.IS_SHARED, p.IS_ACTIVE, p.PLAN_IMP, p.CERT_EXP,
                  p.FIRE_STATE, p.COLOR, p.DESCRIPTION

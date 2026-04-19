@@ -8,7 +8,7 @@ import com.godLife.project.dto.response.plan.v2.ActivityV2DTO;
 import com.godLife.project.dto.response.plan.v2.PlanDetailDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.mapper.PlanMapper;
-import com.godLife.project.mapper.dto.PlanDetailMapper;
+import com.godLife.project.mapstruct.PlanDetailMapper;
 import com.godLife.project.mapper.v2.PlanMapperV2;
 import com.godLife.project.mapper.v2.PlanRepeatDayMapper;
 import com.godLife.project.service.interfaces.CategoryService;
