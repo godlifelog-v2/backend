@@ -25,9 +25,6 @@
       <if test="isActive != null and isActive == 1">
         , IS_ACTIVE, PLAN_SUB_START, PLAN_SUB_END
       </if>
-      <if test="repeatDays != null">
-        , REPEAT_DAYS
-      </if>
       <if test="forked == true">
         , FORK_IDX
       </if>
@@ -42,9 +39,6 @@
       #{userIdx}, #{planTitle}, #{endTo}, #{targetIdx}, #{isShared}, #{planImp}, #{jobIdx}
       <if test="isActive != null and isActive == 1">
         , #{isActive}, NOW(), DATE_ADD(NOW(), INTERVAL #{endTo} DAY)
-      </if>
-      <if test="repeatDays != null">
-        , #{repeatDays, typeHandler=com.godLife.project.handler.typehandler.ListStringTypeHandler}
       </if>
       <if test="forked == true">
         , #{forkIdx}
@@ -64,9 +58,6 @@
     <trim prefix="SET" suffixOverrides=",">
       <if test="planTitle != null">PLAN_TITLE = #{planTitle},</if>
       <if test="endTo != null">END_TO = #{endTo},</if>
-      <if test="repeatDays != null">
-        REPEAT_DAYS = #{repeatDays, typeHandler=com.godLife.project.handler.typehandler.ListStringTypeHandler},
-      </if>
       <if test="targetIdx != null">TARGET_IDX = #{targetIdx},</if>
       <if test="jobIdx != null">JOB_IDX = #{jobIdx},</if>
       <if test="isShared != null">IS_SHARED = #{isShared},</if>

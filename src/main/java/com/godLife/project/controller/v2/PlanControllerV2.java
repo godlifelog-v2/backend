@@ -1,25 +1,19 @@
 package com.godLife.project.controller.v2;
 
-import com.godLife.project.dto.request.plan.v2.ActivityBatchRequestV2;
-import com.godLife.project.dto.request.plan.v2.ActivityCreateRequestV2;
-import com.godLife.project.dto.request.plan.v2.ActivityUpdateRequestV2;
-import com.godLife.project.dto.request.plan.v2.BulkActivityDeleteRequest;
-import com.godLife.project.dto.request.plan.v2.BulkActivityImpUpdateRequest;
-import com.godLife.project.dto.request.plan.v2.BulkPlanImpUpdateRequest;
-import com.godLife.project.dto.request.plan.v2.PlanCreateRequestV2;
-import com.godLife.project.dto.request.plan.v2.PlanForkRequestV2;
-import com.godLife.project.dto.request.plan.v2.PlanUpdateRequestV2;
+import com.godLife.project.dto.request.plan.v2.*;
 import com.godLife.project.dto.response.plan.v2.PlanDetailDTO;
 import com.godLife.project.dto.response.plan.v2.PlanExtraInfoDTO;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.service.interfaces.PlanService;
 import com.godLife.project.service.interfaces.v2.PlanServiceV2;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -95,6 +89,9 @@ public class PlanControllerV2 {
             log.info("PlanControllerV2 - detail :: {}", e.getMessage());
             return ResponseEntity.status(handler.getHttpStatus(404))
                     .body(handler.createResponse(404, "루틴 조회 실패 - 루틴이 존재하지 않습니다."));
+        } catch (ExpiredJwtException e) {
+            log.warn("PlanControllerV2 - detail warn", e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(handler.createResponse(401, "만료된 토큰입니다."));
         } catch (Exception e) {
             log.error("PlanControllerV2 - detail error", e);
             return ResponseEntity.status(handler.getHttpStatus(500))
@@ -167,7 +164,7 @@ public class PlanControllerV2 {
             case 403 -> "비공개 루틴은 포크할 수 없습니다.";
             case 404 -> "원본 루틴이 존재하지 않습니다.";
             case 410 -> "탈퇴한 유저는 루틴을 생성할 수 없습니다.";
-            case 412 -> "루틴은 최대 5개까지 생성 가능합니다.";
+            case 412 -> "루틴은 최대 20개까지 생성 가능합니다.";
             default  -> "서버 내부 오류로 루틴 포크에 실패했습니다.";
         };
         if (status == 201) {
@@ -380,6 +377,7 @@ public class PlanControllerV2 {
         int status = (int) serviceResult.get("status");
         String msg = switch (status) {
             case 200 -> "활동 인증이 정상적으로 처리되었습니다.";
+            case 400 -> "오늘 요일에 해당하는 루틴이 아닙니다.";
             case 403 -> "작성자가 아닙니다. 재로그인 해주세요.";
             case 404 -> "루틴 혹은 활동이 존재하지 않거나, 삭제 처리된 상태입니다.";
             case 409 -> "이미 인증한 활동입니다.";

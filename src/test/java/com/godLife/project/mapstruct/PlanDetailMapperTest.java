@@ -1,4 +1,4 @@
-package com.godLife.project.mapper.dto;
+package com.godLife.project.mapstruct;
 
 import com.godLife.project.dto.category.JobCateDTO;
 import com.godLife.project.dto.category.TargetCateDTO;

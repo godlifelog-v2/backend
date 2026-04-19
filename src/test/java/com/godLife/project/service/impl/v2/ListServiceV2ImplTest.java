@@ -95,8 +95,8 @@ class ListServiceV2ImplTest {
         @Test
         @DisplayName("통계 조회 → TodayStatsDTO 반환")
         void getTodayStats_returnsStatsDto() {
-            when(listMapperV2.getTodayPlanCount(eq(1), anyString())).thenReturn(5);
-            when(listMapperV2.getTodayCompletedPlanCount(eq(1), anyString())).thenReturn(3);
+            when(listMapperV2.getTodayPlanCount(eq(1), anyInt())).thenReturn(5);
+            when(listMapperV2.getTodayCompletedPlanCount(eq(1), anyInt())).thenReturn(3);
             when(verifyMapper.getComboByUserIdx(1)).thenReturn(7);
 
             TodayStatsDTO stats = listServiceV2Impl.getTodayStats(1);

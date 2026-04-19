@@ -7,10 +7,12 @@ import com.godLife.project.dto.request.verify.VerifyRequestDTO;
 import com.godLife.project.dto.response.plan.v2.ActivityV2DTO;
 import com.godLife.project.dto.response.plan.v2.PlanDetailDTO;
 import com.godLife.project.dto.response.plan.v2.PlanExtraInfoDTO;
+import com.godLife.project.enums.RepeatDay;
 import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.mapper.PlanMapper;
-import com.godLife.project.mapper.dto.PlanDetailMapper;
+import com.godLife.project.mapstruct.PlanDetailMapper;
 import com.godLife.project.mapper.v2.PlanMapperV2;
+import com.godLife.project.mapper.v2.PlanRepeatDayMapper;
 import com.godLife.project.service.interfaces.CategoryService;
 import com.godLife.project.service.interfaces.VerifyService;
 import com.godLife.project.service.interfaces.v2.PlanServiceV2;
@@ -21,10 +23,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -33,6 +37,7 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
 
     private final PlanMapper planMapper;
     private final PlanMapperV2 planMapperV2;
+    private final PlanRepeatDayMapper planRepeatDayMapper;
     private final PlanDetailMapper planDetailMapper;
     private final CategoryService categoryService;
     private final GlobalExceptionHandler handler;
@@ -80,6 +85,9 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
         }
         if (!existAuth && isPrivate) return null;
 
+        // V2: PLAN_REPEAT_DAYS에서 요일 정보 로드
+        planDTO.setRepeatDays(planRepeatDayMapper.getRepeatDayStringsByPlanIdx(planIdx));
+
         // 연관 데이터 조회 (v2 활동 목록 사용)
         List<ActivityV2DTO> activities = planMapperV2.getActivitiesByPlanIdx(planIdx);
         planDTO.setTargetCateDTO(planMapper.getTargetCategoryByTargetIdx(planDTO.getTargetIdx()));
@@ -115,6 +123,12 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
             planMapperV2.insertPlanV2(dto);
             int planIdx = dto.getPlanIdx(); // useGeneratedKeys로 채워짐
 
+            if (dto.getRepeatDays() != null && !dto.getRepeatDays().isEmpty()) {
+                List<Integer> dayIdxList = dto.getRepeatDays().stream()
+                        .map(RepeatDay::toDayIdx).collect(Collectors.toList());
+                planRepeatDayMapper.insertRepeatDays(planIdx, dayIdxList);
+            }
+
             if (dto.getJobIdx() == customJobIdx && dto.getJobEtcCateDTO() != null) {
                 JobEtcCateDTO jobEtcCateDTO = dto.getJobEtcCateDTO();
                 jobEtcCateDTO.setPlanIdx(planIdx);
@@ -149,6 +163,15 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
             dto.setPlanIdx(planIdx);
             dto.setUserIdx(userIdx);
             planMapperV2.updatePlanPartial(dto);
+
+            if (dto.getRepeatDays() != null) {
+                planRepeatDayMapper.deleteByPlanIdx(planIdx);
+                if (!dto.getRepeatDays().isEmpty()) {
+                    List<Integer> dayIdxList = dto.getRepeatDays().stream()
+                            .map(RepeatDay::toDayIdx).collect(Collectors.toList());
+                    planRepeatDayMapper.insertRepeatDays(planIdx, dayIdxList);
+                }
+            }
 
             if (dto.getJobIdx() != null) {
                 processJobEtcUpdate(planIdx, dto.getJobIdx(), dto.getJobEtcCateDTO());
@@ -218,6 +241,12 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
             planMapperV2.insertPlanV2(createDto);
             int newPlanIdx = createDto.getPlanIdx();
             dto.setPlanIdx(newPlanIdx);
+
+            if (createDto.getRepeatDays() != null && !createDto.getRepeatDays().isEmpty()) {
+                List<Integer> dayIdxList = createDto.getRepeatDays().stream()
+                        .map(RepeatDay::toDayIdx).collect(Collectors.toList());
+                planRepeatDayMapper.insertRepeatDays(newPlanIdx, dayIdxList);
+            }
 
             if (resolvedJobIdx == customJobIdx && dto.getJobEtcCateDTO() != null) {
                 JobEtcCateDTO jobEtcCateDTO = dto.getJobEtcCateDTO();
@@ -450,6 +479,13 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
     public Map<String, Object> verifyActivityV2(int planIdx, int activityIdx, int userIdx) {
         Map<String, Object> result = new HashMap<>();
         try {
+            int todayDayIdx = RepeatDay.toDayIdx(LocalDate.now().getDayOfWeek());
+            int repeatCount = planRepeatDayMapper.countByPlanIdx(planIdx);
+            if (repeatCount > 0 && !planRepeatDayMapper.existsByPlanIdxAndDayIdx(planIdx, todayDayIdx)) {
+                result.put("status", 400); // 오늘 요일 불일치
+                return result;
+            }
+
             VerifyRequestDTO verifyDto = new VerifyRequestDTO();
             verifyDto.setPlanIdx(planIdx);
             verifyDto.setActivityIdx(activityIdx);

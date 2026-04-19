@@ -106,7 +106,7 @@
 | PATCH `/plan/auth/{planIdx}/activities/{activityIdx}` | `{ code, message: String, status }` | 200/403/404/410/500 |
 | DELETE `/plan/auth/{planIdx}/activities/{activityIdx}` | `{ code, message: String, status }` | 200/403/404/410/500 |
 | **POST** `/plan/auth/{planIdx}/activities/batch` | `{ code, message, status, data: { activities } }` (성공) / `{ ..., data: { success, error } }` (409) | **200/400/403/404/409/410/500** |
-| **POST** `/plan/auth/{planIdx}/activities/{activityIdx}/verify` | `{ code, message, status, data: { activities } }` | **200/403/404/409/410/412/500** |
+| **POST** `/plan/auth/{planIdx}/activities/{activityIdx}/verify` | `{ code, message, status, data: { activities } }` | **200/400/403/404/409/410/412/500** |
 | PATCH `/plan/auth/bulk-imp` | `{ code, message: String, status }` | 200/400/403/410/500 |
 | PATCH `/plan/auth/{planIdx}/activities/bulk-imp` | `{ code, message: String, status }` | 200/400/403/404/410/500 |
 
@@ -367,6 +367,7 @@
 | 상태 | 의미 |
 |---|---|
 | 200 | 인증 성공. `data.activities`에 해당 루틴 전체 활동 목록 포함 |
+| 400 | 오늘 요일이 루틴의 반복 요일에 해당하지 않음 (PLAN_REPEAT_DAYS 기준) |
 | 403 | 소유자 아님 |
 | 404 | 루틴 또는 활동이 존재하지 않거나 삭제됨 |
 | 409 | 이미 인증한 활동 |
@@ -432,7 +433,19 @@
 | GET | `/plan/{mode}` | 루틴 목록(필터) | Path: `mode`, Query: `page,size,status,target,job,sort,order,search` | ❌ |
 | GET | `/auth/qna` | 내 1:1 문의 목록 | Query: `page,size,status,sort,order,search` | ✅ JWT |
 
-`mode`: `all`, `popular`, `latest` 등
+**`/plan/{mode}` 쿼리 파라미터 상세**
+
+| 파라미터 | 타입 | 기본값 | 허용값 | 설명 |
+|---|---|---|---|---|
+| `mode` | String (Path) | — | `rank` \| `myLike` \| `private` \| 그 외 | 조회 모드. `rank`: 랭킹(활성·미완료·certExp≥100), `myLike`: 추천한 루틴, `private`: 내 루틴, 그 외: 공개 루틴 전체 |
+| `page` | int | `1` | 1 이상 | 페이지 번호 (1부터 시작) |
+| `size` | int | `10` | 1 이상 | 페이지당 결과 수 |
+| `status` | int | `0` | `0` \| `1` \| `2` \| `3` \| `4` | 루틴 상태 필터. `0`: 전체, `1`: 활성(IS_ACTIVE=1, 미완료), `2`: 비활성(IS_ACTIVE=0, 미완료), `3`: 완료+비활성, `4`: 완료+활성 |
+| `target` | List\<int\> | — | 카테고리 idx | 목표 카테고리 필터 (복수 선택 가능) |
+| `job` | List\<int\> | — | 직업 카테고리 idx | 직업 카테고리 필터 (복수 선택 가능) |
+| `sort` | String | `latest` | `latest` \| `view` \| `like` \| `fork` \| `fire` | 정렬 기준. `latest`: 등록일, `view`: 조회수, `like`: 추천수, `fork`: 포크수, `fire`: 불꽃 경험치 |
+| `order` | String | `desc` | `desc` \| `asc` | 정렬 차순 |
+| `search` | String | — | 임의 문자열 | 검색어 |
 
 **응답 상세**
 

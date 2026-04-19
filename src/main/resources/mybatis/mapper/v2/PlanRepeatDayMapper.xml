@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.godLife.project.mapper.v2.PlanRepeatDayMapper">
+
+  <!-- 요일 배치 INSERT -->
+  <insert id="insertRepeatDays" parameterType="map">
+    INSERT INTO PLAN_REPEAT_DAYS (PLAN_IDX, DAY_IDX) VALUES
+    <foreach collection="dayIdxList" item="dayIdx" separator=",">
+      (#{planIdx}, #{dayIdx})
+    </foreach>
+  </insert>
+
+  <!-- 루틴의 모든 요일 삭제 -->
+  <delete id="deleteByPlanIdx" parameterType="int">
+    DELETE FROM PLAN_REPEAT_DAYS WHERE PLAN_IDX = #{planIdx}
+  </delete>
+
+  <!-- 특정 요일 존재 여부 확인 -->
+  <select id="existsByPlanIdxAndDayIdx" parameterType="map" resultType="boolean">
+    SELECT COUNT(*) > 0
+    FROM PLAN_REPEAT_DAYS
+    WHERE PLAN_IDX = #{planIdx} AND DAY_IDX = #{dayIdx}
+  </select>
+
+  <!-- 루틴의 요일 수 조회 (0이면 무제한) -->
+  <select id="countByPlanIdx" parameterType="int" resultType="int">
+    SELECT COUNT(*) FROM PLAN_REPEAT_DAYS WHERE PLAN_IDX = #{planIdx}
+  </select>
+
+  <!-- DAY_IDX → "sun","mon"… 문자열 리스트 변환 (API 응답용) -->
+  <select id="getRepeatDayStringsByPlanIdx" parameterType="int" resultType="string">
+    SELECT CASE DAY_IDX
+      WHEN 1 THEN 'sun'
+      WHEN 2 THEN 'mon'
+      WHEN 3 THEN 'tue'
+      WHEN 4 THEN 'wed'
+      WHEN 5 THEN 'thu'
+      WHEN 6 THEN 'fri'
+      WHEN 7 THEN 'sat'
+    END
+    FROM PLAN_REPEAT_DAYS
+    WHERE PLAN_IDX = #{planIdx}
+    ORDER BY DAY_IDX
+  </select>
+
+</mapper>
