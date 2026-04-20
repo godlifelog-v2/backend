@@ -2,6 +2,7 @@ package com.godLife.project.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.godLife.project.dto.model.user.UserDTO;
+import com.godLife.project.dto.response.common.ApiResponse;
 import com.godLife.project.dto.response.user.LoginResponseDTO;
 import com.godLife.project.service.interfaces.UserService;
 import com.godLife.project.service.interfaces.jwtInterface.RefreshService;
@@ -26,12 +27,11 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
+  private static final ObjectMapper objectMapper = new ObjectMapper();
+
   private final AuthenticationManager authenticationManager;
-
   private final JWTUtil jwtUtil;
-
   private final RefreshService refreshService;
-
   private final UserService userService;
 
   public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RefreshService refreshService, UserService userService) {
@@ -46,10 +46,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
   @Override
   public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
-    // JSON 형식으로 데이터 받기
     try {
-      // 요청 본문에서 JSON 데이터를 읽어 LoginDTO 객체로 변환
-      ObjectMapper objectMapper = new ObjectMapper();
       UserDTO loginDTO = objectMapper.readValue(request.getInputStream(), UserDTO.class);
 
       String username = loginDTO.getUserId();
@@ -65,11 +62,9 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
   }
 
-  //로그인 성공시 실행하는 메소드 (여기서 JWT를 발급하면 됨)
   @Override
   protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException {
 
-    //유저 정보
     String username = authentication.getName();
 
     Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
@@ -77,15 +72,13 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     GrantedAuthority auth = iterator.next();
     String role = auth.getAuthority();
 
-    // 유저 정보 조회
     UserDTO tempUserDTO = userService.findByUserId(username);
 
-    // 정지 유저 차단
     if (tempUserDTO.getIsBanned() == 1) {
       response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-      response.setContentType("application/json");
+      response.setContentType("application/json;charset=UTF-8");
       response.setCharacterEncoding("UTF-8");
-      response.getWriter().write("{\"error\": \"정지된 계정입니다.\"}");
+      response.getWriter().write(objectMapper.writeValueAsString(ApiResponse.of(403, "정지된 계정입니다.")));
       return;
     }
 
@@ -103,8 +96,9 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     Long refreshExp = TimeUnit.HOURS.toMillis(24);  // 24시간
 
     //토큰 생성
-    String access = jwtUtil.createJwt("access", username, role, accessExp);
-    String refresh = jwtUtil.createJwt("refresh", username, role, refreshExp);
+    int userIdx = tempUserDTO.getUserIdx();
+    String access = jwtUtil.createJwt("access", username, userIdx, role, accessExp);
+    String refresh = jwtUtil.createJwt("refresh", username, userIdx, role, refreshExp);
 
     // Refresh 토큰 저장
     refreshService.addRefreshToken(username, refresh, refreshExp);
@@ -114,10 +108,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     response.addCookie(createCookie("refresh", refresh, request));
     response.setStatus(HttpStatus.OK.value());
 
-    // JSON 형태로 응답
-    response.setContentType("application/json");
-    response.setCharacterEncoding("UTF-8");
-    ObjectMapper objectMapper = new ObjectMapper();
+    response.setContentType("application/json;charset=UTF-8");
     objectMapper.writeValue(response.getWriter(), loginUserDTO);
 
   }
@@ -126,12 +117,10 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
   @Override
   protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException {
 
-    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 상태 코드 설정
-    response.setContentType("application/json");
+    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    response.setContentType("application/json;charset=UTF-8");
     response.setCharacterEncoding("UTF-8");
-
-    // JSON 형식으로 에러 메시지 전송
-    response.getWriter().write("{\"error\": \"아이디 혹은 비밀번호가 일치하지 않습니다.\"}");
+    response.getWriter().write(objectMapper.writeValueAsString(ApiResponse.of(401, "아이디 혹은 비밀번호가 일치하지 않습니다.")));
   }
 
   private Cookie createCookie(String key, String value, HttpServletRequest request) {

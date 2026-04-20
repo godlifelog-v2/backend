@@ -5,13 +5,14 @@ import com.godLife.project.dto.request.challenge.ChallengeJoinRequest;
 import com.godLife.project.dto.query.challenge.ChallengeSearchParamDTO;
 import com.godLife.project.dto.request.challenge.ChallengeVerifyDTO;
 import com.godLife.project.dto.internal.verify.VerifyRecordDTO;
-import com.godLife.project.handler.GlobalExceptionHandler;
+import com.godLife.project.dto.response.common.ApiResponse;
 import com.godLife.project.service.interfaces.ChallengeService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import com.godLife.project.dto.security.CustomUserDetails;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -21,10 +22,6 @@ import java.util.*;
 @RequestMapping("/api/v1/challenges")
 public class ChallengeController {
 
-  @Autowired
-  private GlobalExceptionHandler handler;
-
-  @Autowired
   private final ChallengeService challengeService;
 
   public ChallengeController(ChallengeService challengeService) {
@@ -43,7 +40,7 @@ public class ChallengeController {
           @RequestParam(required = false, defaultValue = "false") Boolean onlyJoined,
           @RequestParam(defaultValue = "1") int page,
           @RequestParam(defaultValue = "10") int size,
-          @RequestHeader(value = "Authorization", required = false) String authHeader
+          @AuthenticationPrincipal CustomUserDetails user
   ) {
     ChallengeSearchParamDTO param = new ChallengeSearchParamDTO();
     param.setChallState(challState);
@@ -56,14 +53,8 @@ public class ChallengeController {
     param.setSize(size);
 
     // 토큰이 있으면 userIdx 추출 (isJoined 표시 + onlyJoined 필터 공통 사용)
-    if (authHeader != null && authHeader.startsWith("Bearer ")) {
-      try {
-        int userIdx = handler.getUserIdxFromToken(authHeader);
-        param.setUserIdx((long) userIdx);
-      } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("status", 401, "message", "유효하지 않은 토큰입니다."));
-      }
+    if (user != null) {
+      param.setUserIdx((long) user.getUserIdx());
     }
 
     if (Boolean.TRUE.equals(onlyJoined)) {
@@ -99,7 +90,7 @@ public class ChallengeController {
 
   // 챌린지 상세 조회
   @GetMapping("/{challIdx}")
-  public ResponseEntity<Map<String, Object>> getChallengeDetail(
+  public ResponseEntity<?> getChallengeDetail(
           @PathVariable Long challIdx) {
     Map<String, Object> response = new HashMap<>();
 
@@ -118,21 +109,14 @@ public class ChallengeController {
 
   // 인증 기록 조회
   @GetMapping("/verify-records/{challIdx}")
-  public ResponseEntity<Map<String, Object>> getVerifyRecords(
+  public ResponseEntity<?> getVerifyRecords(
           @PathVariable Long challIdx,
-          @RequestHeader(value = "Authorization", required = false) String authHeader) {
+          @AuthenticationPrincipal CustomUserDetails user) {
 
     Long userIdx = null;
 
-    if (authHeader != null && authHeader.startsWith("Bearer ")) {
-      try {
-        userIdx = (long) handler.getUserIdxFromToken(authHeader);
-      } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                "success", false,
-                "message", "Invalid token"
-        ));
-      }
+    if (user != null) {
+      userIdx = (long) user.getUserIdx();
     }
 
     if (userIdx == null) {
@@ -154,10 +138,10 @@ public class ChallengeController {
   // 챌린지 참여
   @PostMapping("/auth/join/{challIdx}")
   public ResponseEntity<Object> joinChallenge(@PathVariable Long challIdx,
-                                              @RequestHeader("Authorization") String authHeader,
+                                              @AuthenticationPrincipal CustomUserDetails user,
                                               @RequestBody ChallengeJoinRequest joinRequest) {
     try {
-      int userIdx = handler.getUserIdxFromToken(authHeader);
+      int userIdx = user.getUserIdx();
       ChallengeDTO challenge = challengeService.joinChallenge(
               challIdx,
               userIdx,
@@ -167,28 +151,28 @@ public class ChallengeController {
 
     } catch (IllegalStateException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-              .body(handler.createResponse(400, e.getMessage()));
+              .body(ApiResponse.of(400, e.getMessage()));
     } catch (IllegalArgumentException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-              .body(handler.createResponse(400, e.getMessage()));
+              .body(ApiResponse.of(400, e.getMessage()));
     } catch (Exception e) {
       log.error("e: ", e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-              .body(handler.createResponse(500, "챌린지 참여 중 오류가 발생했습니다."));
+              .body(ApiResponse.of(500, "챌린지 참여 중 오류가 발생했습니다."));
     }
   }
 
 
     // 챌린지 인증 (경과 시간 기록)
     @PostMapping("/auth/verify/{challIdx}")
-    public ResponseEntity<Map<String, Object>> verifyChallenge(
+    public ResponseEntity<?> verifyChallenge(
             @PathVariable Long challIdx,
             @RequestBody ChallengeVerifyDTO dto,
-            @RequestHeader("Authorization") String authHeader) {
+            @AuthenticationPrincipal CustomUserDetails user) {
 
       Map<String, Object> response = new LinkedHashMap<>();
       try {
-        int userIdx = handler.getUserIdxFromToken(authHeader);
+        int userIdx = user.getUserIdx();
 
         dto.setChallIdx(challIdx);
         dto.setUserIdx((long) userIdx); // userIdx 세팅 누락 방지

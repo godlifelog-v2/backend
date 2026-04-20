@@ -1,135 +1,55 @@
 package com.godLife.project.handler;
 
-import com.godLife.project.dto.internal.error.ErrorResponse;
+import com.godLife.project.dto.response.common.ApiResponse;
 import com.godLife.project.exception.CustomException;
-import com.godLife.project.jwt.JWTUtil;
-import com.godLife.project.mapper.VerifyMapper;
-import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
+@Slf4j
 @ControllerAdvice
-@RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-  private final JWTUtil jwtUtil;
-  private final VerifyMapper verifyMapper;
-
-  // 유효성 검사 에러 처리
-  public Map<String, Object> getValidationErrors(BindingResult result) {
-    Map<String, Object> errors = new HashMap<>();
-    result.getFieldErrors().forEach(fieldError ->
-        errors.put(fieldError.getField(), fieldError.getDefaultMessage()));
-    return errors;
-  }
-
-  // JSON 파싱 오류 처리 메소드
   @ExceptionHandler(HttpMessageNotReadableException.class)
-  public ResponseEntity<Map<String, Object>> handleJsonParseException(HttpMessageNotReadableException ex) {
-    return ResponseEntity.badRequest()
-        .body(createResponse(400, "잘못된 JSON 형식입니다. 필드값이 누락되었거나, 필드명의 오타가 있을 수 있습니다."));
+  public ResponseEntity<ApiResponse<?>> handleJsonParseException(HttpMessageNotReadableException ex) {
+    String cause = ex.getMostSpecificCause().getMessage();
+    String message = (cause != null && !cause.isBlank())
+        ? "JSON 파싱 오류: " + cause
+        : "잘못된 JSON 형식입니다. 필드값이 누락되었거나 오타가 있을 수 있습니다.";
+    return ResponseEntity.badRequest().body(ApiResponse.of(400, message));
   }
 
-  // 커스텀 예외 처리 메소드
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<ApiResponse<?>> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+    Map<String, String> errors = new LinkedHashMap<>();
+    ex.getBindingResult().getFieldErrors()
+        .forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+    return ResponseEntity.badRequest().body(ApiResponse.of(400, "입력값 유효성 검사 실패", errors));
+  }
+
+  @ExceptionHandler(NoSuchElementException.class)
+  public ResponseEntity<ApiResponse<?>> handleNoSuchElementException(NoSuchElementException ex) {
+    String msg = ex.getMessage() != null ? ex.getMessage() : "요청한 리소스를 찾을 수 없습니다.";
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.of(404, msg));
+  }
+
   @ExceptionHandler(CustomException.class)
-  public ResponseEntity<ErrorResponse> handleCustomException(CustomException ex, HttpServletRequest request) {
-    String path = ex.getPath() != null ? ex.getPath() : request.getRequestURI();
-
-    ErrorResponse error = new ErrorResponse(
-        LocalDateTime.now(),
-        ex.getStatus().value(),
-        ex.getStatus().getReasonPhrase(),
-        ex.getMessage(),
-        path // 요청 URI
-    );
-    return new ResponseEntity<>(error, ex.getStatus());
+  public ResponseEntity<ApiResponse<?>> handleCustomException(CustomException ex) {
+    return ResponseEntity.status(ex.getStatus())
+        .body(ApiResponse.of(ex.getStatus().value(), ex.getMessage()));
   }
 
-  // 전역 예외 처리 메소드
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<ErrorResponse> handleGeneralException(Exception e, HttpServletRequest request) {
-    ErrorResponse error = new ErrorResponse(
-        LocalDateTime.now(),
-        HttpStatus.INTERNAL_SERVER_ERROR.value(),
-        HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-        "서버 내부 오류가 발생했습니다.",
-        request.getRequestURI() // 요청 경로
-    );
-    return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
-  }
-
-
-  // HTTP 상태 코드 반환
-  public HttpStatus getHttpStatus(int result) {
-    return switch (result) {
-      case 200 -> HttpStatus.OK;
-      case 201 -> HttpStatus.CREATED;
-      case 204 -> HttpStatus.NO_CONTENT;
-      case 403 -> HttpStatus.FORBIDDEN;
-      case 404 -> HttpStatus.NOT_FOUND;
-      case 409 -> HttpStatus.CONFLICT;
-      case 410 -> HttpStatus.GONE;
-      case 412 -> HttpStatus.PRECONDITION_FAILED;
-      case 422 -> HttpStatus.UNPROCESSABLE_ENTITY;
-      case 500 -> HttpStatus.INTERNAL_SERVER_ERROR;
-      default -> HttpStatus.BAD_REQUEST;
-    };
-  }
-
-  // 응답 메시지 생성 (message에는 문자열 메시지만 담음)
-  public Map<String, Object> createResponse(int result, String msg) {
-    Map<String, Object> message = new HashMap<>();
-    message.put("status", (result == 200 || result == 201 || result == 204) ? "success" : "error");
-    message.put("code", result);
-    message.put("message", msg);
-    return message;
-  }
-
-  // 토큰에서 user_idx 조회 하는 로직
-  public int getUserIdxFromToken(String authHeader) {
-    String token = authHeader.replace("Bearer ", "");
-    String username = jwtUtil.getUsername(token);
-
-    return verifyMapper.getUserIdxByUserId(username);
-  }
-
-  // 토큰에서 user_name 조회 하는 로직
-  public String getUserNameFromToken(String authHeader) {
-    String token = authHeader.replace("Bearer ", "");
-
-    return jwtUtil.getUsername(token);
-  }
-
-  // 응답 메시지 + 데이터 생성 (data에 실제 JSON 데이터를 담음)
-  public Map<String, Object> createResponseWithData(int code, String message, Object data) {
-    Map<String, Object> response = new HashMap<>();
-    response.put("status", (code == 200 || code == 201 || code == 204) ? "success" : "error");
-    response.put("code", code);
-    response.put("message", message);
-    response.put("data", data);
-    return response;
-  }
-
-  public Boolean validToken(String authHeader) {
-    try {
-      String token = authHeader.replace("Bearer ", "");
-      jwtUtil.isExpired(token);
-
-      return false;
-    } catch (ExpiredJwtException e) {
-
-      // 토큰이 만료될 경우 true 리턴
-      return true;
-    }
+  public ResponseEntity<ApiResponse<?>> handleGeneralException(Exception e, HttpServletRequest request) {
+    log.error("Unhandled exception [{}]: {}", request.getRequestURI(), e.getMessage(), e);
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(ApiResponse.of(500, "서버 내부 오류가 발생했습니다."));
   }
 }

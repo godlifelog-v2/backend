@@ -2,14 +2,16 @@ package com.godLife.project.controller.v1;
 
 import com.godLife.project.dto.query.search.SearchLogDTO;
 import com.godLife.project.dto.response.search.SearchLogsResponseDTO;
-import com.godLife.project.handler.GlobalExceptionHandler;
+import com.godLife.project.dto.response.common.ApiResponse;
+import com.godLife.project.dto.security.CustomUserDetails;
 import com.godLife.project.service.interfaces.SearchService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,24 +23,21 @@ import java.util.UUID;
 @RequestMapping("/api/v1/search")
 public class SearchController {
 
-  @Autowired
-  private final GlobalExceptionHandler handler;
-
   private final SearchService searchService;
 
   @GetMapping("/log")
-  public ResponseEntity<Map<String, Object>> searchLog(HttpServletResponse response, HttpServletRequest request,
-                                                       @RequestHeader(value = "Authorization", required = false) String authHeader,
+  public ResponseEntity<?> searchLog(HttpServletResponse response, HttpServletRequest request,
+                                                       @AuthenticationPrincipal CustomUserDetails user,
                                                        @RequestParam(required = false) String keyword) {
     String uniqueId = UUID.randomUUID().toString();
     String key = "isNotLogin";
 
     // 로그인 여부 확인
-    if (authHeader == null) {
+    if (user == null) {
       return handleNotLoggedIn(response, request, key, uniqueId, keyword);
     }
 
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
     SearchLogDTO searchLogDTO = new SearchLogDTO();
     searchLogDTO.setUserIdx(userIdx);
 
@@ -46,8 +45,8 @@ public class SearchController {
   }
 
   @PatchMapping("/log/{logIdx}")
-  public ResponseEntity<Map<String, Object>> deleteSearchLog(HttpServletResponse response, HttpServletRequest request,
-                                                             @RequestHeader(value = "Authorization", required = false) String authHeader,
+  public ResponseEntity<?> deleteSearchLog(HttpServletResponse response, HttpServletRequest request,
+                                                             @AuthenticationPrincipal CustomUserDetails user,
                                                              @PathVariable int logIdx) {
     String key = "isNotLogin";
     SearchLogDTO searchLogDTO = new SearchLogDTO();
@@ -59,7 +58,7 @@ public class SearchController {
     searchLogDTO.setLogIdx(logIdx);
 
     // 로그인 여부 확인
-    if (authHeader == null) {
+    if (user == null) {
       Cookie[] cookies = request.getCookies();
 
       if (cookies != null) {
@@ -79,7 +78,7 @@ public class SearchController {
       return setResponseMessages(result);
     }
     // 헤더 있음
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
     searchLogDTO.setUserIdx(userIdx);
 
     int result = searchService.deleteSearchLog(searchLogDTO);
@@ -91,7 +90,7 @@ public class SearchController {
 
   /* -----------------------------------------// 함수 구현 //------------------------------------------------------- */
   // 비로그인 유저 처리 함수
-  private ResponseEntity<Map<String, Object>> handleNotLoggedIn(HttpServletResponse response, HttpServletRequest request, String key, String uniqueId, String keyword) {
+  private ResponseEntity<?> handleNotLoggedIn(HttpServletResponse response, HttpServletRequest request, String key, String uniqueId, String keyword) {
     Cookie[] cookies = request.getCookies();
     SearchLogDTO searchLogDTO = new SearchLogDTO();
 
@@ -122,7 +121,7 @@ public class SearchController {
     cookie.setSecure(true);
     cookie.setAttribute("SameSite", "None");
 
-    // 🔹 현재 요청이 HTTPS인지 확인하여 Secure 적용
+    // 현재 요청이 HTTPS인지 확인하여 Secure 적용
     boolean isSecure = request.isSecure() || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
     if (isSecure) {
       cookie.setSecure(true);
@@ -132,11 +131,11 @@ public class SearchController {
   }
 
   // 검색 기록 저장 함수
-  private ResponseEntity<Map<String, Object>> setKeyword(SearchLogDTO searchLogDTO, String id, String keyword) {
+  private ResponseEntity<?> setKeyword(SearchLogDTO searchLogDTO, String id, String keyword) {
     if (id.isEmpty() || keyword.isEmpty()) {
       int status = id.isEmpty() ? 500 : 204;
       String message = id.isEmpty() ? "고유 아이디를 생성하지 못했습니다." : "검색어가 없어 저장하지 못했습니다.";
-      return ResponseEntity.status(handler.getHttpStatus(status)).body(handler.createResponse(status, message));
+      return ResponseEntity.status(HttpStatus.valueOf(status)).body(ApiResponse.of(status, message));
     }
 
     if (!id.contains("-")) {
@@ -147,18 +146,18 @@ public class SearchController {
 
     searchLogDTO.setSearchKeyword(keyword);
     searchService.setSearchLog(searchLogDTO);
-    return ResponseEntity.status(handler.getHttpStatus(201)).build();
+    return ResponseEntity.status(HttpStatus.CREATED).build();
   }
 
   // 검색 기록 조회 함수
-  private ResponseEntity<Map<String, Object>> getKeywords(SearchLogDTO searchLogDTO) {
+  private ResponseEntity<?> getKeywords(SearchLogDTO searchLogDTO) {
     List<SearchLogsResponseDTO> searchLogs = searchService.getSearchLogs(searchLogDTO);
-    return searchLogs.isEmpty() ? ResponseEntity.status(handler.getHttpStatus(204)).build()
-        : ResponseEntity.ok().body(handler.createResponseWithData(200, "검색 기록 조회 성공", searchLogs));
+    return searchLogs.isEmpty() ? ResponseEntity.status(HttpStatus.NO_CONTENT).build()
+        : ResponseEntity.ok().body(ApiResponse.of(200, "검색 기록 조회 성공", searchLogs));
   }
 
   // 응답 메세지 설정 함수
-  private ResponseEntity<Map<String, Object>> setResponseMessages(int result) {
+  private ResponseEntity<?> setResponseMessages(int result) {
     // 응답 메세지 세팅
     String msg = "";
     switch (result) {
@@ -171,7 +170,7 @@ public class SearchController {
     }
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(result)).body(handler.createResponse(result, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(result)).body(ApiResponse.of(result, msg));
   }
   /* --------------------------------------------------------------------------------------------------------------- */
 }

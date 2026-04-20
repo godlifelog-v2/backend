@@ -1,6 +1,7 @@
 package com.godLife.project.service.impl.jwtImpl;
 
 import com.godLife.project.dto.model.user.UserDTO;
+import com.godLife.project.dto.response.common.ApiResponse;
 import com.godLife.project.jwt.JWTUtil;
 import com.godLife.project.service.interfaces.UserService;
 import com.godLife.project.service.interfaces.jwtInterface.RefreshService;
@@ -35,7 +36,7 @@ public class ReissueService {
       log.warn("재발급 토큰 없음");
       response.addCookie(createCookie("refresh", null, 0, request));
       return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body(createErrorResponse("Refresh token is missing", HttpStatus.BAD_REQUEST.value()));
+          .body(ApiResponse.of(400, "Refresh token is missing"));
     }
 
     // 2. refresh 토큰 만료 여부 확인
@@ -45,7 +46,7 @@ public class ReissueService {
       log.warn("재발급 토큰 만료");
       response.addCookie(createCookie("refresh", null, 0, request));
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(createErrorResponse("Refresh token is expired", HttpStatus.UNAUTHORIZED.value()));
+          .body(ApiResponse.of(401, "Refresh token is expired"));
     }
 
     // 3. refresh 토큰 카테고리 검증
@@ -53,7 +54,7 @@ public class ReissueService {
       log.warn("재발급 토큰 변조");
       response.addCookie(createCookie("refresh", null, 0, request));
       return ResponseEntity.status(HttpStatus.FORBIDDEN)
-          .body(createErrorResponse("Invalid refresh token", HttpStatus.FORBIDDEN.value()));
+          .body(ApiResponse.of(403, "Invalid refresh token"));
     }
 
     // 4. DB에 저장되어 있는지 확인
@@ -62,7 +63,7 @@ public class ReissueService {
       log.warn("재발급 토큰 DB에 없음");
       response.addCookie(createCookie("refresh", null, 0, request));
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(createErrorResponse("Refresh token not found in database", HttpStatus.UNAUTHORIZED.value()));
+          .body(ApiResponse.of(401, "Refresh token not found in database"));
     }
 
     String username = jwtUtil.getUsername(refresh);
@@ -75,7 +76,7 @@ public class ReissueService {
       response.addCookie(createCookie("refresh", null, 0, request));
       refreshService.deleteByRefresh(refresh);
       return ResponseEntity.status(HttpStatus.FORBIDDEN)
-          .body(createErrorResponse("정지된 계정으로 토큰을 재발급할 수 없습니다.", HttpStatus.FORBIDDEN.value()));
+          .body(ApiResponse.of(403, "정지된 계정으로 토큰을 재발급할 수 없습니다."));
     }
 
     // Long accessExp = TimeUnit.MINUTES.toMillis(10);     // 10분
@@ -83,9 +84,13 @@ public class ReissueService {
     // Long accessExp = TimeUnit.SECONDS.toMillis(10); // 10초
     Long refreshExp = TimeUnit.HOURS.toMillis(24);  // 24시간
 
+    // refresh 토큰 claim에서 userIdx 조회, 구형 토큰이면 DB에서 조회한 user 값으로 보완
+    Integer claimUserIdx = jwtUtil.getUserIdx(refresh);
+    int userIdx = (claimUserIdx != null && claimUserIdx > 0) ? claimUserIdx : user.getUserIdx();
+
     // 6. 새로운 토큰 생성
-    String newAccess = jwtUtil.createJwt("access", username, role, accessExp);
-    String newRefresh = jwtUtil.createJwt("refresh", username, role, refreshExp);
+    String newAccess = jwtUtil.createJwt("access", username, userIdx, role, accessExp);
+    String newRefresh = jwtUtil.createJwt("refresh", username, userIdx, role, refreshExp);
 
     // 기존 Refresh 토큰 삭제 후 새 Refresh 토큰 저장
     refreshService.deleteByRefresh(refresh);
@@ -95,10 +100,9 @@ public class ReissueService {
     response.setHeader("Authorization", "Bearer " + newAccess);
     response.addCookie(createCookie("refresh", newRefresh, 24*60*60, request));
 
-    return ResponseEntity.ok().body(createSuccessResponse("Token reissued successfully"));
+    return ResponseEntity.ok().body(ApiResponse.of(200, "Token reissued successfully"));
   }
 
-  // 쿠키에서 refresh 토큰 가져오는 메서드
   private String getRefreshTokenFromCookies(HttpServletRequest request) {
     Cookie[] cookies = request.getCookies();
     if (cookies == null) return null;
@@ -118,7 +122,6 @@ public class ReissueService {
     cookie.setPath("/");
     cookie.setHttpOnly(true);
 
-    // 현재 요청이 HTTPS인지 확인하여 Secure 적용
     boolean isSecure = request.isSecure() || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
     if (isSecure) {
       cookie.setSecure(true);
@@ -126,39 +129,5 @@ public class ReissueService {
     }
 
     return cookie;
-  }
-
-  private ErrorResponse createErrorResponse(String message, int status) {
-    return new ErrorResponse(status, message);
-  }
-
-  private SuccessResponse createSuccessResponse(String message) {
-    return new SuccessResponse(HttpStatus.OK.value(), message);
-  }
-
-  public static class ErrorResponse {
-    private final int status;
-    private final String message;
-
-    public ErrorResponse(int status, String message) {
-      this.status = status;
-      this.message = message;
-    }
-
-    public int getStatus() { return status; }
-    public String getMessage() { return message; }
-  }
-
-  public static class SuccessResponse {
-    private final int status;
-    private final String message;
-
-    public SuccessResponse(int status, String message) {
-      this.status = status;
-      this.message = message;
-    }
-
-    public int getStatus() { return status; }
-    public String getMessage() { return message; }
   }
 }

@@ -10,7 +10,6 @@ import com.godLife.project.dto.request.plan.v2.PlanCreateRequestV2;
 import com.godLife.project.dto.request.plan.v2.PlanImpItemDTO;
 import com.godLife.project.dto.request.plan.v2.PlanUpdateRequestV2;
 import com.godLife.project.dto.response.plan.v2.PlanExtraInfoDTO;
-import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.mapper.PlanMapper;
 import com.godLife.project.mapstruct.PlanDetailMapper;
 import com.godLife.project.mapper.v2.PlanMapperV2;
@@ -41,7 +40,6 @@ class PlanServiceV2CrudTest {
     @Mock private PlanMapperV2 planMapperV2;
     @Mock private PlanDetailMapper planDetailMapper;
     @Mock private CategoryService categoryService;
-    @Mock private GlobalExceptionHandler handler;
 
     @InjectMocks
     private PlanServiceV2Impl planServiceV2;

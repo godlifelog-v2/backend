@@ -1,8 +1,10 @@
 package com.godLife.project.controller.v1;
 
-import com.godLife.project.handler.GlobalExceptionHandler;
+import com.godLife.project.dto.model.user.UserDTO;
+import com.godLife.project.dto.security.CustomUserDetails;
 import com.godLife.project.service.interfaces.PlanService;
 import jakarta.servlet.http.Cookie;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -11,12 +13,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -25,9 +28,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 class PlanControllerTest {
-
-    @Mock
-    private GlobalExceptionHandler handler;
 
     @Mock
     private PlanService planService;
@@ -39,7 +39,14 @@ class PlanControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(planController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(planController)
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+                .build();
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     // ────────────────────────────────────────────────
@@ -49,16 +56,6 @@ class PlanControllerTest {
     @DisplayName("Bug 1: checkLike NPE 수정")
     class CheckLikeTest {
 
-        private final Map<String, Object> okResponse = new HashMap<>();
-
-        @BeforeEach
-        void commonSetup() {
-            okResponse.put("result", 200);
-            okResponse.put("data", false);
-            when(handler.getHttpStatus(200)).thenReturn(HttpStatus.OK);
-            when(handler.createResponse(eq(200), any())).thenReturn(okResponse);
-        }
-
         @Test
         @DisplayName("Authorization 헤더가 없을 때 NPE 없이 200 응답, userIdx=0으로 조회")
         void noAuthHeader_returns200WithDefaultUserIdx() throws Exception {
@@ -67,38 +64,35 @@ class PlanControllerTest {
             mockMvc.perform(get("/api/v1/plan/checkLike/1"))
                 .andExpect(status().isOk());
 
-            // validToken, getUserIdxFromToken은 호출되지 않아야 함
-            verify(handler, never()).validToken(any());
-            verify(handler, never()).getUserIdxFromToken(any());
             verify(planService).checkLike(1, 0);
         }
 
         @Test
-        @DisplayName("만료된 토큰이면 userIdx=0으로 조회")
-        void expiredToken_usesDefaultUserIdx() throws Exception {
-            String expiredToken = "Bearer expired.token.value";
-            when(handler.validToken(expiredToken)).thenReturn(true); // true = 만료됨
+        @DisplayName("비인증 상태(만료된 토큰 등)면 userIdx=0으로 조회")
+        void unauthenticated_usesDefaultUserIdx() throws Exception {
             when(planService.checkLike(1, 0)).thenReturn(false);
 
             mockMvc.perform(get("/api/v1/plan/checkLike/1")
-                    .header("Authorization", expiredToken))
+                    .header("Authorization", "Bearer expired.token.value"))
                 .andExpect(status().isOk());
 
-            verify(handler, never()).getUserIdxFromToken(any());
             verify(planService).checkLike(1, 0);
         }
 
         @Test
-        @DisplayName("유효한 토큰이면 실제 userIdx로 조회")
-        void validToken_usesRealUserIdx() throws Exception {
-            String validToken = "Bearer valid.token.value";
+        @DisplayName("인증된 유저이면 실제 userIdx로 조회")
+        void authenticatedUser_usesRealUserIdx() throws Exception {
             int expectedUserIdx = 42;
-            when(handler.validToken(validToken)).thenReturn(false); // false = 유효함
-            when(handler.getUserIdxFromToken(validToken)).thenReturn(expectedUserIdx);
+            UserDTO userDTO = new UserDTO();
+            userDTO.setUserIdx(expectedUserIdx);
+            CustomUserDetails principal = new CustomUserDetails(userDTO, expectedUserIdx);
+            SecurityContextHolder.getContext().setAuthentication(
+                    new UsernamePasswordAuthenticationToken(principal, null, Collections.emptyList())
+            );
+
             when(planService.checkLike(1, expectedUserIdx)).thenReturn(true);
 
-            mockMvc.perform(get("/api/v1/plan/checkLike/1")
-                    .header("Authorization", validToken))
+            mockMvc.perform(get("/api/v1/plan/checkLike/1"))
                 .andExpect(status().isOk());
 
             verify(planService).checkLike(1, expectedUserIdx);
@@ -115,10 +109,7 @@ class PlanControllerTest {
         @BeforeEach
         void commonSetup() {
             // planDTO=null → 404 분기로 이동
-            when(planService.detailRoutine(anyInt(), anyInt(), any())).thenReturn(null);
-            when(handler.getHttpStatus(404)).thenReturn(HttpStatus.NOT_FOUND);
-            when(handler.createResponse(eq(404), any())).thenReturn(new HashMap<>());
-            // increaseView는 void이므로 기본 동작(아무것도 안 함)으로 충분
+            when(planService.detailRoutine(anyInt(), anyInt(), anyInt())).thenReturn(null);
         }
 
         @Test

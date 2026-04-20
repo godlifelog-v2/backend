@@ -1,14 +1,15 @@
 package com.godLife.project.controller.v1;
 
 import com.godLife.project.dto.model.content.NoticeDTO;
-import com.godLife.project.handler.GlobalExceptionHandler;
+import com.godLife.project.dto.response.common.ApiResponse;
+import com.godLife.project.dto.security.CustomUserDetails;
 import com.godLife.project.service.interfaces.NoticeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,19 +24,16 @@ import java.util.NoSuchElementException;
 @RequestMapping("/api/v1/notice")
 @RequiredArgsConstructor
 public class NoticeController {
-  @Autowired
-  private final GlobalExceptionHandler handler;
-
   private final NoticeService noticeService;
 
 
   // 공지 목록 조회
   @GetMapping
-  public ResponseEntity<Map<String, Object>> getNoticeList(@RequestParam(defaultValue = "1") int page,
+  public ResponseEntity<?> getNoticeList(@RequestParam(defaultValue = "1") int page,
                                                            @RequestParam(defaultValue = "10") int size) {
     try {
       List<NoticeDTO> notices = noticeService.getNoticeList(page, size);
-      int totalNotices = noticeService.totalNoticeCount(); // 전체 개수 구해서 페이지 계산
+      int totalNotices = noticeService.totalNoticeCount();
       int totalPages = (int) Math.ceil((double) totalNotices / size);
 
       Map<String, Object> response = new HashMap<>();
@@ -56,7 +54,7 @@ public class NoticeController {
 
   // 공지 상세 조회
   @GetMapping("/{noticeIdx}")
-  public ResponseEntity<Map<String, Object>> getNoticeDetail(@PathVariable int noticeIdx) {
+  public ResponseEntity<?> getNoticeDetail(@PathVariable int noticeIdx) {
     try {
       NoticeDTO notice = noticeService.getNoticeDetail(noticeIdx);
 
@@ -65,34 +63,34 @@ public class NoticeController {
       }
 
 
-      return ResponseEntity.ok().body(handler.createResponseWithData(200, "공지 조회 성공", notice));
+      return ResponseEntity.ok().body(ApiResponse.of(200, "공지 조회 성공", notice));
 
     } catch (NoSuchElementException e) {
       String msg = "공지 조회 실패, 조회하려는 공지가 존재하지 않습니다.";
       log.warn("공지 조회 실패 - noticeIdx: {}, error: {}", noticeIdx, e.getMessage());
-      return ResponseEntity.status(handler.getHttpStatus(404)).body(handler.createResponse(404, msg));
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.of(404, msg));
 
     } catch (Exception e) {
       String msg = "서버 내부 오류로 인해 공지 조회에 실패했습니다.";
       log.error("공지 조회 중 서버 오류 - noticeIdx: {}", noticeIdx, e);
-      return ResponseEntity.status(handler.getHttpStatus(500)).body(handler.createResponse(500, msg));
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.of(500, msg));
     }
   }
 
   @GetMapping("/popup")
-  public ResponseEntity<Map<String, Object>> getPopupNotice() {
+  public ResponseEntity<?> getPopupNotice() {
     List<NoticeDTO> popupNotice = noticeService.getActivePopupNoticeList();
 
     if (popupNotice != null) {
-      return ResponseEntity.ok(handler.createResponseWithData(200, "팝업 공지사항 조회 성공", Map.of("notice", popupNotice)));
+      return ResponseEntity.ok(ApiResponse.of(200, "팝업 공지사항 조회 성공", Map.of("notice", popupNotice)));
     } else {
       return ResponseEntity.status(HttpStatus.NO_CONTENT)
-              .body(handler.createResponse(204, "현재 표시할 팝업 공지사항이 없습니다."));
+              .body(ApiResponse.of(204, "현재 표시할 팝업 공지사항이 없습니다."));
     }
   }
 
   @PatchMapping("/admin/popup")
-  public ResponseEntity<Map<String, Object>> setNoticePopup(@RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> setNoticePopup(@AuthenticationPrincipal CustomUserDetails user,
                                                             @RequestBody NoticeDTO noticeDTO) {
     try {
 
@@ -105,28 +103,30 @@ public class NoticeController {
         default -> "알 수 없는 오류가 발생했습니다.";
       };
 
-      return ResponseEntity.status(handler.getHttpStatus(result))
-              .body(handler.createResponse(result, msg));
+      return ResponseEntity.status(HttpStatus.valueOf(result))
+              .body(ApiResponse.of(result, msg));
 
     } catch (Exception e) {
       log.error("팝업 설정 중 예외 발생: {}", e.getMessage(), e);
       return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-              .body(handler.createResponse(400, "요청 데이터가 잘못되었거나 서버 처리 중 오류가 발생했습니다."));
+              .body(ApiResponse.of(400, "요청 데이터가 잘못되었거나 서버 처리 중 오류가 발생했습니다."));
     }
   }
 
 
   // 공지 작성 API
   @PostMapping("/admin/create")
-  public ResponseEntity<Map<String, Object>> createNotice(@RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> createNotice(@AuthenticationPrincipal CustomUserDetails user,
                                                           @RequestBody NoticeDTO noticeDTO,
                                                           BindingResult result) {
     if (result.hasErrors()) {
       log.error("Validation Error: {}", result.getAllErrors());
-      return ResponseEntity.badRequest().body(handler.getValidationErrors(result));
+      Map<String, String> errors = new java.util.LinkedHashMap<>();
+      result.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+      return ResponseEntity.badRequest().body((Map) errors);
     }
 
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
     noticeDTO.setUserIdx(userIdx);
     noticeDTO.setNoticeDate(LocalDateTime.now());
 
@@ -142,22 +142,24 @@ public class NoticeController {
       default -> "알 수 없는 오류입니다.";
     };
 
-    return ResponseEntity.status(handler.getHttpStatus(statusCode))
-            .body(handler.createResponse(statusCode, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(statusCode))
+            .body(ApiResponse.of(statusCode, msg));
   }
 
 
   // 공지 수정 API
   @PatchMapping("/admin/{noticeIdx}")
-  public ResponseEntity<Map<String, Object>> modifyNotice(@PathVariable int noticeIdx,
-                                                          @RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> modifyNotice(@PathVariable int noticeIdx,
+                                                          @AuthenticationPrincipal CustomUserDetails user,
                                                           @Valid @RequestBody NoticeDTO noticeDTO, BindingResult result) {
     // 유효성 검사 실패 시 에러 반환
     if (result.hasErrors()) {
-      return ResponseEntity.badRequest().body(handler.getValidationErrors(result));
+      Map<String, String> errors = new java.util.LinkedHashMap<>();
+      result.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+      return ResponseEntity.badRequest().body((Map) errors);
     }
 
-    noticeDTO.setNoticeIdx(noticeIdx);  // 수정할 공지의 IDX 설정
+    noticeDTO.setNoticeIdx(noticeIdx);
 
     // 공지 수정
     int modifyResult = noticeService.modifyNotice(noticeDTO);
@@ -173,13 +175,13 @@ public class NoticeController {
     }
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(modifyResult))
-            .body(handler.createResponse(modifyResult, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(modifyResult))
+            .body(ApiResponse.of(modifyResult, msg));
   }
 
   // 공지 삭제 API
   @DeleteMapping("/admin/{noticeIdx}")
-  public ResponseEntity<Map<String, Object>> deleteNotice(@PathVariable int noticeIdx) {
+  public ResponseEntity<?> deleteNotice(@PathVariable int noticeIdx) {
     // 공지 삭제 처리
     int deleteResult = noticeService.deleteNotice(noticeIdx);
 
@@ -193,8 +195,8 @@ public class NoticeController {
     }
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(deleteResult))
-            .body(handler.createResponse(deleteResult, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(deleteResult))
+            .body(ApiResponse.of(deleteResult, msg));
   }
 
 }

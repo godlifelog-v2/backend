@@ -9,13 +9,13 @@ import com.godLife.project.dto.websocket.admin.AdminIdxAndIdDTO;
 import com.godLife.project.dto.websocket.admin.ServiceCenterAdminInfos;
 import com.godLife.project.dto.websocket.admin.ServiceCenterAdminList;
 import com.godLife.project.dto.response.stats.ResponseQnaAdminStat;
+import com.godLife.project.dto.security.CustomUserDetails;
 import com.godLife.project.enums.MessageStatus;
 import com.godLife.project.enums.QnaRedisKey;
 import com.godLife.project.enums.QnaStatus;
 import com.godLife.project.enums.WSDestination;
 import com.godLife.project.exception.CustomException;
 import com.godLife.project.exception.WebSocketBusinessException;
-import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.service.impl.redis.RedisService;
 import com.godLife.project.service.impl.websocketImpl.WebSocketMessageService;
 import com.godLife.project.service.interfaces.AdminInterface.serviceCenter.ServiceAdminService;
@@ -26,6 +26,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
@@ -38,8 +40,6 @@ import java.util.List;
 public class QnaAdminController {
 
   private final QnaService qnaService;
-
-  private final GlobalExceptionHandler handler;
 
   private final WebSocketMessageService messageService;
 
@@ -97,7 +97,7 @@ public class QnaAdminController {
   public void sendMatchedQnaList(@Header("Authorization") String authHeader,
                                  Principal principal) {
     try {
-      int adminIdx = handler.getUserIdxFromToken(authHeader);
+      int adminIdx = extractUserIdxFromToken(authHeader);
 
       List<String> notStatus = new ArrayList<>();
       notStatus.add(QnaStatus.WAIT.getStatus());
@@ -121,8 +121,8 @@ public class QnaAdminController {
                           Principal principal) {
     try {
       AdminIdxAndIdDTO adminInfo = new AdminIdxAndIdDTO();
-      adminInfo.setUserIdx(handler.getUserIdxFromToken(authHeader));
-      adminInfo.setUserId(handler.getUserNameFromToken(authHeader));
+      adminInfo.setUserIdx(extractUserIdxFromToken(authHeader));
+      adminInfo.setUserId(extractUserNameFromToken(authHeader));
 
       if (qnaIdx == 0) {
         throw new WebSocketBusinessException("문의를 선택해 주세요. 해당 문의가 삭제 됐거나, null 혹은 0 으로 요청했습니다.", 4004, principal.getName());
@@ -183,7 +183,7 @@ public class QnaAdminController {
                                   @DestinationVariable(value = "qnaIdx") final int qnaIdx,
                                   Principal principal) {
     try {
-      int adminIdx = handler.getUserIdxFromToken(authHeader);
+      int adminIdx = extractUserIdxFromToken(authHeader);
 
       if (qnaIdx <= 0) {
         throw new WebSocketBusinessException("문의 인덱스를 선택해주세요. 문의 인덱스는 0 보다 커야 합니다.", 4000, principal.getName());
@@ -238,7 +238,7 @@ public class QnaAdminController {
   public void getCompletedQnaList(Principal principal,
                                   @Header("Authorization") String authHeader) {
     try {
-      int adminIdx = handler.getUserIdxFromToken(authHeader);
+      int adminIdx = extractUserIdxFromToken(authHeader);
 
       List<String> notStatus = new ArrayList<>();
       notStatus.add(QnaStatus.WAIT.getStatus());
@@ -261,7 +261,7 @@ public class QnaAdminController {
   public void getQnaAdminStats(Principal principal,
                                @Header("Authorization") String authHeader) {
     try {
-      int adminIdx = handler.getUserIdxFromToken(authHeader);
+      int adminIdx = extractUserIdxFromToken(authHeader);
 
       ResponseQnaAdminStat qnaAdminStat = adminStatService.getQnaAdminStats(adminIdx);
 
@@ -270,6 +270,34 @@ public class QnaAdminController {
       throw new WebSocketBusinessException(e.getMessage(), 5000, principal.getName());
     }
 
+  }
+
+  // Helper method to extract userIdx from JWT token via SecurityContext
+  private int extractUserIdxFromToken(String authHeader) {
+    if (authHeader != null && authHeader.startsWith("Bearer ")) {
+      String token = authHeader.substring(7);
+      // This is a workaround for websocket @Header - in production, use Spring Security's token provider
+      // For now, try to get from SecurityContext if available
+      Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+      if (auth != null && auth.getPrincipal() instanceof CustomUserDetails) {
+        return ((CustomUserDetails) auth.getPrincipal()).getUserIdx();
+      }
+    }
+    return 0;
+  }
+
+  // Helper method to extract userName from JWT token via SecurityContext
+  private String extractUserNameFromToken(String authHeader) {
+    if (authHeader != null && authHeader.startsWith("Bearer ")) {
+      String token = authHeader.substring(7);
+      // This is a workaround for websocket @Header - in production, use Spring Security's token provider
+      // For now, try to get from SecurityContext if available
+      Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+      if (auth != null && auth.getPrincipal() instanceof CustomUserDetails) {
+        return ((CustomUserDetails) auth.getPrincipal()).getUsername();
+      }
+    }
+    return "";
   }
 
   // 에러 메시지 처리

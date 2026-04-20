@@ -73,7 +73,7 @@ class LoginFilterBanTest {
 
             assertThat(response.getStatus()).isEqualTo(403);
             assertThat(response.getContentAsString()).contains("정지된 계정입니다.");
-            verify(jwtUtil, never()).createJwt(any(), any(), any(), anyLong());
+            verify(jwtUtil, never()).createJwt(any(), any(), anyInt(), any(), anyLong());
             verify(refreshService, never()).addRefreshToken(any(), any(), anyLong());
         }
     }
@@ -86,8 +86,8 @@ class LoginFilterBanTest {
         @DisplayName("isBanned=0 일반 유저 로그인 시 200 + access 토큰 발급")
         void normalUser_returns200_withToken() throws IOException {
             when(userService.findByUserId("user1")).thenReturn(buildUser(0, 1));
-            when(jwtUtil.createJwt(eq("access"), any(), any(), anyLong())).thenReturn("access-token");
-            when(jwtUtil.createJwt(eq("refresh"), any(), any(), anyLong())).thenReturn("refresh-token");
+            when(jwtUtil.createJwt(eq("access"), any(), anyInt(), any(), anyLong())).thenReturn("access-token");
+            when(jwtUtil.createJwt(eq("refresh"), any(), anyInt(), any(), anyLong())).thenReturn("refresh-token");
 
             MockHttpServletRequest request = new MockHttpServletRequest();
             MockHttpServletResponse response = new MockHttpServletResponse();
@@ -103,7 +103,7 @@ class LoginFilterBanTest {
         @DisplayName("일반 유저(authorityIdx=1) 로그인 시 roleStatus=false")
         void normalUser_roleStatusFalse() throws IOException {
             when(userService.findByUserId("user1")).thenReturn(buildUser(0, 1));
-            when(jwtUtil.createJwt(any(), any(), any(), anyLong())).thenReturn("token");
+            when(jwtUtil.createJwt(any(), any(), anyInt(), any(), anyLong())).thenReturn("token");
 
             MockHttpServletRequest request = new MockHttpServletRequest();
             MockHttpServletResponse response = new MockHttpServletResponse();
@@ -117,7 +117,7 @@ class LoginFilterBanTest {
         @DisplayName("관리자 유저(authorityIdx=2) 로그인 시 roleStatus=true")
         void adminUser_roleStatusTrue() throws IOException {
             when(userService.findByUserId("admin1")).thenReturn(buildUser(0, 2));
-            when(jwtUtil.createJwt(any(), any(), any(), anyLong())).thenReturn("token");
+            when(jwtUtil.createJwt(any(), any(), anyInt(), any(), anyLong())).thenReturn("token");
 
             MockHttpServletRequest request = new MockHttpServletRequest();
             MockHttpServletResponse response = new MockHttpServletResponse();

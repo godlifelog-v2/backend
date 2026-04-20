@@ -145,7 +145,7 @@
 
 **응답**
 ```json
-{ "code": 200, "status": "success", "message": "이미지 업로드 성공", "data": { "url": "https://.../uploaded.png" } }
+{ "code": 200, "status": 200, "message": "이미지 업로드 성공", "data": { "url": "https://.../uploaded.png" } }
 ```
 
 | 엔드포인트 | 응답 본문 | 상태 |

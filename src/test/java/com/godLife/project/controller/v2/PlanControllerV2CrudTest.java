@@ -2,6 +2,7 @@ package com.godLife.project.controller.v2;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.godLife.project.dto.model.user.UserDTO;
 import com.godLife.project.dto.request.plan.v2.ActivityCreateRequestV2;
 import com.godLife.project.dto.request.plan.v2.ActivityImpItemDTO;
 import com.godLife.project.dto.request.plan.v2.ActivityItemV2;
@@ -12,9 +13,10 @@ import com.godLife.project.dto.request.plan.v2.PlanCreateRequestV2;
 import com.godLife.project.dto.request.plan.v2.PlanImpItemDTO;
 import com.godLife.project.dto.request.plan.v2.PlanUpdateRequestV2;
 import com.godLife.project.dto.response.plan.v2.PlanExtraInfoDTO;
-import com.godLife.project.handler.GlobalExceptionHandler;
+import com.godLife.project.dto.security.CustomUserDetails;
 import com.godLife.project.service.interfaces.PlanService;
 import com.godLife.project.service.interfaces.v2.PlanServiceV2;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -25,14 +27,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -44,7 +47,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("PlanControllerV2 CRUD 테스트")
 class PlanControllerV2CrudTest {
 
-    @Mock private GlobalExceptionHandler handler;
     @Mock private PlanServiceV2 planServiceV2;
     @Mock private PlanService planService;
 
@@ -54,33 +56,28 @@ class PlanControllerV2CrudTest {
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
 
-    private final String authHeader = "Bearer test-token";
     private final int userIdx = 1;
     private final int planIdx = 10;
     private final int activityIdx = 5;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(planControllerV2).build();
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUserIdx(userIdx);
+        CustomUserDetails principal = new CustomUserDetails(userDTO, userIdx);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(principal, null, Collections.emptyList())
+        );
+
+        mockMvc = MockMvcBuilders.standaloneSetup(planControllerV2)
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+                .build();
         objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-        when(handler.getUserIdxFromToken(authHeader)).thenReturn(userIdx);
-        when(handler.getHttpStatus(200)).thenReturn(HttpStatus.OK);
-        when(handler.getHttpStatus(201)).thenReturn(HttpStatus.CREATED);
-        when(handler.getHttpStatus(400)).thenReturn(HttpStatus.BAD_REQUEST);
-        when(handler.getHttpStatus(403)).thenReturn(HttpStatus.FORBIDDEN);
-        when(handler.getHttpStatus(404)).thenReturn(HttpStatus.NOT_FOUND);
-        when(handler.getHttpStatus(409)).thenReturn(HttpStatus.CONFLICT);
-        when(handler.getHttpStatus(410)).thenReturn(HttpStatus.GONE);
-        when(handler.getHttpStatus(412)).thenReturn(HttpStatus.PRECONDITION_FAILED);
-        when(handler.getHttpStatus(500)).thenReturn(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
-        Map<String, Object> defaultResponse = new HashMap<>();
-        defaultResponse.put("status", "success");
-        when(handler.createResponse(anyInt(), any())).thenReturn(defaultResponse);
-
-        Map<String, Object> validationErrors = new HashMap<>();
-        validationErrors.put("errors", "validation error");
-        when(handler.getValidationErrors(any())).thenReturn(validationErrors);
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     // ===========================================
@@ -109,7 +106,6 @@ class PlanControllerV2CrudTest {
             when(planServiceV2.createPlan(any(), eq(userIdx))).thenReturn(201);
 
             mockMvc.perform(post("/api/v2/plan/auth")
-                    .header("Authorization", authHeader)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validDto())))
                 .andExpect(status().isCreated());
@@ -121,7 +117,6 @@ class PlanControllerV2CrudTest {
             when(planServiceV2.createPlan(any(), eq(userIdx))).thenReturn(412);
 
             mockMvc.perform(post("/api/v2/plan/auth")
-                    .header("Authorization", authHeader)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validDto())))
                 .andExpect(status().isPreconditionFailed());
@@ -133,7 +128,6 @@ class PlanControllerV2CrudTest {
             when(planServiceV2.createPlan(any(), eq(userIdx))).thenReturn(410);
 
             mockMvc.perform(post("/api/v2/plan/auth")
-                    .header("Authorization", authHeader)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validDto())))
                 .andExpect(status().isGone());
@@ -157,7 +151,6 @@ class PlanControllerV2CrudTest {
             dto.setPlanTitle("수정된 제목");
 
             mockMvc.perform(patch("/api/v2/plan/auth/" + planIdx)
-                    .header("Authorization", authHeader)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk());
@@ -169,7 +162,6 @@ class PlanControllerV2CrudTest {
             when(planServiceV2.updatePlan(eq(planIdx), any(), eq(userIdx))).thenReturn(404);
 
             mockMvc.perform(patch("/api/v2/plan/auth/" + planIdx)
-                    .header("Authorization", authHeader)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{}"))
                 .andExpect(status().isNotFound());
@@ -181,7 +173,6 @@ class PlanControllerV2CrudTest {
             when(planServiceV2.updatePlan(eq(planIdx), any(), eq(userIdx))).thenReturn(403);
 
             mockMvc.perform(patch("/api/v2/plan/auth/" + planIdx)
-                    .header("Authorization", authHeader)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{}"))
                 .andExpect(status().isForbidden());
@@ -201,8 +192,7 @@ class PlanControllerV2CrudTest {
         void deletePlan_success_returns200() throws Exception {
             when(planServiceV2.deletePlan(planIdx, userIdx)).thenReturn(200);
 
-            mockMvc.perform(delete("/api/v2/plan/auth/" + planIdx)
-                    .header("Authorization", authHeader))
+            mockMvc.perform(delete("/api/v2/plan/auth/" + planIdx))
                 .andExpect(status().isOk());
         }
 
@@ -211,8 +201,7 @@ class PlanControllerV2CrudTest {
         void deletePlan_notFound_returns404() throws Exception {
             when(planServiceV2.deletePlan(planIdx, userIdx)).thenReturn(404);
 
-            mockMvc.perform(delete("/api/v2/plan/auth/" + planIdx)
-                    .header("Authorization", authHeader))
+            mockMvc.perform(delete("/api/v2/plan/auth/" + planIdx))
                 .andExpect(status().isNotFound());
         }
 
@@ -221,8 +210,7 @@ class PlanControllerV2CrudTest {
         void deletePlan_forbidden_returns403() throws Exception {
             when(planServiceV2.deletePlan(planIdx, userIdx)).thenReturn(403);
 
-            mockMvc.perform(delete("/api/v2/plan/auth/" + planIdx)
-                    .header("Authorization", authHeader))
+            mockMvc.perform(delete("/api/v2/plan/auth/" + planIdx))
                 .andExpect(status().isForbidden());
         }
     }
@@ -251,7 +239,6 @@ class PlanControllerV2CrudTest {
             when(planServiceV2.createActivities(eq(planIdx), any(), eq(userIdx))).thenReturn(201);
 
             mockMvc.perform(post("/api/v2/plan/auth/" + planIdx + "/activities")
-                    .header("Authorization", authHeader)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validDto())))
                 .andExpect(status().isCreated());
@@ -263,7 +250,6 @@ class PlanControllerV2CrudTest {
             when(planServiceV2.createActivities(eq(planIdx), any(), eq(userIdx))).thenReturn(404);
 
             mockMvc.perform(post("/api/v2/plan/auth/" + planIdx + "/activities")
-                    .header("Authorization", authHeader)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validDto())))
                 .andExpect(status().isNotFound());
@@ -275,7 +261,6 @@ class PlanControllerV2CrudTest {
             when(planServiceV2.createActivities(eq(planIdx), any(), eq(userIdx))).thenReturn(403);
 
             mockMvc.perform(post("/api/v2/plan/auth/" + planIdx + "/activities")
-                    .header("Authorization", authHeader)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validDto())))
                 .andExpect(status().isForbidden());
@@ -299,7 +284,6 @@ class PlanControllerV2CrudTest {
             dto.setActivityName("수정된 활동명");
 
             mockMvc.perform(patch("/api/v2/plan/auth/" + planIdx + "/activities/" + activityIdx)
-                    .header("Authorization", authHeader)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk());
@@ -311,7 +295,6 @@ class PlanControllerV2CrudTest {
             when(planServiceV2.updateActivity(eq(planIdx), eq(activityIdx), any(), eq(userIdx))).thenReturn(404);
 
             mockMvc.perform(patch("/api/v2/plan/auth/" + planIdx + "/activities/" + activityIdx)
-                    .header("Authorization", authHeader)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{}"))
                 .andExpect(status().isNotFound());
@@ -334,12 +317,7 @@ class PlanControllerV2CrudTest {
             dto.setViewCount(10);
             when(planServiceV2.getPlanExtraInfo(planIdx, userIdx)).thenReturn(dto);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("data", dto);
-            when(handler.createResponseWithData(eq(200), any(), any())).thenReturn(response);
-
-            mockMvc.perform(get("/api/v2/plan/auth/" + planIdx + "/extra")
-                    .header("Authorization", authHeader))
+            mockMvc.perform(get("/api/v2/plan/auth/" + planIdx + "/extra"))
                 .andExpect(status().isOk());
         }
 
@@ -348,8 +326,7 @@ class PlanControllerV2CrudTest {
         void getPlanExtraInfo_notFound_returns404() throws Exception {
             when(planServiceV2.getPlanExtraInfo(planIdx, userIdx)).thenReturn(null);
 
-            mockMvc.perform(get("/api/v2/plan/auth/" + planIdx + "/extra")
-                    .header("Authorization", authHeader))
+            mockMvc.perform(get("/api/v2/plan/auth/" + planIdx + "/extra"))
                 .andExpect(status().isNotFound());
         }
     }
@@ -377,7 +354,6 @@ class PlanControllerV2CrudTest {
             when(planServiceV2.updatePlansImpBulk(any(), eq(userIdx))).thenReturn(200);
 
             mockMvc.perform(patch("/api/v2/plan/auth/bulk-imp")
-                    .header("Authorization", authHeader)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validDto())))
                 .andExpect(status().isOk());
@@ -389,7 +365,6 @@ class PlanControllerV2CrudTest {
             when(planServiceV2.updatePlansImpBulk(any(), eq(userIdx))).thenReturn(403);
 
             mockMvc.perform(patch("/api/v2/plan/auth/bulk-imp")
-                    .header("Authorization", authHeader)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validDto())))
                 .andExpect(status().isForbidden());
@@ -401,7 +376,6 @@ class PlanControllerV2CrudTest {
             when(planServiceV2.updatePlansImpBulk(any(), eq(userIdx))).thenReturn(410);
 
             mockMvc.perform(patch("/api/v2/plan/auth/bulk-imp")
-                    .header("Authorization", authHeader)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validDto())))
                 .andExpect(status().isGone());
@@ -431,7 +405,6 @@ class PlanControllerV2CrudTest {
             when(planServiceV2.updateActivitiesImpBulk(eq(planIdx), any(), eq(userIdx))).thenReturn(200);
 
             mockMvc.perform(patch("/api/v2/plan/auth/" + planIdx + "/activities/bulk-imp")
-                    .header("Authorization", authHeader)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validDto())))
                 .andExpect(status().isOk());
@@ -443,7 +416,6 @@ class PlanControllerV2CrudTest {
             when(planServiceV2.updateActivitiesImpBulk(eq(planIdx), any(), eq(userIdx))).thenReturn(404);
 
             mockMvc.perform(patch("/api/v2/plan/auth/" + planIdx + "/activities/bulk-imp")
-                    .header("Authorization", authHeader)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validDto())))
                 .andExpect(status().isNotFound());
@@ -455,7 +427,6 @@ class PlanControllerV2CrudTest {
             when(planServiceV2.updateActivitiesImpBulk(eq(planIdx), any(), eq(userIdx))).thenReturn(403);
 
             mockMvc.perform(patch("/api/v2/plan/auth/" + planIdx + "/activities/bulk-imp")
-                    .header("Authorization", authHeader)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validDto())))
                 .andExpect(status().isForbidden());
@@ -467,7 +438,6 @@ class PlanControllerV2CrudTest {
             when(planServiceV2.updateActivitiesImpBulk(eq(planIdx), any(), eq(userIdx))).thenReturn(410);
 
             mockMvc.perform(patch("/api/v2/plan/auth/" + planIdx + "/activities/bulk-imp")
-                    .header("Authorization", authHeader)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(validDto())))
                 .andExpect(status().isGone());
@@ -487,8 +457,7 @@ class PlanControllerV2CrudTest {
         void deleteActivity_success_returns200() throws Exception {
             when(planServiceV2.deleteActivity(planIdx, activityIdx, userIdx)).thenReturn(200);
 
-            mockMvc.perform(delete("/api/v2/plan/auth/" + planIdx + "/activities/" + activityIdx)
-                    .header("Authorization", authHeader))
+            mockMvc.perform(delete("/api/v2/plan/auth/" + planIdx + "/activities/" + activityIdx))
                 .andExpect(status().isOk());
         }
 
@@ -497,8 +466,7 @@ class PlanControllerV2CrudTest {
         void deleteActivity_notFound_returns404() throws Exception {
             when(planServiceV2.deleteActivity(planIdx, activityIdx, userIdx)).thenReturn(404);
 
-            mockMvc.perform(delete("/api/v2/plan/auth/" + planIdx + "/activities/" + activityIdx)
-                    .header("Authorization", authHeader))
+            mockMvc.perform(delete("/api/v2/plan/auth/" + planIdx + "/activities/" + activityIdx))
                 .andExpect(status().isNotFound());
         }
 
@@ -507,8 +475,7 @@ class PlanControllerV2CrudTest {
         void deleteActivity_forbidden_returns403() throws Exception {
             when(planServiceV2.deleteActivity(planIdx, activityIdx, userIdx)).thenReturn(403);
 
-            mockMvc.perform(delete("/api/v2/plan/auth/" + planIdx + "/activities/" + activityIdx)
-                    .header("Authorization", authHeader))
+            mockMvc.perform(delete("/api/v2/plan/auth/" + planIdx + "/activities/" + activityIdx))
                 .andExpect(status().isForbidden());
         }
     }

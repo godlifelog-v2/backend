@@ -1,5 +1,7 @@
 package com.godLife.project.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.godLife.project.dto.response.common.ApiResponse;
 import com.godLife.project.service.interfaces.jwtInterface.RefreshService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -20,6 +22,8 @@ import java.util.Enumeration;
 @Slf4j
 @RequiredArgsConstructor
 public class CustomLogoutFilter extends GenericFilterBean {
+
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
   private final JWTUtil jwtUtil;
   private final RefreshService refreshService;
@@ -52,7 +56,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
     //refresh null check
     if (refresh == null) {
 
-      sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Refresh 토큰이 쿠키에 없습니다.");
+      sendApiResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Refresh 토큰이 쿠키에 없습니다.");
       log.warn("logoutFilter - NoRefresh :: 쿠키에 Refresh 토큰이 없습니다.");
       return;
     }
@@ -62,8 +66,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
       jwtUtil.isExpired(refresh);
     } catch (ExpiredJwtException e) {
 
-      //response status code
-      sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Refresh 토큰이 만료되었습니다.");
+      sendApiResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Refresh 토큰이 만료되었습니다.");
       log.warn("logoutFilter - isExpired :: Refresh 토큰이 이미 만료 되었습니다.");
       return;
     }
@@ -72,8 +75,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
     String category = jwtUtil.getCategory(refresh);
     if (!category.equals("refresh")) {
 
-      //response status code
-      sendErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "유효하지 않은 Refresh 토큰입니다.");
+      sendApiResponse(response, HttpServletResponse.SC_BAD_REQUEST, "유효하지 않은 Refresh 토큰입니다.");
       log.warn("logoutFilter - isValid :: Refresh 토큰이 유효하지 않습니다.");
       return;
     }
@@ -82,8 +84,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
     Boolean isExist = refreshService.existsByRefresh(refresh);
     if (!isExist) {
 
-      //response status code
-      sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "해당 Refresh 토큰이 DB에 존재하지 않습니다.");
+      sendApiResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "해당 Refresh 토큰이 DB에 존재하지 않습니다.");
       log.warn("logoutFilter - NoDatabase :: DB에 Refresh 토큰이 없습니다.");
       return;
     }
@@ -96,7 +97,6 @@ public class CustomLogoutFilter extends GenericFilterBean {
     cookie.setPath("/");
     cookie.setHttpOnly(true);
 
-    // 🔹 현재 요청이 HTTPS인지 확인하여 Secure 적용
     boolean isSecure = request.isSecure() || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
     if (isSecure) {
       cookie.setSecure(true);
@@ -108,27 +108,24 @@ public class CustomLogoutFilter extends GenericFilterBean {
     String userId = jwtUtil.getUsername(refresh);
     refreshService.deleteAdminStatusByRedis(userId);
 
-    // 성공 응답
     log.info("logoutFilter - doFilter :: refresh 토큰 삭제,, 로그아웃완료");
 
     response.setStatus(HttpServletResponse.SC_OK);
-    response.setContentType("application/json");
+    response.setContentType("application/json;charset=UTF-8");
     response.setCharacterEncoding("UTF-8");
     PrintWriter writer = response.getWriter();
-    writer.write("{\"message\": \"로그아웃이 완료되었습니다.\"}");
+    writer.write(objectMapper.writeValueAsString(ApiResponse.of(200, "로그아웃이 완료되었습니다.")));
     writer.flush();
   }
 
   private String getRefreshTokenFromCookies(HttpServletRequest request) {
-    //printRequestDetails(request);
     Cookie[] cookies = request.getCookies();
-    if (cookies == null)  {
+    if (cookies == null) {
       log.warn("logoutFilter - NoDatabase :: 쿠키 없음");
       return null;
     }
 
     for (Cookie cookie : cookies) {
-      //System.out.println(cookie.getName());
       if ("refresh".equals(cookie.getName())) {
         return cookie.getValue();
       }
@@ -136,44 +133,12 @@ public class CustomLogoutFilter extends GenericFilterBean {
     return null;
   }
 
-  private void printRequestDetails(HttpServletRequest request) {
-    log.debug("=== HTTP REQUEST 정보 ===");
-    log.debug("Method: {}", request.getMethod());
-    log.debug("URI: {}", request.getRequestURI());
-    log.debug("Query String: {}", request.getQueryString());
-    log.debug("Protocol: {}", request.getProtocol());
-    log.debug("RemoteAddr: {}", request.getRemoteAddr());
-    log.debug("Secure: {}", request.isSecure() || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto")));
-
-    log.debug("=== Headers ===");
-    Enumeration<String> headerNames = request.getHeaderNames();
-    while (headerNames.hasMoreElements()) {
-      String headerName = headerNames.nextElement();
-      log.debug("{}: {}", headerName, request.getHeader(headerName));
-    }
-
-    log.debug("=== Cookies ===");
-    Cookie[] cookies = request.getCookies();
-    if (cookies != null) {
-      for (Cookie cookie : cookies) {
-        log.debug("{} = {}", cookie.getName(), cookie.getValue());
-      }
-    } else {
-      log.debug("쿠키 없음");
-    }
-  }
-
-
-  // 에러 응답을 JSON 형식으로 보내는 메서드
-  private void sendErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
+  private void sendApiResponse(HttpServletResponse response, int status, String message) throws IOException {
     response.setStatus(status);
-    response.setContentType("application/json");
+    response.setContentType("application/json;charset=UTF-8");
     response.setCharacterEncoding("UTF-8");
-
     PrintWriter writer = response.getWriter();
-    writer.write("{\"error\": \"" + message + "\"}");
+    writer.write(objectMapper.writeValueAsString(ApiResponse.of(status, message)));
     writer.flush();
   }
 }
-
-

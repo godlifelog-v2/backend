@@ -4,11 +4,9 @@ import com.godLife.project.dto.category.JobEtcCateDTO;
 import com.godLife.project.dto.model.plan.ActivityDTO;
 import com.godLife.project.dto.model.plan.PlanDTO;
 import com.godLife.project.dto.request.plan.PlanRequestDTO;
-import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.mapper.PlanMapper;
 import com.godLife.project.service.interfaces.CategoryService;
 import com.godLife.project.service.interfaces.PlanService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,8 +22,6 @@ public class PlanServiceImpl implements PlanService {
 
   private final PlanMapper planMapper;
   private final CategoryService categoryService;
-
-  private final GlobalExceptionHandler handler;
 
   private boolean isUserDeleted(int userIdx) {
     String deleted = planMapper.getUserIsDeleted(userIdx);
@@ -83,7 +79,7 @@ public class PlanServiceImpl implements PlanService {
   // 루틴 상세 보기 로직
   @Override
   @Transactional
-  public PlanDTO detailRoutine(int planIdx, int isDeleted, HttpServletRequest request) {
+  public PlanDTO detailRoutine(int planIdx, int isDeleted, int userIdx) {
     // 루틴 완료 처리
     planMapper.updateCompleteByPlanIdx(planIdx);
 
@@ -91,16 +87,12 @@ public class PlanServiceImpl implements PlanService {
     PlanDTO planDTO = planMapper.detailPlanByPlanIdx(planIdx, isDeleted);
 
     if (planDTO != null) { // 루틴이 있을 때
-      String authHeader = request.getHeader("Authorization"); // 토큰 값 저장
-
       int customJobIdx = categoryService.getIdxOfCustomJob(); // '직접입력' => 19
 
       boolean isPrivate = planDTO.getIsShared() == 0; // true: 비공개 루틴, false: 공개 루틴
-      boolean existAuth = authHeader != null && authHeader.startsWith("Bearer "); // true: 토큰 존재, false: 토큰 부재
+      boolean isAuthenticated = userIdx > 0;
 
-      if (existAuth) { // 토큰이 있을 경우,
-        int userIdx = handler.getUserIdxFromToken(authHeader); // 요청자 userIdx 조회
-
+      if (isAuthenticated) { // 토큰이 있을 경우,
         if (userIdx == planDTO.getUserIdx()) { // 작성자 본인이 맞다면
           planDTO.setIsWriter(1);
         }
@@ -110,7 +102,7 @@ public class PlanServiceImpl implements PlanService {
         }
       }
 
-      if (!existAuth && isPrivate) { // 비공개 루틴인데, 토큰도 없을 경우
+      if (!isAuthenticated && isPrivate) { // 비공개 루틴인데, 토큰도 없을 경우
         return null;
       }
 

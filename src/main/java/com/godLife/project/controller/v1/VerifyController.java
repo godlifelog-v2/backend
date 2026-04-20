@@ -3,12 +3,13 @@ package com.godLife.project.controller.v1;
 import com.godLife.project.dto.request.verify.GetEmailRequestDTO;
 import com.godLife.project.dto.request.verify.VerifyRequestDTO;
 import com.godLife.project.dto.request.myPage.ModifyEmailRequestDTO;
-import com.godLife.project.handler.GlobalExceptionHandler;
+import com.godLife.project.dto.response.common.ApiResponse;
+import com.godLife.project.dto.security.CustomUserDetails;
 import com.godLife.project.service.interfaces.VerifyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,17 +21,14 @@ import java.util.Map;
 @RequestMapping("/api/v1/verify")
 public class VerifyController {
 
-  @Autowired
-  private GlobalExceptionHandler handler;
-
   private final VerifyService verifyService;
 
   // 루틴 인증 엔드포인트
   @PostMapping("/auth/routine")
-  public ResponseEntity<Map<String, Object>> verifyRoutine(@RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> verifyRoutine(@AuthenticationPrincipal CustomUserDetails user,
                                                            @RequestBody VerifyRequestDTO verifyRequestDTO) {
     // userIdx 조회
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
     verifyRequestDTO.setUserIdx(userIdx);
 
     int result = verifyService.verifyActivity(verifyRequestDTO);
@@ -49,16 +47,18 @@ public class VerifyController {
     }
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(result)).body(handler.createResponse(result, msg));
+    return ResponseEntity.status(result).body(ApiResponse.of(result, msg));
   }
 
 
   // 이메일 인증 번호 요청 엔드포인트 (가입/수정)
   @PostMapping("/emails/send/verification-requests")
-  public ResponseEntity<Map<String, Object>> sendAuthCode(@Valid @RequestBody ModifyEmailRequestDTO emailRequestDTO,
+  public ResponseEntity<?> sendAuthCode(@Valid @RequestBody ModifyEmailRequestDTO emailRequestDTO,
                                              BindingResult valid) {
     if (valid.hasErrors()) {
-      return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
+      Map<String, String> errors = new java.util.LinkedHashMap<>();
+      valid.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+      return ResponseEntity.badRequest().body((Map) errors);
     }
     String email = emailRequestDTO.getUserEmail();
 
@@ -66,19 +66,20 @@ public class VerifyController {
       verifyService.sendCodeToEmail(email);
     } catch (IllegalStateException e) {
       // 1분 내 재발송 요청 — 429 Too Many Requests
-      return ResponseEntity.status(429).body(handler.createResponse(429, e.getMessage()));
+      return ResponseEntity.status(429).body(ApiResponse.of(429, e.getMessage()));
     }
 
     return ResponseEntity.ok().build();
   }
 
   // 이메일 인증 번호 요청 엔드포인트 (단순인증 — 아이디 찾기 / 비밀번호 초기화)
-  // 이메일 열거 공격 방지: 미등록 이메일이어도 항상 200 반환 (서비스 계층에서 처리)
   @PostMapping("/emails/send/just/verification-requests")
-  public ResponseEntity<Map<String, Object>> sendJustAuthCode(@Valid @RequestBody GetEmailRequestDTO emailRequestDTO,
+  public ResponseEntity<?> sendJustAuthCode(@Valid @RequestBody GetEmailRequestDTO emailRequestDTO,
                                                           BindingResult valid) {
     if (valid.hasErrors()) {
-      return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
+      Map<String, String> errors = new java.util.LinkedHashMap<>();
+      valid.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+      return ResponseEntity.badRequest().body((Map) errors);
     }
     String email = emailRequestDTO.getUserEmail();
 
@@ -86,7 +87,7 @@ public class VerifyController {
       verifyService.sendCodeToEmailForFindAccount(email);
     } catch (IllegalStateException e) {
       // 1분 내 재발송 요청 — 429 Too Many Requests
-      return ResponseEntity.status(429).body(handler.createResponse(429, e.getMessage()));
+      return ResponseEntity.status(429).body(ApiResponse.of(429, e.getMessage()));
     }
 
     return ResponseEntity.ok().build();
@@ -94,37 +95,35 @@ public class VerifyController {
 
   // 이메일 인증 번호 검증 엔드포인트 (가입/수정)
   @PostMapping("/emails/verifications")
-  public ResponseEntity<Map<String, Object>> verificationEmail(@Valid @RequestBody ModifyEmailRequestDTO emailRequestDTO,
+  public ResponseEntity<?> verificationEmail(@Valid @RequestBody ModifyEmailRequestDTO emailRequestDTO,
                                                                 BindingResult valid,
                                                                 @RequestParam("code") String code) {
     if (valid.hasErrors()) {
-      return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
+      Map<String, String> errors = new java.util.LinkedHashMap<>();
+      valid.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+      return ResponseEntity.badRequest().body((Map) errors);
     }
     String email = emailRequestDTO.getUserEmail();
 
     boolean result = verifyService.verifiedAuthCode(email, code);
 
-    Map<String, Object> response = new HashMap<>();
-    response.put("verified", result); // true/false 값 반환
-
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(ApiResponse.of(200, "이메일 인증 결과", Map.of("verified", result)));
   }
 
   // 이메일 인증 번호 검증 엔드포인트 (단순인증)
   @PostMapping("/emails/just/verifications")
-  public ResponseEntity<Map<String, Object>> justVerificationEmail(@Valid @RequestBody GetEmailRequestDTO emailRequestDTO,
+  public ResponseEntity<?> justVerificationEmail(@Valid @RequestBody GetEmailRequestDTO emailRequestDTO,
                                                                BindingResult valid,
                                                                @RequestParam("code") String code) {
     if (valid.hasErrors()) {
-      return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
+      Map<String, String> errors = new java.util.LinkedHashMap<>();
+      valid.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+      return ResponseEntity.badRequest().body((Map) errors);
     }
     String email = emailRequestDTO.getUserEmail();
 
     boolean result = verifyService.verifiedAuthCode(email, code);
 
-    Map<String, Object> response = new HashMap<>();
-    response.put("verified", result); // true/false 값 반환
-
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(ApiResponse.of(200, "이메일 인증 결과", Map.of("verified", result)));
   }
 }

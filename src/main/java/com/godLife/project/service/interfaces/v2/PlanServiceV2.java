@@ -12,14 +12,12 @@ import com.godLife.project.dto.request.plan.v2.PlanUpdateRequestV2;
 import com.godLife.project.dto.response.plan.v2.ActivityV2DTO;
 import com.godLife.project.dto.response.plan.v2.PlanDetailDTO;
 import com.godLife.project.dto.response.plan.v2.PlanExtraInfoDTO;
-import jakarta.servlet.http.HttpServletRequest;
-
 import java.util.List;
 
 public interface PlanServiceV2 {
 
-    // 루틴과 활동 상세 조회 — PlanDetailDTO (boolean 플래그, 읽기 전용 응답)
-    PlanDetailDTO detailRoutine(int planIdx, int isDeleted, HttpServletRequest request);
+    // 루틴과 활동 상세 조회 — PlanDetailDTO (boolean 플래그, 읽기 전용 응답) (userIdx=0이면 비인증 접근)
+    PlanDetailDTO detailRoutine(int planIdx, int isDeleted, int userIdx);
 
     // 루틴 추가 정보 조회 (포크·날짜·카운트·완료·후기)
     PlanExtraInfoDTO getPlanExtraInfo(int planIdx, int userIdx);
@@ -33,8 +31,9 @@ public interface PlanServiceV2 {
     // 루틴 소프트 삭제
     int deletePlan(int planIdx, int userIdx);
 
-    // 포크를 통한 루틴 생성 (공개 루틴만 가능, null 필드는 원본 값 사용)
-    int forkPlan(int sourcePlanIdx, PlanForkRequestV2 dto, int userIdx);
+    // 포크를 통한 루틴 생성 (공개 루틴만 가능, 원본 활동 자동 복사)
+    // 반환: status(int) + 성공 시 planIdx(int) + activities(List<ActivityV2DTO>)
+    java.util.Map<String, Object> forkPlan(int sourcePlanIdx, PlanForkRequestV2 dto, int userIdx);
 
     // 활동 생성 (특정 루틴에 활동 추가)
     int createActivities(int planIdx, ActivityCreateRequestV2 dto, int userIdx);

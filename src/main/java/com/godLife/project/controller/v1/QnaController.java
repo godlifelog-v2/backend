@@ -5,17 +5,19 @@ import com.godLife.project.dto.model.content.QnaDTO;
 import com.godLife.project.dto.model.content.QnaReplyDTO;
 import com.godLife.project.dto.query.content.QnaDetailDTO;
 import com.godLife.project.dto.websocket.qna.QnaDetailMessageDTO;
+import com.godLife.project.dto.response.common.ApiResponse;
+import com.godLife.project.dto.security.CustomUserDetails;
 import com.godLife.project.enums.MessageStatus;
 import com.godLife.project.enums.QnaRedisKey;
 import com.godLife.project.enums.QnaStatus;
 import com.godLife.project.exception.CustomException;
-import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.service.impl.redis.RedisService;
 import com.godLife.project.service.interfaces.QnaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,8 +30,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class QnaController {
 
-  private final GlobalExceptionHandler handler;
-
   private final QnaService qnaService;
   private final RedisService redisService;
 
@@ -37,14 +37,16 @@ public class QnaController {
 
   // 1:1 문의 작성
   @PostMapping("/create")
-  public ResponseEntity<Map<String, Object>> createQna(@RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> createQna(@AuthenticationPrincipal CustomUserDetails user,
                                                        @Valid @RequestBody QnaDTO writeQna,
                                                        BindingResult valid) {
     if (valid.hasErrors()) {
-      return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
+      Map<String, String> errors = new java.util.LinkedHashMap<>();
+      valid.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+      return ResponseEntity.badRequest().body((Map) errors);
     }
 
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
     writeQna.setQUserIdx(userIdx);
 
     qnaService.createQna(writeQna);
@@ -55,22 +57,24 @@ public class QnaController {
 
   // 1:1 문의 본문 조회
   @GetMapping("/get/just/content/{qnaIdx}")
-  public ResponseEntity<Map<String, Object>> getJustQnaContent(@PathVariable int qnaIdx) {
+  public ResponseEntity<?> getJustQnaContent(@PathVariable int qnaIdx) {
     String content = qnaService.getQnaContent(qnaIdx);
 
-    return ResponseEntity.ok().body(handler.createResponse(200, content));
+    return ResponseEntity.ok().body(ApiResponse.of(200, content));
   }
 
   // 1:1 문의 답변 달기
   @PostMapping("/comment/reply")
-  public ResponseEntity<Map<String, Object>> commentReply(@RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> commentReply(@AuthenticationPrincipal CustomUserDetails user,
                                                           @Valid @RequestBody QnaReplyDTO qnaReplyDTO,
                                                           BindingResult valid) {
     if (valid.hasErrors()) {
-      return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
+      Map<String, String> errors = new java.util.LinkedHashMap<>();
+      valid.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+      return ResponseEntity.badRequest().body((Map) errors);
     }
 
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
     qnaReplyDTO.setUserIdx(userIdx);
 
     qnaService.commentReply(qnaReplyDTO);
@@ -80,14 +84,16 @@ public class QnaController {
 
   // 1:1 문의 수정
   @PatchMapping("/modify")
-  public ResponseEntity<Map<String, Object>> modifyQnA(@RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> modifyQnA(@AuthenticationPrincipal CustomUserDetails user,
                                                        @Valid @RequestBody QnaDTO modifyQna,
                                                        BindingResult valid) {
     if (valid.hasErrors()) {
-      return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
+      Map<String, String> errors = new java.util.LinkedHashMap<>();
+      valid.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+      return ResponseEntity.badRequest().body((Map) errors);
     }
 
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
     modifyQna.setQUserIdx(userIdx);
 
     List<String> setStatus = new ArrayList<>();
@@ -97,54 +103,56 @@ public class QnaController {
     // 문의 수정
     qnaService.modifyQnA(modifyQna, setStatus);
 
-    return ResponseEntity.ok().body(handler.createResponse(200, "문의 수정 완료"));
+    return ResponseEntity.ok().body(ApiResponse.of(200, "문의 수정 완료"));
   }
 
   // 1:1 답변 수정
   @PatchMapping("/modify/reply")
-  public ResponseEntity<Map<String, Object>> modifyReply(@RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> modifyReply(@AuthenticationPrincipal CustomUserDetails user,
                                                          @Valid @RequestBody QnaReplyDTO modifyReplyDTO,
                                                          BindingResult valid) {
     if (valid.hasErrors()) {
-      return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
+      Map<String, String> errors = new java.util.LinkedHashMap<>();
+      valid.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+      return ResponseEntity.badRequest().body((Map) errors);
     }
 
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
     modifyReplyDTO.setUserIdx(userIdx);
 
     qnaService.modifyReply(modifyReplyDTO);
 
-    return ResponseEntity.ok().body(handler.createResponse(200, "답변 수정 완료"));
+    return ResponseEntity.ok().body(ApiResponse.of(200, "답변 수정 완료"));
   }
 
   // 문의 삭제
   @DeleteMapping("/delete/{qnaIdx}")
-  ResponseEntity<Map<String, Object>> deleteQnA(@RequestHeader("Authorization") String authHeader,
+  ResponseEntity<?> deleteQnA(@AuthenticationPrincipal CustomUserDetails user,
                                                 @PathVariable int qnaIdx) {
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
 
     qnaService.deleteQna(qnaIdx, userIdx);
 
-    return ResponseEntity.ok().body(handler.createResponse(200, "문의가 정상적으로 삭제 되었습니다."));
+    return ResponseEntity.ok().body(ApiResponse.of(200, "문의가 정상적으로 삭제 되었습니다."));
   }
 
   // 답변 삭제
   @DeleteMapping("/delete/reply/{qnaIdx}")
-  ResponseEntity<Map<String, Object>> deleteReply(@RequestHeader("Authorization") String authHeader,
+  ResponseEntity<?> deleteReply(@AuthenticationPrincipal CustomUserDetails user,
                                                   @PathVariable int qnaIdx,
                                                   @RequestParam int qnaReplyIdx) {
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
 
     qnaService.deleteReply(qnaIdx, qnaReplyIdx, userIdx);
 
-    return ResponseEntity.ok().body(handler.createResponse(200, "답변이 정상적으로 삭제 되었습니다."));
+    return ResponseEntity.ok().body(ApiResponse.of(200, "답변이 정상적으로 삭제 되었습니다."));
   }
 
   // 문의 상세 조회 (답변 까지)
   @GetMapping("/{qnaIdx}")
-  ResponseEntity<Map<String, Object>> getDetailQna(@RequestHeader("Authorization") String authHeader,
+  ResponseEntity<?> getDetailQna(@AuthenticationPrincipal CustomUserDetails user,
                                                    @PathVariable int qnaIdx) {
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
 
     if (qnaIdx <= 0) {
       throw new CustomException("문의 인덱스를 선택해주세요. 문의 인덱스는 0 보다 커야 합니다.", HttpStatus.BAD_REQUEST);
@@ -155,14 +163,14 @@ public class QnaController {
 
     QnaDetailDTO response = qnaService.setQnaDetailForUser(base);
 
-    return ResponseEntity.ok().body(handler.createResponseWithData(200, "문의 상세 조회 성공", response));
+    return ResponseEntity.ok().body(ApiResponse.of(200, "문의 상세 조회 성공", response));
   }
 
   // 문의 완료 처리 api
   @PatchMapping("/complete/{qnaIdx}")
-  public ResponseEntity<Map<String, Object>> setComplete(@RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> setComplete(@AuthenticationPrincipal CustomUserDetails user,
                                                          @PathVariable int qnaIdx) {
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
 
     if (qnaIdx == 0) {
       throw new CustomException("완료 처리 할 문의를 선택 해주세요.", HttpStatus.BAD_REQUEST);
@@ -182,7 +190,7 @@ public class QnaController {
     redisService.deleteData(QnaRedisKey.QNA_ADMIN_ANSWERED.getKey() + qnaIdx);
     redisService.deleteData(QnaRedisKey.QNA_IS_SLEEP.getKey() + qnaIdx);
 
-    return ResponseEntity.ok().body(handler.createResponse(200, "해당 문의가 완료 처리 되었습니다."));
+    return ResponseEntity.ok().body(ApiResponse.of(200, "해당 문의가 완료 처리 되었습니다."));
   }
 
 

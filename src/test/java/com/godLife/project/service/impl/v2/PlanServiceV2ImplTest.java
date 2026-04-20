@@ -6,15 +6,12 @@ import com.godLife.project.dto.model.common.FireDTO;
 import com.godLife.project.dto.model.plan.PlanDTO;
 import com.godLife.project.dto.response.plan.v2.ActivityV2DTO;
 import com.godLife.project.dto.response.plan.v2.PlanDetailDTO;
-import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.mapper.PlanMapper;
 import com.godLife.project.mapstruct.PlanDetailMapper;
 import com.godLife.project.mapper.v2.PlanMapperV2;
 import com.godLife.project.mapper.v2.PlanRepeatDayMapper;
 import com.godLife.project.service.interfaces.CategoryService;
 import com.godLife.project.service.interfaces.VerifyService;
-import jakarta.servlet.http.HttpServletRequest;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -26,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,9 +39,7 @@ class PlanServiceV2ImplTest {
     @Mock private PlanRepeatDayMapper planRepeatDayMapper;
     @Mock private PlanDetailMapper planDetailMapper;
     @Mock private CategoryService categoryService;
-    @Mock private GlobalExceptionHandler handler;
     @Mock private VerifyService verifyService;
-    @Mock private HttpServletRequest request;
 
     @InjectMocks
     private PlanServiceV2Impl planServiceV2;
@@ -74,7 +70,6 @@ class PlanServiceV2ImplTest {
     class DetailRoutineAccessTest {
 
         private final int planIdx = 10;
-        private final String tokenHeader = "Bearer test-token";
 
         @Test
         @DisplayName("비공개 루틴 - 다른 유저 토큰 → null 반환")
@@ -84,10 +79,8 @@ class PlanServiceV2ImplTest {
             privatePlan.setUserIdx(100);
 
             when(planMapper.detailPlanByPlanIdx(planIdx, 0)).thenReturn(privatePlan);
-            when(request.getHeader("Authorization")).thenReturn(tokenHeader);
-            when(handler.getUserIdxFromToken(tokenHeader)).thenReturn(200);
 
-            PlanDetailDTO result = planServiceV2.detailRoutine(planIdx, 0, request);
+            PlanDetailDTO result = planServiceV2.detailRoutine(planIdx, 0, 200);
 
             assertThat(result).isNull();
         }
@@ -100,9 +93,8 @@ class PlanServiceV2ImplTest {
             privatePlan.setUserIdx(100);
 
             when(planMapper.detailPlanByPlanIdx(planIdx, 0)).thenReturn(privatePlan);
-            when(request.getHeader("Authorization")).thenReturn(null);
 
-            PlanDetailDTO result = planServiceV2.detailRoutine(planIdx, 0, request);
+            PlanDetailDTO result = planServiceV2.detailRoutine(planIdx, 0, 0);
 
             assertThat(result).isNull();
         }
@@ -118,15 +110,13 @@ class PlanServiceV2ImplTest {
             privatePlan.setColor("#FF5733FF");
 
             when(planMapper.detailPlanByPlanIdx(planIdx, 0)).thenReturn(privatePlan);
-            when(request.getHeader("Authorization")).thenReturn(tokenHeader);
-            when(handler.getUserIdxFromToken(tokenHeader)).thenReturn(100);
             when(planMapperV2.getActivitiesByPlanIdx(planIdx)).thenReturn(List.of(new ActivityV2DTO()));
             when(planMapper.getTargetCategoryByTargetIdx(anyInt())).thenReturn(new TargetCateDTO());
             when(planMapper.detailFireByPlanIdx(planIdx)).thenReturn(new FireDTO());
             when(planMapper.getVerifyCountByPlanIdx(planIdx)).thenReturn(0);
             when(planMapper.getJOBCategoryByJobIdx(anyInt())).thenReturn(new JobCateDTO());
 
-            PlanDetailDTO result = planServiceV2.detailRoutine(planIdx, 0, request);
+            PlanDetailDTO result = planServiceV2.detailRoutine(planIdx, 0, 100);
 
             assertThat(result).isNotNull();
             assertThat(result.isWriter()).isTrue();
@@ -142,15 +132,13 @@ class PlanServiceV2ImplTest {
             publicPlan.setUserIdx(100);
 
             when(planMapper.detailPlanByPlanIdx(planIdx, 0)).thenReturn(publicPlan);
-            when(request.getHeader("Authorization")).thenReturn(tokenHeader);
-            when(handler.getUserIdxFromToken(tokenHeader)).thenReturn(200);
             when(planMapperV2.getActivitiesByPlanIdx(planIdx)).thenReturn(List.of());
             when(planMapper.getTargetCategoryByTargetIdx(anyInt())).thenReturn(new TargetCateDTO());
             when(planMapper.detailFireByPlanIdx(planIdx)).thenReturn(new FireDTO());
             when(planMapper.getVerifyCountByPlanIdx(planIdx)).thenReturn(0);
             when(planMapper.getJOBCategoryByJobIdx(anyInt())).thenReturn(null);
 
-            PlanDetailDTO result = planServiceV2.detailRoutine(planIdx, 0, request);
+            PlanDetailDTO result = planServiceV2.detailRoutine(planIdx, 0, 200);
 
             assertThat(result).isNotNull();
             assertThat(result.isWriter()).isFalse();
@@ -169,14 +157,13 @@ class PlanServiceV2ImplTest {
             activityV2DTO.setDuration(30);
 
             when(planMapper.detailPlanByPlanIdx(planIdx, 0)).thenReturn(publicPlan);
-            when(request.getHeader("Authorization")).thenReturn(null);
             when(planMapperV2.getActivitiesByPlanIdx(planIdx)).thenReturn(List.of(activityV2DTO));
             when(planMapper.getTargetCategoryByTargetIdx(anyInt())).thenReturn(new TargetCateDTO());
             when(planMapper.detailFireByPlanIdx(planIdx)).thenReturn(new FireDTO());
             when(planMapper.getVerifyCountByPlanIdx(planIdx)).thenReturn(0);
             when(planMapper.getJOBCategoryByJobIdx(anyInt())).thenReturn(new JobCateDTO());
 
-            PlanDetailDTO result = planServiceV2.detailRoutine(planIdx, 0, request);
+            PlanDetailDTO result = planServiceV2.detailRoutine(planIdx, 0, 0);
 
             assertThat(result).isNotNull();
             assertThat(result.getActivities()).hasSize(1);

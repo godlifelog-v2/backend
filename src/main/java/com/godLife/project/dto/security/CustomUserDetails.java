@@ -10,9 +10,20 @@ import java.util.Collection;
 public class CustomUserDetails implements UserDetails {
 
   private final UserDTO userDTO;
+  private final int userIdx;
 
   public CustomUserDetails(UserDTO userDTO) {
     this.userDTO = userDTO;
+    this.userIdx = userDTO.getUserIdx();
+  }
+
+  public CustomUserDetails(UserDTO userDTO, int userIdx) {
+    this.userDTO = userDTO;
+    this.userIdx = userIdx;
+  }
+
+  public int getUserIdx() {
+    return userIdx;
   }
 
   public int getAuthorityIdx() {

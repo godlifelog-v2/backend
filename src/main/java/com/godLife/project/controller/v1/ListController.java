@@ -2,12 +2,14 @@ package com.godLife.project.controller.v1;
 
 import com.godLife.project.dto.response.plan.MyPlanDTO;
 import com.godLife.project.dto.query.plan.PlanListDTO;
-import com.godLife.project.handler.GlobalExceptionHandler;
+import com.godLife.project.dto.response.common.ApiResponse;
+import com.godLife.project.dto.security.CustomUserDetails;
 import com.godLife.project.service.interfaces.ListService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,16 +22,13 @@ import java.util.NoSuchElementException;
 @RequestMapping("/api/v1/list")
 public class ListController {
 
-  @Autowired
-  private final GlobalExceptionHandler handler;
-
   private final ListService listService;
 
   @GetMapping("/auth/myPlans")
-  public ResponseEntity<Map<String, Object>> listMyPlans(@RequestHeader("Authorization") String authHeader) {
+  public ResponseEntity<?> listMyPlans(@AuthenticationPrincipal CustomUserDetails user) {
     try {
       // userIdx 조회
-      int userIdx = handler.getUserIdxFromToken(authHeader);
+      int userIdx = user.getUserIdx();
       // 루틴 리스트 조회
       List<MyPlanDTO> myPlanList = listService.getMyPlansList(userIdx);
 
@@ -41,20 +40,20 @@ public class ListController {
         throw new NoSuchElementException("진행/대기중인 루틴 없음.");
       }
       // 응답 메시지 설정
-      return ResponseEntity.ok().body(handler.createResponseWithData(200, "루틴 리스트 조회 성공", myPlanList));
+      return ResponseEntity.ok().body(ApiResponse.of(200, "루틴 리스트 조회 성공", myPlanList));
 
     } catch (NoSuchElementException e) {
-      return ResponseEntity.status(handler.getHttpStatus(204)).build();
+      return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
     } catch (Exception e) {
       String msg = "서버 내부 오류로 인해 루틴 리스트 조회에 실패했습니다.";
       log.error("e: ", e);
-      return ResponseEntity.status(handler.getHttpStatus(500)).body(handler.createResponse(500, msg));
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.of(500, msg));
     }
   }
 
   @GetMapping("/plan/{mode}")
-  public ResponseEntity<Map<String, Object>> listAllPlans(@PathVariable String mode,
+  public ResponseEntity<?> listAllPlans(@PathVariable String mode,
                                                           @RequestParam(defaultValue = "1") int page,
                                                           @RequestParam(defaultValue = "10") int size,
                                                           @RequestParam(defaultValue = "0") int status,
@@ -73,11 +72,11 @@ public class ListController {
 
     if (plans instanceof List<?>) {
       List<PlanListDTO> tempList = ((List<?>) plans).stream()
-          .filter(PlanListDTO.class::isInstance)  // PlanListDTO 타입만 필터링
+          .filter(PlanListDTO.class::isInstance)
           .map(PlanListDTO.class::cast)
           .toList();
       if (tempList.isEmpty()) {
-        return ResponseEntity.status(handler.getHttpStatus(204)).build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
       }
     }
 
@@ -86,14 +85,14 @@ public class ListController {
 
   // 문의 리스트 조회
   @GetMapping("/auth/qna")
-  public ResponseEntity<Map<String, Object>> listMyQna(@RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> listMyQna(@AuthenticationPrincipal CustomUserDetails user,
                                                        @RequestParam(defaultValue = "1") int page,
                                                        @RequestParam(defaultValue = "10") int size,
                                                        @RequestParam(defaultValue = "all") String status,
                                                        @RequestParam(defaultValue = "answer") String sort,
                                                        @RequestParam(defaultValue = "desc") String order,
                                                        @RequestParam(required = false) String search) {
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
 
     Map<String, Object> response = listService.getQnaList(userIdx, page - 1, size, status, sort, order, search);
 

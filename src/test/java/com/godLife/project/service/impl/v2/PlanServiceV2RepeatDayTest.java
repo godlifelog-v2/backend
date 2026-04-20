@@ -4,7 +4,6 @@ import com.godLife.project.dto.request.plan.v2.PlanCreateRequestV2;
 import com.godLife.project.dto.request.plan.v2.PlanUpdateRequestV2;
 import com.godLife.project.dto.request.verify.VerifyRequestDTO;
 import com.godLife.project.enums.RepeatDay;
-import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.mapper.PlanMapper;
 import com.godLife.project.mapstruct.PlanDetailMapper;
 import com.godLife.project.mapper.v2.PlanMapperV2;
@@ -42,7 +41,6 @@ class PlanServiceV2RepeatDayTest {
     @Mock private PlanRepeatDayMapper planRepeatDayMapper;
     @Mock private PlanDetailMapper planDetailMapper;
     @Mock private CategoryService categoryService;
-    @Mock private GlobalExceptionHandler handler;
     @Mock private VerifyService verifyService;
 
     @InjectMocks

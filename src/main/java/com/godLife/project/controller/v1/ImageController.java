@@ -1,7 +1,6 @@
 package com.godLife.project.controller.v1;
 
 import com.godLife.project.exception.CustomException;
-import com.godLife.project.handler.GlobalExceptionHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,8 +25,6 @@ public class ImageController {
   // qna 이미지 경로
   @Value("${app.upload.root-dir}")
   private String uploadRootDir;
-
-  private final GlobalExceptionHandler handler;
 
   @PostMapping("/image-upload/{category}")
   public ResponseEntity<?> uploadImage(@RequestParam("image") MultipartFile image,
