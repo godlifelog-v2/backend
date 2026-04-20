@@ -2,12 +2,13 @@ package com.godLife.project.controller.v1.admin;
 
 import com.godLife.project.dto.query.report.PlanReportDTO;
 import com.godLife.project.dto.query.report.UserReportDTO;
-import com.godLife.project.handler.GlobalExceptionHandler;
+import com.godLife.project.dto.response.common.ApiResponse;
+import com.godLife.project.dto.security.CustomUserDetails;
 import com.godLife.project.service.interfaces.AdminInterface.ReportAdminService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -18,9 +19,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/admin/report")
 public class ReportAdminController {
-  @Autowired
-  private GlobalExceptionHandler handler;
-
   private final ReportAdminService reportAdminService;
 
   public ReportAdminController(ReportAdminService reportAdminService) {
@@ -52,7 +50,7 @@ public class ReportAdminController {
   }
 
   @PostMapping("/userReportState")
-  public ResponseEntity<Map<String, Object>> userReportStateUpdate(
+  public ResponseEntity<?> userReportStateUpdate(
           @RequestParam("userReportIdx") int userReportIdx,
           @RequestParam("isApproved") int isApproved) {
     try {
@@ -63,16 +61,16 @@ public class ReportAdminController {
       reportAdminService.userReportStateUpdate(dto); // 내부에서 status=1로 처리
 
       String message = (isApproved == 1) ? "신고가 승인되어 처리 완료되었습니다." : "신고가 거절되어 처리 완료되었습니다.";
-      return ResponseEntity.ok(handler.createResponse(200, message));
+      return ResponseEntity.ok(ApiResponse.of(200, message));
 
     } catch (IllegalArgumentException e) {
       log.error("잘못된 요청 값으로 인한 처리 실패: {}", e.getMessage(), e);
-      return ResponseEntity.status(handler.getHttpStatus(400))
-              .body(handler.createResponse(400, "요청 오류: " + e.getMessage()));
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+              .body(ApiResponse.of(400, "요청 오류: " + e.getMessage()));
     } catch (Exception e) {
       log.error("신고 상태 업데이트 중 서버 오류 발생: {}", e.getMessage(), e);
-      return ResponseEntity.status(handler.getHttpStatus(500))
-              .body(handler.createResponse(500, "서버 오류로 인해 신고 상태를 변경할 수 없습니다."));
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+              .body(ApiResponse.of(500, "서버 오류로 인해 신고 상태를 변경할 수 없습니다."));
     }
   }
 
@@ -108,21 +106,21 @@ public class ReportAdminController {
   // 루틴 신고 처리
   @PatchMapping("/plans/{planIdx}/reports/{planReportIdx}/status")
   public ResponseEntity<?> updateReportStatus(
-          @RequestHeader("Authorization") String authHeader,
+          @AuthenticationPrincipal CustomUserDetails user,
           @PathVariable int planIdx,
           @PathVariable int planReportIdx,
           @RequestBody PlanReportDTO planReportDTO) {
 
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
     planReportDTO.setPlanReportIdx(planReportIdx);
     planReportDTO.setPlanIdx(planIdx);
 
     int result = reportAdminService.planReportStateUpdate(planReportDTO, userIdx);
 
     return switch (result) {
-      case 200 -> ResponseEntity.ok("신고가 처리되었고 루틴은 비공개로 전환되었습니다.");
-      case 403 -> ResponseEntity.status(HttpStatus.FORBIDDEN).body("권한이 없습니다.");
-      default -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("알 수 없는 오류가 발생했습니다.");
+      case 200 -> ResponseEntity.ok(ApiResponse.of(200, "신고가 처리되었고 루틴은 비공개로 전환되었습니다."));
+      case 403 -> ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.of(403, "권한이 없습니다."));
+      default -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.of(500, "알 수 없는 오류가 발생했습니다."));
     };
 }
 }

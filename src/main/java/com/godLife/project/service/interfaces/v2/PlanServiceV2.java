@@ -12,14 +12,12 @@ import com.godLife.project.dto.request.plan.v2.PlanUpdateRequestV2;
 import com.godLife.project.dto.response.plan.v2.ActivityV2DTO;
 import com.godLife.project.dto.response.plan.v2.PlanDetailDTO;
 import com.godLife.project.dto.response.plan.v2.PlanExtraInfoDTO;
-import jakarta.servlet.http.HttpServletRequest;
-
 import java.util.List;
 
 public interface PlanServiceV2 {
 
-    // 루틴과 활동 상세 조회 — PlanDetailDTO (boolean 플래그, 읽기 전용 응답)
-    PlanDetailDTO detailRoutine(int planIdx, int isDeleted, HttpServletRequest request);
+    // 루틴과 활동 상세 조회 — PlanDetailDTO (boolean 플래그, 읽기 전용 응답) (userIdx=0이면 비인증 접근)
+    PlanDetailDTO detailRoutine(int planIdx, int isDeleted, int userIdx);
 
     // 루틴 추가 정보 조회 (포크·날짜·카운트·완료·후기)
     PlanExtraInfoDTO getPlanExtraInfo(int planIdx, int userIdx);

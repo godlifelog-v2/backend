@@ -72,7 +72,7 @@ class ReissueServiceTest {
 
             assertThat(result.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
             verify(refreshService).deleteByRefresh(VALID_REFRESH);
-            verify(jwtUtil, never()).createJwt(any(), any(), any(), anyLong());
+            verify(jwtUtil, never()).createJwt(any(), any(), anyInt(), any(), anyLong());
         }
     }
 
@@ -88,8 +88,9 @@ class ReissueServiceTest {
             UserDTO normalUser = new UserDTO();
             normalUser.setIsBanned(0);
             when(userService.findByUserId("normalUser")).thenReturn(normalUser);
-            when(jwtUtil.createJwt(eq("access"), any(), any(), anyLong())).thenReturn("new-access");
-            when(jwtUtil.createJwt(eq("refresh"), any(), any(), anyLong())).thenReturn("new-refresh");
+            when(jwtUtil.getUserIdx(VALID_REFRESH)).thenReturn(0);
+            when(jwtUtil.createJwt(eq("access"), any(), anyInt(), any(), anyLong())).thenReturn("new-access");
+            when(jwtUtil.createJwt(eq("refresh"), any(), anyInt(), any(), anyLong())).thenReturn("new-refresh");
 
             ResponseEntity<?> result = reissueService.reissueToken(request, response);
 

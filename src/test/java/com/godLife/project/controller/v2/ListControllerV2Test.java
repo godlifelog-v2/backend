@@ -1,9 +1,11 @@
 package com.godLife.project.controller.v2;
 
+import com.godLife.project.dto.model.user.UserDTO;
 import com.godLife.project.dto.response.plan.v2.MyPlanV2DTO;
 import com.godLife.project.dto.response.plan.v2.TodayStatsDTO;
-import com.godLife.project.handler.GlobalExceptionHandler;
+import com.godLife.project.dto.security.CustomUserDetails;
 import com.godLife.project.service.interfaces.v2.ListServiceV2;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -14,16 +16,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -33,31 +34,38 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ListControllerV2Test {
 
     @Mock
-    private GlobalExceptionHandler handler;
-
-    @Mock
     private ListServiceV2 listServiceV2;
 
     @InjectMocks
     private ListControllerV2 listControllerV2;
 
+    @InjectMocks
+    private AnalysisControllerV2 analysisControllerV2;
+
     private MockMvc mockMvc;
-    private final String authHeader = "Bearer test-token";
+    private MockMvc analysisMvc;
     private final int userIdx = 1;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(listControllerV2).build();
-        when(handler.getUserIdxFromToken(authHeader)).thenReturn(userIdx);
-        when(handler.getHttpStatus(200)).thenReturn(HttpStatus.OK);
-        when(handler.getHttpStatus(204)).thenReturn(HttpStatus.NO_CONTENT);
-        when(handler.getHttpStatus(500)).thenReturn(HttpStatus.INTERNAL_SERVER_ERROR);
-        Map<String, Object> okResponse = new HashMap<>();
-        okResponse.put("status", 200);
-        when(handler.createResponse(eq(200), any())).thenReturn(okResponse);
-        Map<String, Object> errResponse = new HashMap<>();
-        errResponse.put("status", 500);
-        when(handler.createResponse(eq(500), any())).thenReturn(errResponse);
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUserIdx(userIdx);
+        CustomUserDetails principal = new CustomUserDetails(userDTO, userIdx);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(principal, null, Collections.emptyList())
+        );
+
+        mockMvc = MockMvcBuilders.standaloneSetup(listControllerV2)
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+                .build();
+        analysisMvc = MockMvcBuilders.standaloneSetup(analysisControllerV2)
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+                .build();
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Nested
@@ -70,8 +78,7 @@ class ListControllerV2Test {
             MyPlanV2DTO dto = new MyPlanV2DTO();
             when(listServiceV2.getMyPlansList(userIdx)).thenReturn(List.of(dto));
 
-            mockMvc.perform(get("/api/v2/list/auth/myPlans")
-                    .header("Authorization", authHeader))
+            mockMvc.perform(get("/api/v2/list/auth/myPlans"))
                 .andExpect(status().isOk());
         }
 
@@ -80,8 +87,7 @@ class ListControllerV2Test {
         void myPlans_empty_returns204() throws Exception {
             when(listServiceV2.getMyPlansList(userIdx)).thenReturn(Collections.emptyList());
 
-            mockMvc.perform(get("/api/v2/list/auth/myPlans")
-                    .header("Authorization", authHeader))
+            mockMvc.perform(get("/api/v2/list/auth/myPlans"))
                 .andExpect(status().isNoContent());
         }
 
@@ -90,8 +96,7 @@ class ListControllerV2Test {
         void myPlans_serviceNull_returns500() throws Exception {
             when(listServiceV2.getMyPlansList(userIdx)).thenReturn(null);
 
-            mockMvc.perform(get("/api/v2/list/auth/myPlans")
-                    .header("Authorization", authHeader))
+            mockMvc.perform(get("/api/v2/list/auth/myPlans"))
                 .andExpect(status().isInternalServerError());
         }
     }
@@ -106,8 +111,7 @@ class ListControllerV2Test {
             MyPlanV2DTO dto = new MyPlanV2DTO();
             when(listServiceV2.getTodayPlansList(userIdx)).thenReturn(List.of(dto));
 
-            mockMvc.perform(get("/api/v2/list/auth/todayPlans")
-                    .header("Authorization", authHeader))
+            mockMvc.perform(get("/api/v2/list/auth/todayPlans"))
                 .andExpect(status().isOk());
         }
 
@@ -116,8 +120,7 @@ class ListControllerV2Test {
         void todayPlans_empty_returns204() throws Exception {
             when(listServiceV2.getTodayPlansList(userIdx)).thenReturn(Collections.emptyList());
 
-            mockMvc.perform(get("/api/v2/list/auth/todayPlans")
-                    .header("Authorization", authHeader))
+            mockMvc.perform(get("/api/v2/list/auth/todayPlans"))
                 .andExpect(status().isNoContent());
         }
 
@@ -126,8 +129,7 @@ class ListControllerV2Test {
         void todayPlans_serviceNull_returns500() throws Exception {
             when(listServiceV2.getTodayPlansList(userIdx)).thenReturn(null);
 
-            mockMvc.perform(get("/api/v2/list/auth/todayPlans")
-                    .header("Authorization", authHeader))
+            mockMvc.perform(get("/api/v2/list/auth/todayPlans"))
                 .andExpect(status().isInternalServerError());
         }
     }
@@ -142,8 +144,7 @@ class ListControllerV2Test {
             TodayStatsDTO stats = new TodayStatsDTO(5, 3, 7);
             when(listServiceV2.getTodayStats(userIdx)).thenReturn(stats);
 
-            mockMvc.perform(get("/api/v2/list/auth/todayStats")
-                    .header("Authorization", authHeader))
+            analysisMvc.perform(get("/api/v2/analysis/auth/todayStats"))
                 .andExpect(status().isOk());
         }
 
@@ -152,8 +153,7 @@ class ListControllerV2Test {
         void todayStats_exception_returns500() throws Exception {
             when(listServiceV2.getTodayStats(userIdx)).thenThrow(new RuntimeException("DB 오류"));
 
-            mockMvc.perform(get("/api/v2/list/auth/todayStats")
-                    .header("Authorization", authHeader))
+            analysisMvc.perform(get("/api/v2/analysis/auth/todayStats"))
                 .andExpect(status().isInternalServerError());
         }
     }

@@ -3,7 +3,8 @@ package com.godLife.project.controller.v1;
 import com.godLife.project.dto.query.plan.PlanListDTO;
 import com.godLife.project.dto.request.myPage.*;
 import com.godLife.project.dto.response.user.MyPageUserInfosResponseDTO;
-import com.godLife.project.handler.GlobalExceptionHandler;
+import com.godLife.project.dto.response.common.ApiResponse;
+import com.godLife.project.dto.security.CustomUserDetails;
 import com.godLife.project.service.impl.redis.RedisService;
 import com.godLife.project.service.interfaces.ListService;
 import com.godLife.project.service.interfaces.MyPageService;
@@ -15,7 +16,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,8 +31,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MyPageController {
 
-  private final GlobalExceptionHandler handler;
-
   private final MyPageService myPageService;
 
   private final RefreshService refreshService;
@@ -41,30 +42,32 @@ public class MyPageController {
 
   // 유저 정보 추가 제공
   @GetMapping("/myAccount")
-  public ResponseEntity<Map<String, Object>> getMyInfos(@RequestHeader("Authorization") String authHeader) {
+  public ResponseEntity<?> getMyInfos(@AuthenticationPrincipal CustomUserDetails user) {
 
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
 
     MyPageUserInfosResponseDTO result = myPageService.getUserInfos(userIdx);
     //System.out.println("result: " + result);
 
     if (result == null) {
-      return ResponseEntity.status(404).body(handler.createResponse(404, "유저 정보가 없습니다."));
+      return ResponseEntity.status(404).body(ApiResponse.of(404, "유저 정보가 없습니다."));
     }
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(200)).body(handler.createResponseWithData(200, "유저 정보 조회 성공", result));
+    return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.of(200, "유저 정보 조회 성공", result));
   }
 
   // 개인 정보 수정
   @PatchMapping("/myAccount/modify/personal")
-  public ResponseEntity<Map<String, Object>> modifyMyInfos(@RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> modifyMyInfos(@AuthenticationPrincipal CustomUserDetails user,
                                                            @Valid @RequestBody ModifyPersonalRequestDTO modifyPersonalRequestDTO,
                                                            BindingResult valid) {
     if (valid.hasErrors()) {
-      return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
+      Map<String, String> errors = new java.util.LinkedHashMap<>();
+      valid.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+      return ResponseEntity.badRequest().body((Map) errors);
     }
 
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
     modifyPersonalRequestDTO.setUserIdx(userIdx);
 
     int result = myPageService.modifyPersonal(modifyPersonalRequestDTO);
@@ -79,19 +82,21 @@ public class MyPageController {
     }
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(result)).body(handler.createResponse(result, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(result)).body(ApiResponse.of(result, msg));
   }
 
   // 닉네임 수정
   @PatchMapping("/myAccount/modify/nickName")
-  public ResponseEntity<Map<String, Object>> modifyNickName(@RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> modifyNickName(@AuthenticationPrincipal CustomUserDetails user,
                                                             @Valid @RequestBody ModifyNicknameRequestDTO modifyNicknameRequestDTO,
                                                             BindingResult valid) {
     if (valid.hasErrors()) {
-      return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
+      Map<String, String> errors = new java.util.LinkedHashMap<>();
+      valid.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+      return ResponseEntity.badRequest().body((Map) errors);
     }
 
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
     modifyNicknameRequestDTO.setUserIdx(userIdx);
 
     int result = myPageService.modifyNickName(modifyNicknameRequestDTO);
@@ -106,26 +111,28 @@ public class MyPageController {
     }
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(result)).body(handler.createResponse(result, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(result)).body(ApiResponse.of(result, msg));
   }
 
   // 이메일 수정
   @PatchMapping("/myAccount/modify/email")
-  public ResponseEntity<Map<String, Object>> modifyEmail(@RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> modifyEmail(@AuthenticationPrincipal CustomUserDetails user,
                                                          @Valid @RequestBody ModifyEmailRequestDTO modifyEmailRequestDTO,
                                                          BindingResult valid) {
     // 이메일 유효성 검증
     if (valid.hasErrors()) {
-      return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
+      Map<String, String> errors = new java.util.LinkedHashMap<>();
+      valid.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+      return ResponseEntity.badRequest().body((Map) errors);
     }
     // 이메일 인증 여부 검증
     String verified = redisService.getStringData("EMAIL_VERIFIED: " + modifyEmailRequestDTO.getUserEmail());
     if (verified == null || !verified.equals("true")) {
-      return ResponseEntity.status(handler.getHttpStatus(412))
-          .body(handler.createResponse(412, "이메일 인증이 필요합니다."));
+      return ResponseEntity.status(HttpStatus.valueOf(412))
+          .body(ApiResponse.of(412, "이메일 인증이 필요합니다."));
     }
 
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
     modifyEmailRequestDTO.setUserIdx(userIdx);
 
     int result = myPageService.modifyEmail(modifyEmailRequestDTO);
@@ -142,18 +149,20 @@ public class MyPageController {
     }
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(result)).body(handler.createResponse(result, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(result)).body(ApiResponse.of(result, msg));
   }
 
   // 직업/목표 수정
   @PatchMapping("/myAccount/modify/job-target")
-  public ResponseEntity<Map<String, Object>> modifyJobAndTarget(@RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> modifyJobAndTarget(@AuthenticationPrincipal CustomUserDetails user,
                                                                 @Valid @RequestBody ModifyJobTargetRequestDTO jobTargetRequestDTO,
                                                                 BindingResult valid) {
     if (valid.hasErrors()) {
-      return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
+      Map<String, String> errors = new java.util.LinkedHashMap<>();
+      valid.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+      return ResponseEntity.badRequest().body((Map) errors);
     }
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
     jobTargetRequestDTO.setUserIdx(userIdx);
 
     int result = myPageService.modifyJobTarget(jobTargetRequestDTO);
@@ -168,19 +177,21 @@ public class MyPageController {
     }
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(result)).body(handler.createResponse(result, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(result)).body(ApiResponse.of(result, msg));
   }
 
   // 비밀번호 변경
   @PatchMapping("/security/change/password")
-  public ResponseEntity<Map<String, Object>> modifyPassword(@RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> modifyPassword(@AuthenticationPrincipal CustomUserDetails user,
                                                             @Valid @RequestBody GetUserPwRequestDTO userPwRequestDTO,
                                                             BindingResult valid) {
     if (valid.hasErrors()) {
-      return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
+      Map<String, String> errors = new java.util.LinkedHashMap<>();
+      valid.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+      return ResponseEntity.badRequest().body((Map) errors);
     }
 
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
     userPwRequestDTO.setUserIdx(userIdx);
 
     int result = myPageService.modifyPassword(userPwRequestDTO);
@@ -199,16 +210,16 @@ public class MyPageController {
     }
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(result)).body(handler.createResponse(result, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(result)).body(ApiResponse.of(result, msg));
   }
 
 
   // 회원 탈퇴
   @PatchMapping("/accountDeletion")
-  public ResponseEntity<Map<String, Object>> accountDeletion(@RequestBody GetUserPwRequestDTO getUserPwRequestDTO,
-                                                             @RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> accountDeletion(@RequestBody GetUserPwRequestDTO getUserPwRequestDTO,
+                                                             @AuthenticationPrincipal CustomUserDetails user,
                                                              HttpServletRequest request, HttpServletResponse response) {
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
     String userPw = getUserPwRequestDTO.getUserPw();
 
     int result = myPageService.deleteAccount(userIdx, userPw);
@@ -236,14 +247,14 @@ public class MyPageController {
     response.addCookie(cookie);
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(result)).body(handler.createResponse(result, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(result)).body(ApiResponse.of(result, msg));
   }
 
   // 회원 탈퇴 취소
   @PatchMapping("/accountDeletion/cancel")
-  public ResponseEntity<Map<String, Object>> accountDeletionCancel(@RequestBody GetUserPwRequestDTO getUserPwRequestDTO,
-                                                                   @RequestHeader("Authorization") String authHeader) {
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+  public ResponseEntity<?> accountDeletionCancel(@RequestBody GetUserPwRequestDTO getUserPwRequestDTO,
+                                                                   @AuthenticationPrincipal CustomUserDetails user) {
+    int userIdx = user.getUserIdx();
     String userPw = getUserPwRequestDTO.getUserPw();
 
     int result = myPageService.deleteCancelAccount(userIdx, userPw);
@@ -259,12 +270,12 @@ public class MyPageController {
     }
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(result)).body(handler.createResponse(result, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(result)).body(ApiResponse.of(result, msg));
   }
 
   // 나의 루틴 기록 조회
   @GetMapping("/list/myPlan")
-  public ResponseEntity<Map<String, Object>> getMyPlanList(@RequestParam(defaultValue = "1") int page,
+  public ResponseEntity<?> getMyPlanList(@RequestParam(defaultValue = "1") int page,
                                                            @RequestParam(defaultValue = "10") int size,
                                                            @RequestParam(defaultValue = "0") int status,
                                                            @RequestParam(required = false) List<Integer> target,
@@ -272,23 +283,23 @@ public class MyPageController {
                                                            @RequestParam(defaultValue = "latest") String sort,
                                                            @RequestParam(defaultValue = "desc") String order,
                                                            @RequestParam(required = false) String search,
-                                                           @RequestHeader("Authorization") String authHeader) {
+                                                           @AuthenticationPrincipal CustomUserDetails user) {
 
     //System.out.println("--컨트롤러--");
     //System.out.println(page + " " +  size + " " + status + " " + target + " " + job + " " + sort + " " + order);
     String mode = "private";
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
     Map<String, Object> response = listService.getAllPlansList(mode, page - 1, size, status, target, job, sort, order, search, userIdx);
 
     Object plans = response.get("plans");
 
     if (plans instanceof List<?>) {
       List<PlanListDTO> tempList = ((List<?>) plans).stream()
-          .filter(PlanListDTO.class::isInstance)  // PlanListDTO 타입만 필터링
+          .filter(PlanListDTO.class::isInstance)
           .map(PlanListDTO.class::cast)
           .toList();
       if (tempList.isEmpty()) {
-        return ResponseEntity.status(handler.getHttpStatus(204)).build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
       }
     }
 
@@ -297,10 +308,10 @@ public class MyPageController {
 
   // 선택 루틴 일괄 삭제
   @PatchMapping("/delete/plans")
-  public ResponseEntity<Map<String, Object>> deleteMyPlans(@RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> deleteMyPlans(@AuthenticationPrincipal CustomUserDetails user,
                                                            @RequestBody List<Integer> planIndexes) {
     // userIdx 조회
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
 
     // 서비스 로직 실행
     int result = myPageService.deleteSelectPlans(userIdx, planIndexes);
@@ -315,17 +326,17 @@ public class MyPageController {
     }
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(result))
-        .body(handler.createResponse(result, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(result))
+        .body(ApiResponse.of(result, msg));
   }
 
   // 선택 루틴 일괄 공개/비공개 전환
   @PatchMapping("/switch/isShared")
-  public ResponseEntity<Map<String, Object>> switchMyPlansIsShared(@RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> switchMyPlansIsShared(@AuthenticationPrincipal CustomUserDetails user,
                                                                    @RequestBody List<Integer> planIndexes,
                                                                    @RequestParam(defaultValue = "reverse") String mode) {
     // userIdx 조회
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
 
     // 서비스 로직 실행
     int result = myPageService.switchIsSharedBySelectPlans(userIdx, planIndexes, mode);
@@ -340,13 +351,13 @@ public class MyPageController {
     }
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(result))
-        .body(handler.createResponse(result, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(result))
+        .body(ApiResponse.of(result, msg));
   }
 
   // 내가 참여한 챌린지 조회
   @GetMapping("/list/myChall")
-  public ResponseEntity<Map<String, Object>> getMyChallList(@RequestHeader("Authorization") String authHeader) {
+  public ResponseEntity<?> getMyChallList(@AuthenticationPrincipal CustomUserDetails user) {
 
     int result = 200;
 
@@ -360,20 +371,20 @@ public class MyPageController {
     }
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(result))
-        .body(handler.createResponse(result, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(result))
+        .body(ApiResponse.of(result, msg));
   }
 
   // 내가 좋아요 한 루틴 조회
   @GetMapping("/list/myLike")
-  public ResponseEntity<Map<String, Object>> getMyLikeList(@RequestParam(defaultValue = "1") int page,
+  public ResponseEntity<?> getMyLikeList(@RequestParam(defaultValue = "1") int page,
                                                            @RequestParam(defaultValue = "10") int size,
                                                            @RequestParam(required = false) List<Integer> target,
                                                            @RequestParam(required = false) List<Integer> job,
                                                            @RequestParam(defaultValue = "desc") String order,
                                                            @RequestParam(required = false) String search,
-                                                           @RequestHeader("Authorization") String authHeader) {
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+                                                           @AuthenticationPrincipal CustomUserDetails user) {
+    int userIdx = user.getUserIdx();
     String mode = "myLike";
     int status = 0;
 
@@ -383,11 +394,11 @@ public class MyPageController {
 
     if (plans instanceof List<?>) {
       List<PlanListDTO> tempList = ((List<?>) plans).stream()
-          .filter(PlanListDTO.class::isInstance)  // PlanListDTO 타입만 필터링
+          .filter(PlanListDTO.class::isInstance)
           .map(PlanListDTO.class::cast)
           .toList();
       if (tempList.isEmpty()) {
-        return ResponseEntity.status(handler.getHttpStatus(204)).build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
       }
     }
 
@@ -396,10 +407,10 @@ public class MyPageController {
 
   // 선택 루틴 일괄 삭제
   @DeleteMapping("/delete/likes")
-  public ResponseEntity<Map<String, Object>> deleteMyLikes(@RequestHeader("Authorization") String authHeader,
+  public ResponseEntity<?> deleteMyLikes(@AuthenticationPrincipal CustomUserDetails user,
                                                            @RequestParam List<Integer> planIndexes) {
     // userIdx 조회
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
 
     //System.out.println(planIndexes);
 
@@ -416,12 +427,9 @@ public class MyPageController {
     }
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(result))
-        .body(handler.createResponse(result, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(result))
+        .body(ApiResponse.of(result, msg));
   }
-
-
-
 
 
 

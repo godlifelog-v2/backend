@@ -2,11 +2,9 @@ package com.godLife.project.service;
 
 import com.godLife.project.dto.model.plan.ActivityDTO;
 import com.godLife.project.dto.model.plan.PlanDTO;
-import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.mapper.PlanMapper;
 import com.godLife.project.service.impl.PlanServiceImpl;
 import com.godLife.project.service.interfaces.CategoryService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -30,9 +28,6 @@ class PlanServiceTest {
 
     @Mock
     private CategoryService categoryService;
-
-    @Mock
-    private GlobalExceptionHandler handler;
 
     @InjectMocks
     private PlanServiceImpl planService;
@@ -144,41 +139,33 @@ class PlanServiceTest {
     class PrivateRoutineAccessTest {
 
         @Test
-        @DisplayName("비공개 루틴을 비작성자(토큰 있음)가 조회하면 null 반환 → 컨트롤러에서 404 응답")
+        @DisplayName("비공개 루틴을 비작성자(인증된 다른 유저)가 조회하면 null 반환 → 컨트롤러에서 404 응답")
         void privateRoutine_nonAuthorWithToken_returnsNull() {
             int planIdx = 1;
             PlanDTO privatePlan = new PlanDTO();
             privatePlan.setIsShared(0);   // 비공개
             privatePlan.setUserIdx(100);  // 작성자 userIdx
 
-            HttpServletRequest request = mock(HttpServletRequest.class);
-            String tokenHeader = "Bearer token.of.other.user";
-
             doNothing().when(planMapper).updateCompleteByPlanIdx(planIdx);
             when(planMapper.detailPlanByPlanIdx(planIdx, 0)).thenReturn(privatePlan);
-            when(request.getHeader("Authorization")).thenReturn(tokenHeader);
-            when(handler.getUserIdxFromToken(tokenHeader)).thenReturn(200); // 다른 유저
 
-            PlanDTO result = planService.detailRoutine(planIdx, 0, request);
+            PlanDTO result = planService.detailRoutine(planIdx, 0, 200); // 다른 유저 userIdx
 
             assertThat(result).isNull(); // 빈 DTO가 아닌 null 반환 확인
         }
 
         @Test
-        @DisplayName("비공개 루틴을 토큰 없이 조회하면 null 반환 → 컨트롤러에서 404 응답")
+        @DisplayName("비공개 루틴을 비인증 접근하면 null 반환 → 컨트롤러에서 404 응답")
         void privateRoutine_noToken_returnsNull() {
             int planIdx = 1;
             PlanDTO privatePlan = new PlanDTO();
             privatePlan.setIsShared(0);
             privatePlan.setUserIdx(100);
 
-            HttpServletRequest request = mock(HttpServletRequest.class);
-
             doNothing().when(planMapper).updateCompleteByPlanIdx(planIdx);
             when(planMapper.detailPlanByPlanIdx(planIdx, 0)).thenReturn(privatePlan);
-            when(request.getHeader("Authorization")).thenReturn(null);
 
-            PlanDTO result = planService.detailRoutine(planIdx, 0, request);
+            PlanDTO result = planService.detailRoutine(planIdx, 0, 0); // userIdx=0 = 비인증
 
             assertThat(result).isNull();
         }
@@ -191,13 +178,8 @@ class PlanServiceTest {
             privatePlan.setIsShared(0);
             privatePlan.setUserIdx(authorIdx);
 
-            HttpServletRequest request = mock(HttpServletRequest.class);
-            String tokenHeader = "Bearer author.token";
-
             doNothing().when(planMapper).updateCompleteByPlanIdx(planIdx);
             when(planMapper.detailPlanByPlanIdx(planIdx, 0)).thenReturn(privatePlan);
-            when(request.getHeader("Authorization")).thenReturn(tokenHeader);
-            when(handler.getUserIdxFromToken(tokenHeader)).thenReturn(authorIdx);
             when(categoryService.getIdxOfCustomJob()).thenReturn(19);
             when(planMapper.detailActivityByPlanIdx(planIdx)).thenReturn(List.of());
             when(planMapper.getTargetCategoryByTargetIdx(anyInt())).thenReturn(null);
@@ -205,25 +187,22 @@ class PlanServiceTest {
             when(planMapper.getVerifyCountByPlanIdx(planIdx)).thenReturn(0);
             when(planMapper.getJOBCategoryByJobIdx(anyInt())).thenReturn(null);
 
-            PlanDTO result = planService.detailRoutine(planIdx, 0, request);
+            PlanDTO result = planService.detailRoutine(planIdx, 0, authorIdx);
 
             assertThat(result).isNotNull();
             assertThat(result.getIsWriter()).isEqualTo(1); // 작성자 플래그 확인
         }
 
         @Test
-        @DisplayName("공개 루틴은 토큰 없이도 정상 데이터 반환")
+        @DisplayName("공개 루틴은 비인증 접근도 정상 데이터 반환")
         void publicRoutine_noToken_returnsData() {
             int planIdx = 2;
             PlanDTO publicPlan = new PlanDTO();
             publicPlan.setIsShared(1);  // 공개
             publicPlan.setUserIdx(100);
 
-            HttpServletRequest request = mock(HttpServletRequest.class);
-
             doNothing().when(planMapper).updateCompleteByPlanIdx(planIdx);
             when(planMapper.detailPlanByPlanIdx(planIdx, 0)).thenReturn(publicPlan);
-            when(request.getHeader("Authorization")).thenReturn(null);
             when(categoryService.getIdxOfCustomJob()).thenReturn(19);
             when(planMapper.detailActivityByPlanIdx(planIdx)).thenReturn(List.of());
             when(planMapper.getTargetCategoryByTargetIdx(anyInt())).thenReturn(null);
@@ -231,7 +210,7 @@ class PlanServiceTest {
             when(planMapper.getVerifyCountByPlanIdx(planIdx)).thenReturn(0);
             when(planMapper.getJOBCategoryByJobIdx(anyInt())).thenReturn(null);
 
-            PlanDTO result = planService.detailRoutine(planIdx, 0, request);
+            PlanDTO result = planService.detailRoutine(planIdx, 0, 0); // 비인증
 
             assertThat(result).isNotNull();
             assertThat(result.getIsWriter()).isEqualTo(0); // 작성자 아님

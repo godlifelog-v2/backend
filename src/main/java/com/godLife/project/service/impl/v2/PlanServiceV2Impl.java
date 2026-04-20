@@ -8,7 +8,6 @@ import com.godLife.project.dto.response.plan.v2.ActivityV2DTO;
 import com.godLife.project.dto.response.plan.v2.PlanDetailDTO;
 import com.godLife.project.dto.response.plan.v2.PlanExtraInfoDTO;
 import com.godLife.project.enums.RepeatDay;
-import com.godLife.project.handler.GlobalExceptionHandler;
 import com.godLife.project.mapper.PlanMapper;
 import com.godLife.project.mapstruct.PlanDetailMapper;
 import com.godLife.project.mapper.v2.PlanMapperV2;
@@ -16,7 +15,6 @@ import com.godLife.project.mapper.v2.PlanRepeatDayMapper;
 import com.godLife.project.service.interfaces.CategoryService;
 import com.godLife.project.service.interfaces.VerifyService;
 import com.godLife.project.service.interfaces.v2.PlanServiceV2;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,7 +38,6 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
     private final PlanRepeatDayMapper planRepeatDayMapper;
     private final PlanDetailMapper planDetailMapper;
     private final CategoryService categoryService;
-    private final GlobalExceptionHandler handler;
     private final VerifyService verifyService;
 
     // ========================= 공통 가드 메서드 =========================
@@ -66,24 +63,22 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
 
     @Override
     @Transactional
-    public PlanDetailDTO detailRoutine(int planIdx, int isDeleted, HttpServletRequest request) {
+    public PlanDetailDTO detailRoutine(int planIdx, int isDeleted, int userIdx) {
         planMapper.updateCompleteByPlanIdx(planIdx);
 
         PlanDTO planDTO = planMapper.detailPlanByPlanIdx(planIdx, isDeleted);
         if (planDTO == null) return null;
 
-        String authHeader = request.getHeader("Authorization");
         boolean isPrivate = planDTO.getIsShared() == 0;
-        boolean existAuth = authHeader != null && authHeader.startsWith("Bearer ");
+        boolean isAuthenticated = userIdx > 0;
 
-        if (existAuth) {
-            int userIdx = handler.getUserIdxFromToken(authHeader);
+        if (isAuthenticated) {
             if (userIdx == planDTO.getUserIdx()) {
                 planDTO.setIsWriter(1);
             }
             if (isPrivate && planDTO.getIsWriter() == 0) return null;
         }
-        if (!existAuth && isPrivate) return null;
+        if (!isAuthenticated && isPrivate) return null;
 
         // V2: PLAN_REPEAT_DAYS에서 요일 정보 로드
         planDTO.setRepeatDays(planRepeatDayMapper.getRepeatDayStringsByPlanIdx(planIdx));

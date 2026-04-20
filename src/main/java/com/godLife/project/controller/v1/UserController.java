@@ -4,13 +4,15 @@ import com.godLife.project.dto.model.user.UserDTO;
 import com.godLife.project.dto.query.user.GetNameNEmail;
 import com.godLife.project.dto.request.myPage.GetUserPwRequestDTO;
 import com.godLife.project.dto.response.user.UserProfileResponseDTO;
-import com.godLife.project.handler.GlobalExceptionHandler;
+import com.godLife.project.dto.response.common.ApiResponse;
+import com.godLife.project.dto.security.CustomUserDetails;
 import com.godLife.project.service.impl.redis.RedisService;
 import com.godLife.project.service.interfaces.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,13 +28,10 @@ public class UserController {
 
   private final RedisService redisService;
 
-  private final GlobalExceptionHandler handler;
-
   // 회원가입
   @Operation(summary = "회원가입 API", description = "유효성 검사 후 모두 통과시 정보 Insert")
   @PostMapping("/join")
   public ResponseEntity<Map<String, String>> join (@Valid @RequestBody UserDTO joinUserDTO, BindingResult result) {
-    // System.out.println(joinUserDTO);
     // 유효성 검사
     if (result.hasErrors()) {
       Map<String, String> errors = new HashMap<>();
@@ -69,64 +68,68 @@ public class UserController {
     return ResponseEntity.ok(isAvailable);
   }
 
-  // 아이디 찾기 (마스킹) — GET → POST 변경: 이름/이메일이 URL 로그에 노출되지 않도록
+  // 아이디 찾기 (마스킹)
   @PostMapping("/find/userId")
-  public ResponseEntity<Map<String, Object>> findUserId(@Valid @RequestBody GetNameNEmail request,
+  public ResponseEntity<?> findUserId(@Valid @RequestBody GetNameNEmail request,
                                                         BindingResult valid) {
     if (valid.hasErrors()) {
-      return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
+      Map<String, String> errors = new HashMap<>();
+      valid.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+      return ResponseEntity.badRequest().body((Map) errors);
     }
 
     String result = userService.FindUserIdByNameNEmail(request, true);
 
     if (result == null || result.isBlank()) {
-      return ResponseEntity.status(404).body(handler.createResponse(404, "아이디가 없습니다."));
+      return ResponseEntity.status(404).body(ApiResponse.of(404, "아이디가 없습니다."));
     }
-    return ResponseEntity.ok().body(handler.createResponse(200, result));
+    return ResponseEntity.ok().body(ApiResponse.of(200, "아이디 찾기 성공", result));
   }
 
-  // 아이디 찾기 (마스킹 해제) — GET → POST 변경 + TOCTOU 방어를 위한 원자적 인증 플래그 처리
+  // 아이디 찾기 (마스킹 해제)
   @PostMapping("/find/userId/noMask")
-  public ResponseEntity<Map<String, Object>> noMaskingUserId(@Valid @RequestBody GetNameNEmail request,
+  public ResponseEntity<?> noMaskingUserId(@Valid @RequestBody GetNameNEmail request,
                                                              BindingResult valid) {
     if (valid.hasErrors()) {
-      return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
+      Map<String, String> errors = new HashMap<>();
+      valid.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+      return ResponseEntity.badRequest().body((Map) errors);
     }
 
-    // 이메일 인증 플래그를 원자적으로 조회+삭제 (GETDEL) — Race Condition 방지
+    // 이메일 인증 플래그를 원자적으로 조회+삭제
     String key = "EMAIL_VERIFIED: " + request.getUserEmail();
     String verified = redisService.getAndDeleteStringData(key);
 
     if (!"true".equals(verified)) {
-      return ResponseEntity.status(handler.getHttpStatus(412))
-          .body(handler.createResponse(412, "이메일 인증이 필요합니다."));
+      return ResponseEntity.status(412)
+          .body(ApiResponse.of(412, "이메일 인증이 필요합니다."));
     }
 
     String result = userService.FindUserIdByNameNEmail(request, false);
 
     if (result == null || result.isBlank()) {
-      return ResponseEntity.status(404).body(handler.createResponse(404, "아이디가 없습니다."));
+      return ResponseEntity.status(404).body(ApiResponse.of(404, "아이디가 없습니다."));
     }
-    return ResponseEntity.ok().body(handler.createResponse(200, result));
+    return ResponseEntity.ok().body(ApiResponse.of(200, "아이디 찾기 성공", result));
   }
 
-  // 비밀번호 초기화 — Path Variable 이메일 제거: URL 로그에 이메일이 노출되지 않도록 Body로 이동
-  //                    TOCTOU 방어: 인증 플래그를 원자적으로 조회+삭제
-  //                    500 시 인증 플래그 재삭제 방지: getAndDelete로 사전에 처리
+  // 비밀번호 초기화
   @PatchMapping("/find/userPw")
-  public ResponseEntity<Map<String, Object>> findUserPw(@Valid @RequestBody GetUserPwRequestDTO request,
+  public ResponseEntity<?> findUserPw(@Valid @RequestBody GetUserPwRequestDTO request,
                                                         BindingResult valid) {
     if (valid.hasErrors()) {
-      return ResponseEntity.badRequest().body(handler.getValidationErrors(valid));
+      Map<String, String> errors = new HashMap<>();
+      valid.getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
+      return ResponseEntity.badRequest().body((Map) errors);
     }
 
-    // 이메일 인증 플래그를 원자적으로 조회+삭제 (GETDEL) — Race Condition 방지
+    // 이메일 인증 플래그를 원자적으로 조회+삭제
     String key = "EMAIL_VERIFIED: " + request.getUserEmail();
     String verified = redisService.getAndDeleteStringData(key);
 
     if (!"true".equals(verified)) {
-      return ResponseEntity.status(handler.getHttpStatus(412))
-          .body(handler.createResponse(412, "이메일 인증이 필요합니다."));
+      return ResponseEntity.status(412)
+          .body(ApiResponse.of(412, "이메일 인증이 필요합니다."));
     }
 
     int result = userService.FindUserPw(request, request.getUserEmail());
@@ -141,20 +144,20 @@ public class UserController {
       default -> "알 수 없는 오류가 발생했습니다.";
     };
 
-    return ResponseEntity.status(handler.getHttpStatus(result)).body(handler.createResponse(result, msg));
+    return ResponseEntity.status(result).body(ApiResponse.of(result, msg));
   }
 
   // 프로필 조회
   @Operation(summary = "유저 프로필 조회 API", description = "로그인 후 유저의 프로필 데이터 조회")
   @GetMapping("/auth/profile")
-  public ResponseEntity<Map<String, Object>> getUserProfile(@RequestHeader("Authorization") String authHeader) {
-    String userId = handler.getUserNameFromToken(authHeader);
+  public ResponseEntity<?> getUserProfile(@AuthenticationPrincipal CustomUserDetails user) {
+    String userId = user.getUsername();
     UserProfileResponseDTO result = userService.getUserProfile(userId);
 
     if (result == null) {
-      return ResponseEntity.status(404).body(handler.createResponse(404, "유저 정보가 없습니다."));
+      return ResponseEntity.status(404).body(ApiResponse.of(404, "유저 정보가 없습니다."));
     }
-    return ResponseEntity.ok(handler.createResponseWithData(200, "유저 프로필 조회 성공", result));
+    return ResponseEntity.ok(ApiResponse.of(200, "유저 프로필 조회 성공", result));
   }
 
 }

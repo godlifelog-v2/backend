@@ -1,7 +1,10 @@
 package com.godLife.project.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.godLife.project.dto.response.common.ApiResponse;
 import com.godLife.project.dto.security.CustomUserDetails;
 import com.godLife.project.dto.model.user.UserDTO;
+import com.godLife.project.mapper.VerifyMapper;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -27,10 +30,14 @@ public class JWTFilter extends OncePerRequestFilter {
   private static final RequestMatcher matcherAdmin2  = new AntPathRequestMatcher("/api/v1/admin/**");
   private static final RequestMatcher matcherAuthV2  = new AntPathRequestMatcher("/api/v2/*/auth/**");
 
-  private final JWTUtil jwtUtil;
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
-  public JWTFilter(JWTUtil jwtUtil) {
+  private final JWTUtil jwtUtil;
+  private final VerifyMapper verifyMapper;
+
+  public JWTFilter(JWTUtil jwtUtil, VerifyMapper verifyMapper) {
     this.jwtUtil = jwtUtil;
+    this.verifyMapper = verifyMapper;
   }
 
   @Override
@@ -48,21 +55,21 @@ public class JWTFilter extends OncePerRequestFilter {
       return;
     }
 
-    String accessToken = authorization.split(" ")[1];
+    String accessToken = authorization.substring(7);
 
     // 토큰 만료 여부 확인
     try {
       jwtUtil.isExpired(accessToken);
     } catch (ExpiredJwtException e) {
-      sendJson(response, HttpServletResponse.SC_UNAUTHORIZED, "{\"message\": \"access token expired\"}");
+      sendApiResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "access token expired");
       log.error("JWT access 토큰 만료: {}", e.getMessage());
       return;
     }
 
     // access 토큰 카테고리 확인
     String category = jwtUtil.getCategory(accessToken);
-    if (!category.equals("access")) {
-      sendJson(response, HttpServletResponse.SC_UNAUTHORIZED, "{\"message\": \"invalid access token\"}");
+    if (!"access".equals(category)) {
+      sendApiResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "invalid access token");
       log.error("유효하지 않은 access 토큰 사용: {}", category);
       return;
     }
@@ -70,10 +77,20 @@ public class JWTFilter extends OncePerRequestFilter {
     String username = jwtUtil.getUsername(accessToken);
     String role = jwtUtil.getRole(accessToken);
 
+    // userIdx를 JWT claim에서 읽음. 구형 토큰(claim 없음)이면 DB fallback.
+    Integer claimUserIdx = jwtUtil.getUserIdx(accessToken);
+    int userIdx;
+    if (claimUserIdx == null || claimUserIdx == 0) {
+      log.warn("구형 토큰(userIdx claim 없음) - DB fallback 실행, userId: {}", username);
+      userIdx = verifyMapper.getUserIdxByUserId(username);
+    } else {
+      userIdx = claimUserIdx;
+    }
+
     UserDTO userDTO = new UserDTO();
     userDTO.setUserId(username);
     userDTO.setAuthorityIdx(Integer.parseInt(role));
-    CustomUserDetails customUserDetails = new CustomUserDetails(userDTO);
+    CustomUserDetails customUserDetails = new CustomUserDetails(userDTO, userIdx);
 
     Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
     SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -81,12 +98,11 @@ public class JWTFilter extends OncePerRequestFilter {
     filterChain.doFilter(request, response);
   }
 
-  private void sendJson(HttpServletResponse response, int status, String json) throws IOException {
-    response.setContentType("application/json");
-    response.setCharacterEncoding("UTF-8");
-    response.setStatus(status);
+  private void sendApiResponse(HttpServletResponse response, int code, String message) throws IOException {
+    response.setContentType("application/json;charset=UTF-8");
+    response.setStatus(code);
     PrintWriter writer = response.getWriter();
-    writer.print(json);
+    writer.print(objectMapper.writeValueAsString(ApiResponse.of(code, message)));
     writer.flush();
     writer.close();
   }

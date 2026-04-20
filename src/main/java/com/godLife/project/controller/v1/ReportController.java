@@ -3,12 +3,14 @@ package com.godLife.project.controller.v1;
 
 import com.godLife.project.dto.query.report.PlanReportDTO;
 import com.godLife.project.dto.query.report.UserReportDTO;
-import com.godLife.project.handler.GlobalExceptionHandler;
+import com.godLife.project.dto.response.common.ApiResponse;
+import com.godLife.project.dto.security.CustomUserDetails;
 import com.godLife.project.service.interfaces.jwtInterface.ReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -19,23 +21,16 @@ import java.util.Map;
 @RequestMapping("/api/v1/report")
 public class ReportController {
 
-  @Autowired
-  private GlobalExceptionHandler handler;
-
   private final ReportService reportService;
 
   // 루틴 신고하기
   @PostMapping("/auth/plan/{planIdx}")
-  ResponseEntity<Map<String, Object>> planReport(@RequestHeader("Authorization") String authHeader,
+  ResponseEntity<?> planReport(@AuthenticationPrincipal CustomUserDetails user,
                                                  @PathVariable int planIdx,
                                                  @RequestBody PlanReportDTO planReportDTO) {
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
     planReportDTO.setReporterIdx(userIdx);
     planReportDTO.setPlanIdx(planIdx);
-
-//    System.out.println("📌 reporterIdx: " + planReportDTO.getReporterIdx());
-//    System.out.println("📌 planIdx: " + planReportDTO.getPlanIdx());
-//    System.out.println("📌 reportReason: " + planReportDTO.getReportReason());
 
     int result = reportService.planReport(planReportDTO);
 
@@ -51,14 +46,14 @@ public class ReportController {
     }
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(result))
-        .body(handler.createResponse(result, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(result))
+        .body(ApiResponse.of(result, msg));
   }
 
   @PatchMapping("/auth/plan/cancel/{planIdx}")
-  ResponseEntity<Map<String, Object>> planReportCancel(@RequestHeader("Authorization") String authHeader,
+  ResponseEntity<?> planReportCancel(@AuthenticationPrincipal CustomUserDetails user,
                                                        @PathVariable int planIdx) {
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
 
     PlanReportDTO planReportDTO = new PlanReportDTO();
 
@@ -78,15 +73,15 @@ public class ReportController {
     }
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(result))
-        .body(handler.createResponse(result, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(result))
+        .body(ApiResponse.of(result, msg));
   }
 
   @PostMapping("/auth/user/{reportedIdx}")
-  ResponseEntity<Map<String, Object>> userReport(@RequestHeader("Authorization") String authHeader,
+  ResponseEntity<?> userReport(@AuthenticationPrincipal CustomUserDetails user,
                                                  @PathVariable int reportedIdx,
                                                  @RequestBody UserReportDTO userReportDTO) {
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
     userReportDTO.setReporterIdx(userIdx);
     userReportDTO.setReportedIdx(reportedIdx);
 
@@ -106,14 +101,14 @@ public class ReportController {
     }
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(result))
-        .body(handler.createResponse(result, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(result))
+        .body(ApiResponse.of(result, msg));
   }
 
   @PatchMapping("/auth/user/cancel/{reportedIdx}")
-  ResponseEntity<Map<String, Object>> userReportCancel(@RequestHeader("Authorization") String authHeader,
+  ResponseEntity<?> userReportCancel(@AuthenticationPrincipal CustomUserDetails user,
                                                        @PathVariable int reportedIdx) {
-    int userIdx = handler.getUserIdxFromToken(authHeader);
+    int userIdx = user.getUserIdx();
 
     UserReportDTO userReportDTO = new UserReportDTO();
 
@@ -133,7 +128,7 @@ public class ReportController {
     }
 
     // 응답 메시지 설정
-    return ResponseEntity.status(handler.getHttpStatus(result))
-        .body(handler.createResponse(result, msg));
+    return ResponseEntity.status(HttpStatus.valueOf(result))
+        .body(ApiResponse.of(result, msg));
   }
 }

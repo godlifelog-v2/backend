@@ -2,15 +2,13 @@ package com.godLife.project.service.interfaces;
 
 import com.godLife.project.dto.model.plan.PlanDTO;
 import com.godLife.project.dto.request.plan.PlanRequestDTO;
-import jakarta.servlet.http.HttpServletRequest;
-
 public interface PlanService {
 
   // 루틴과 활동 저장
   int insertPlanWithAct(PlanDTO planDTO);
 
-  // 루틴과 활동 상세 조회
-  PlanDTO detailRoutine(int planIdx, int isDeleted, HttpServletRequest request);
+  // 루틴과 활동 상세 조회 (userIdx=0이면 비인증 접근)
+  PlanDTO detailRoutine(int planIdx, int isDeleted, int userIdx);
 
   // 루틴과 활동 수정
   int modifyPlanWithAct(PlanDTO planDTO, int isDeleted);

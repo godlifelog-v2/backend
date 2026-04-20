@@ -1,12 +1,14 @@
 package com.godLife.project.controller.v2;
 
 import com.godLife.project.dto.response.plan.v2.MyPlanV2DTO;
-import com.godLife.project.handler.GlobalExceptionHandler;
+import com.godLife.project.dto.response.common.ApiResponse;
+import com.godLife.project.dto.security.CustomUserDetails;
 import com.godLife.project.service.interfaces.v2.ListServiceV2;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,15 +21,12 @@ import java.util.NoSuchElementException;
 @RequestMapping("/api/v2/list")
 public class ListControllerV2 {
 
-  @Autowired
-  private final GlobalExceptionHandler handler;
-
   private final ListServiceV2 listServiceV2;
 
   @GetMapping("/auth/myPlans")
-  public ResponseEntity<Map<String, Object>> listMyPlans(@RequestHeader("Authorization") String authHeader) {
+  public ResponseEntity<?> listMyPlans(@AuthenticationPrincipal CustomUserDetails user) {
     try {
-      int userIdx = handler.getUserIdxFromToken(authHeader);
+      int userIdx = user.getUserIdx();
       List<MyPlanV2DTO> myPlanList = listServiceV2.getMyPlansList(userIdx);
 
       if (myPlanList == null) {
@@ -37,22 +36,22 @@ public class ListControllerV2 {
       if (myPlanList.isEmpty()) {
         throw new NoSuchElementException("진행/대기중인 루틴 없음.");
       }
-      return ResponseEntity.ok().body(handler.createResponseWithData(200, "루틴 리스트 조회 성공", myPlanList));
+      return ResponseEntity.ok().body(ApiResponse.of(200, "루틴 리스트 조회 성공", myPlanList));
 
     } catch (NoSuchElementException e) {
-      return ResponseEntity.status(handler.getHttpStatus(204)).build();
+      return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     } catch (Exception e) {
       String msg = "서버 내부 오류로 인해 루틴 리스트 조회에 실패했습니다.";
       log.error("e: ", e);
-      return ResponseEntity.status(handler.getHttpStatus(500)).body(handler.createResponse(500, msg));
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.of(500, msg));
     }
   }
 
   @GetMapping("/auth/todayPlans")
-  public ResponseEntity<Map<String, Object>> listTodayPlans(
-          @RequestHeader("Authorization") String authHeader) {
+  public ResponseEntity<?> listTodayPlans(
+          @AuthenticationPrincipal CustomUserDetails user) {
     try {
-      int userIdx = handler.getUserIdxFromToken(authHeader);
+      int userIdx = user.getUserIdx();
       List<MyPlanV2DTO> todayPlanList = listServiceV2.getTodayPlansList(userIdx);
 
       if (todayPlanList == null) {
@@ -63,15 +62,15 @@ public class ListControllerV2 {
         throw new NoSuchElementException("오늘 진행할 루틴 없음.");
       }
 
-      return ResponseEntity.ok().body(handler.createResponseWithData(200, "오늘의 루틴 조회 성공", todayPlanList));
+      return ResponseEntity.ok().body(ApiResponse.of(200, "오늘의 루틴 조회 성공", todayPlanList));
 
     } catch (NoSuchElementException e) {
-      return ResponseEntity.status(handler.getHttpStatus(204)).build();
+      return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     } catch (Exception e) {
       String msg = "서버 내부 오류로 인해 오늘의 루틴 조회에 실패했습니다.";
       log.error("e: ", e);
-      return ResponseEntity.status(handler.getHttpStatus(500))
-          .body(handler.createResponse(500, msg));
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body(ApiResponse.of(500, msg));
     }
   }
 
