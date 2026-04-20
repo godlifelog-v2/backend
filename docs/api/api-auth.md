@@ -92,7 +92,7 @@
 
 | 상태 코드 | 응답 본문 | 설명 |
 |---|---|---|
-| `200 OK` | `{ "code": 200, "message": "회원가입 완료", "status": "success" }` | 가입 성공 |
+| `200 OK` | `{ "code": 200, "message": "회원가입 완료", "status": 200 }` | 가입 성공 |
 | `400 Bad Request` | `{ "필드명": "에러 메시지", ... }` | 유효성 검사 실패 |
 
 ---
@@ -217,7 +217,7 @@ Spring Security 필터(`CustomLogoutFilter`)에서 처리됩니다.
 ```json
 {
   "code": 200,
-  "status": "success",
+  "status": 200,
   "message": "프로필 조회 성공",
   "data": {
     "userNick": "철수짱", "nickTag": "#1",

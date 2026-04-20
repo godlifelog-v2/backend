@@ -1,6 +1,6 @@
 # GodLifeLog v2 Backend - REST API 레퍼런스
 
-> 작성일: 2026-04-07 / 최종 수정: 2026-04-13
+> 작성일: 2026-04-07 / 최종 수정: 2026-04-20
 > 기준 브랜치: `dev`
 > Base URL: `/api/v1`
 
@@ -58,16 +58,20 @@ Authorization: Bearer {accessToken}
 
 ```json
 // 패턴 A — 단일 리소스 / 목록 (data 필드에 DTO 또는 배열 포함)
-{ "code": 200, "status": "success", "message": "조회 성공", "data": { /* DTO */ } }
+{ "code": 200, "message": "조회 성공", "data": { /* DTO */ }, "status": 200 }
 
 // 패턴 B — 페이징 목록 (루트 레벨에 페이징 정보 포함, 엔드포인트마다 루트 키 이름 상이)
 { "plans": [ /* DTO[] */ ], "totalPages": 5, "currentPage": 1, "pageSize": 10 }
 
-// 패턴 C — 단순 결과 (data 없음, message만 문자열)
-{ "code": 200, "status": "success", "message": "처리 완료" }
+// 패턴 C — 단순 결과 (data 없음)
+{ "code": 200, "message": "처리 완료", "data": null, "status": 200 }
+
+// 패턴 D — 오류 응답
+{ "code": 404, "message": "요청한 리소스를 찾을 수 없습니다.", "data": null, "status": 404 }
 ```
 
-> **필드 규칙**: `message`는 항상 **문자열**. 리소스 데이터(DTO, 배열 등)는 `data` 필드에 담김.
+> **필드 규칙**: `code`·`status`는 HTTP 상태 코드와 동일한 숫자. `status`는 프론트엔드 호환용 alias(추후 제거 예정).
+> `message`는 항상 **문자열**. 리소스 데이터(DTO, 배열 등)는 `data` 필드에 담김.
 > 페이징 응답은 엔드포인트별로 루트 키 이름이 다름 (`plans`, `challenges`, `qnaList` 등).
 
 ### 페이징 파라미터(공통)

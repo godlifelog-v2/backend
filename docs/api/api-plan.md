@@ -114,7 +114,7 @@
 ```json
 {
   "code": 200,
-  "status": "success",
+  "status": 200,
   "message": "루틴 추가 정보 조회 성공",
   "data": {
     "planIdx": 123,
@@ -184,7 +184,7 @@
 ```json
 {
   "code": 201,
-  "status": "created",
+  "status": 201,
   "message": "루틴 포크 성공",
   "data": {
     "planIdx": 87
@@ -285,7 +285,7 @@
 ```json
 {
   "code": 200,
-  "status": "success",
+  "status": 200,
   "message": "활동 일괄 처리 성공",
   "data": {
     "activities": [
@@ -309,7 +309,7 @@
 ```json
 {
   "code": 409,
-  "status": "conflict",
+  "status": 409,
   "message": "데이터가 변경되었습니다. 최신 데이터를 다시 불러와 주세요.",
   "data": {
     "success": false,
@@ -342,7 +342,7 @@
 ```json
 {
   "code": 200,
-  "status": "success",
+  "status": 200,
   "message": "활동 인증이 정상적으로 처리되었습니다.",
   "data": {
     "activities": [
@@ -379,7 +379,7 @@
 ```json
 {
   "code": 200,
-  "status": "success",
+  "status": 200,
   "message": "루틴 상세 조회 성공",
   "data": {
     "planIdx": 1,
@@ -479,7 +479,7 @@
 ```json
 {
   "code": 200,
-  "status": "success",
+  "status": 200,
   "message": "내 루틴 목록 조회 성공",
   "data": [
     {
@@ -508,7 +508,7 @@
 
 **`/auth/todayPlans` 응답 예시**
 ```json
-{ "code": 200, "status": "success", "message": "오늘의 루틴 조회 성공", "data": [ /* MyPlanV2DTO[] — 오늘 요일 해당 & IS_ACTIVE=1 루틴만 */ ] }
+{ "code": 200, "status": 200, "message": "오늘의 루틴 조회 성공", "data": [ /* MyPlanV2DTO[] — 오늘 요일 해당 & IS_ACTIVE=1 루틴만 */ ] }
 ```
 
 **응답 상세**
@@ -536,7 +536,7 @@
 ```json
 {
   "code": 200,
-  "status": "success",
+  "status": 200,
   "message": "통계 조회 성공",
   "data": {
     "totalToday": 3,
