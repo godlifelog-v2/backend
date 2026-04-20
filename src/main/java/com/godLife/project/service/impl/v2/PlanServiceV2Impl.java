@@ -203,17 +203,27 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int forkPlan(int sourcePlanIdx, PlanForkRequestV2 dto, int userIdx) {
+    public Map<String, Object> forkPlan(int sourcePlanIdx, PlanForkRequestV2 dto, int userIdx) {
+        Map<String, Object> result = new HashMap<>();
         try {
             PlanDTO source = planMapper.detailPlanByPlanIdx(sourcePlanIdx, 0);
-            if (source == null) return 404;
-            if (source.getIsShared() == 0) return 403;
+            if (source == null) { result.put("status", 404); return result; }
+            if (source.getIsShared() == 0) { result.put("status", 403); return result; }
 
-            if (isUserDeleted(userIdx)) return 410;
+            if (isUserDeleted(userIdx)) { result.put("status", 410); return result; }
+
+            int copyMode = dto.getCopyMode();
+            if (copyMode == 1 && (dto.getActivities() == null || dto.getActivities().isEmpty())) {
+                result.put("status", 422);
+                return result;
+            }
 
             int isCompleted = 0;
             int isDeleted = 0;
-            if (planMapper.getCntOfPlanByUserIdxNIsCompleted(userIdx, isCompleted, isDeleted) > 19) return 412;
+            if (planMapper.getCntOfPlanByUserIdxNIsCompleted(userIdx, isCompleted, isDeleted) > 19) {
+                result.put("status", 412);
+                return result;
+            }
 
             int customJobIdx = categoryService.getIdxOfCustomJob();
             int resolvedJobIdx = dto.getJobIdx() != null ? dto.getJobIdx() : source.getJobIdx();
@@ -249,13 +259,40 @@ public class PlanServiceV2Impl implements PlanServiceV2 {
                 planMapper.insertJobEtc(jobEtcCateDTO);
             }
 
+            if (copyMode == 0) {
+                // 원본 루틴의 활동 그대로 복사
+                List<ActivityV2DTO> sourceActivities = planMapperV2.getActivitiesByPlanIdx(sourcePlanIdx);
+                for (ActivityV2DTO srcAct : sourceActivities) {
+                    ActivityItemV2 item = new ActivityItemV2();
+                    item.setPlanIdx(newPlanIdx);
+                    item.setActivityName(srcAct.getActivityName());
+                    item.setSetTime(srcAct.getSetTime());
+                    item.setActivityImp(srcAct.getActivityImp());
+                    item.setEvent(srcAct.isEvent());
+                    item.setDuration(srcAct.getDuration());
+                    planMapperV2.insertActivityV2(item);
+                }
+            } else if (copyMode == 1) {
+                // 클라이언트가 전달한 커스텀 활동 목록으로 생성
+                for (ActivityItemV2 item : dto.getActivities()) {
+                    item.setPlanIdx(newPlanIdx);
+                    planMapperV2.insertActivityV2(item);
+                }
+            }
+            // copyMode == 2: 활동 없이 루틴만 생성
+
             planMapper.modifyForkCount(sourcePlanIdx, isDeleted);
 
-            return 201;
+            List<ActivityV2DTO> activities = planMapperV2.getActivitiesByPlanIdx(newPlanIdx);
+            result.put("status", 201);
+            result.put("planIdx", newPlanIdx);
+            result.put("activities", activities);
+            return result;
         } catch (Exception e) {
             log.error("forkPlan error: ", e);
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return 500;
+            result.put("status", 500);
+            return result;
         }
     }
 

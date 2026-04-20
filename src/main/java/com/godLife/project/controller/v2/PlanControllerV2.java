@@ -167,7 +167,8 @@ public class PlanControllerV2 {
             return ResponseEntity.badRequest().body(ApiResponse.of(400, "유효성 검사 실패", errors));
         }
         int userIdx = user.getUserIdx();
-        int status = planServiceV2.forkPlan(sourcePlanIdx, dto, userIdx);
+        Map<String, Object> serviceResult = planServiceV2.forkPlan(sourcePlanIdx, dto, userIdx);
+        int status = (int) serviceResult.get("status");
         String msg = switch (status) {
             case 201 -> "루틴 포크 성공";
             case 403 -> "비공개 루틴은 포크할 수 없습니다.";
@@ -177,8 +178,13 @@ public class PlanControllerV2 {
             default  -> "서버 내부 오류로 루틴 포크에 실패했습니다.";
         };
         if (status == 201) {
+            @SuppressWarnings("unchecked")
+            List<?> activities = (List<?>) serviceResult.get("activities");
             return ResponseEntity.status(HttpStatus.valueOf(status))
-                    .body(ApiResponse.of(status, msg, Map.of("planIdx", dto.getPlanIdx())));
+                    .body(ApiResponse.of(status, msg, Map.of(
+                            "planIdx", serviceResult.get("planIdx"),
+                            "activities", activities
+                    )));
         }
         return ResponseEntity.status(HttpStatus.valueOf(status))
                 .body(ApiResponse.of(status, msg));

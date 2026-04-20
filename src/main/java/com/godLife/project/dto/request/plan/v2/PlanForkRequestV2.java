@@ -12,6 +12,7 @@ import java.util.List;
 /**
  * 포크를 통한 루틴 생성 요청 DTO.
  * null 필드는 원본 루틴 값을 그대로 사용하고, 값이 있는 필드만 오버라이드된다.
+ * copyMode: 0=원본 활동 복사, 1=커스텀 활동(activities 필수), 2=활동 없이 루틴만 생성
  */
 @Data
 public class PlanForkRequestV2 {
@@ -57,4 +58,13 @@ public class PlanForkRequestV2 {
     @Schema(description = "기타 직업 정보 (jobIdx가 기타 직업일 때 필수)")
     @Valid
     private JobEtcCateDTO jobEtcCateDTO;
+
+    @Schema(description = "활동 생성 모드 (0: 원본 활동 복사, 1: 커스텀 활동 지정, 2: 활동 없이 루틴만 생성)", example = "0")
+    @Min(value = 0, message = "copyMode는 0, 1, 2 중 하나여야 합니다.")
+    @Max(value = 2, message = "copyMode는 0, 1, 2 중 하나여야 합니다.")
+    private int copyMode = 0;
+
+    @Schema(description = "커스텀 활동 목록 (copyMode=1일 때 필수, 나머지는 null 가능)")
+    @Valid
+    private List<ActivityItemV2> activities;
 }

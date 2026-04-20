@@ -55,7 +55,7 @@
 | GET | `/detail/{planIdx}` | 루틴 상세 조회 (boolean 플래그, 읽기 전용 DTO) | Path: `planIdx`, Cookie: `viewed_plans` | ❌ |
 | GET | `/auth/{planIdx}/extra` | 루틴 추가 정보 조회 (포크·날짜·카운트·완료·후기) | Path: `planIdx` | ✅ JWT |
 | POST | `/auth` | 루틴 생성 (활동 미포함) | Body: `PlanCreateRequestV2` | ✅ JWT |
-| POST | `/auth/{sourcePlanIdx}/fork` | 공개 루틴 포크 생성 (null 필드는 원본 값 사용) | Path: `sourcePlanIdx`, Body: `PlanForkRequestV2` | ✅ JWT |
+| POST | `/auth/{sourcePlanIdx}/fork` | 공개 루틴 포크 생성 (null 필드는 원본 값 사용, `copyMode`로 활동 생성 방식 선택) | Path: `sourcePlanIdx`, Body: `PlanForkRequestV2` | ✅ JWT |
 | PATCH | `/auth/{planIdx}` | 루틴 부분 수정 (null 필드 제외, planImp 제외) | Path: `planIdx`, Body: `PlanUpdateRequestV2` | ✅ JWT |
 | DELETE | `/auth/{planIdx}` | 루틴 소프트 삭제 | Path: `planIdx` | ✅ JWT |
 
@@ -99,7 +99,7 @@
 | GET `/plan/detail/{planIdx}` | `{ code, message: String, status, data: PlanDetailDTO }` | 200/404/500 |
 | GET `/plan/auth/{planIdx}/extra` | `{ code, message: String, status, data: PlanExtraInfoDTO }` | 200/404/500 |
 | POST `/plan/auth` | `{ code, message: String, status, data: { planIdx } }` | 201/410/412/500 |
-| POST `/plan/auth/{sourcePlanIdx}/fork` | `{ code, message: String, status, data: { planIdx } }` | 201/403/404/410/412/500 |
+| POST `/plan/auth/{sourcePlanIdx}/fork` | `{ code, message: String, status, data: { planIdx, activities } }` | 201/403/404/410/412/422/500 |
 | PATCH `/plan/auth/{planIdx}` | `{ code, message: String, status }` | 200/403/404/409/410/500 |
 | DELETE `/plan/auth/{planIdx}` | `{ code, message: String, status }` | 200/403/404/410/500 |
 | POST `/plan/auth/{planIdx}/activities` | `{ code, message: String, status }` | 201/403/404/410/500 |
@@ -170,24 +170,90 @@
 }
 ```
 
-**포크 요청 예시 (`POST /auth/{sourcePlanIdx}/fork`) — 제목과 색상만 오버라이드**
+**`copyMode` 필드 (활동 생성 모드)**
+
+| 값 | 동작 | `activities` 필드 |
+|---|---|---|
+| `0` (기본값) | 원본 루틴의 활동을 그대로 복사 | 불필요 (무시됨) |
+| `1` | 클라이언트가 전달한 활동 목록으로 생성 (원본 활동 커스텀) | **필수** (1개 이상) |
+| `2` | 활동 없이 루틴만 생성 | 불필요 (무시됨) |
+
+> 미입력 루틴 필드(`endTo`, `repeatDays`, `targetIdx`, `jobIdx`, `description` 등)는 원본 루틴 값이 자동 적용됨.
+> `isShared`, `isActive`의 기본값은 각각 `0`(비공개), `0`(비활성).
+
+**포크 요청 예시 — copyMode 0: 원본 활동 그대로 복사 (기본)**
 ```json
 {
   "planTitle": "내 버전의 아침 루틴",
   "color": "#3A86FFFF"
 }
 ```
-> 미입력 필드(`endTo`, `repeatDays`, `targetIdx`, `jobIdx`, `description` 등)는 원본 루틴 값이 자동 적용됨.
-> `isShared`, `isActive`의 기본값은 각각 `0`(비공개), `0`(비활성).
 
-**포크 응답 예시**
+**포크 요청 예시 — copyMode 1: 커스텀 활동 지정**
+```json
+{
+  "planTitle": "내 버전의 아침 루틴",
+  "copyMode": 1,
+  "activities": [
+    { "activityName": "조깅 40분", "setTime": "07:00", "activityImp": 3, "event": true, "duration": 40 },
+    { "activityName": "명상", "setTime": null, "activityImp": 1, "event": false, "duration": 10 }
+  ]
+}
+```
+
+**포크 요청 예시 — copyMode 2: 활동 없이 루틴만 생성**
+```json
+{
+  "planTitle": "내 버전의 아침 루틴",
+  "copyMode": 2
+}
+```
+
+**포크 응답 예시 (copyMode 0 또는 1)**
 ```json
 {
   "code": 201,
   "status": 201,
   "message": "루틴 포크 성공",
   "data": {
-    "planIdx": 87
+    "planIdx": 87,
+    "activities": [
+      {
+        "activityIdx": 201,
+        "planIdx": 87,
+        "activityName": "조깅 30분",
+        "setTime": "07:00",
+        "activityImp": 3,
+        "verified": false,
+        "event": true,
+        "duration": 30,
+        "version": 0
+      },
+      {
+        "activityIdx": 202,
+        "planIdx": 87,
+        "activityName": "스트레칭",
+        "setTime": null,
+        "activityImp": 1,
+        "verified": false,
+        "event": false,
+        "duration": 10,
+        "version": 0
+      }
+    ]
+  }
+}
+```
+
+**포크 응답 예시 (copyMode 2)**
+```json
+{
+  "code": 201,
+  "status": 201,
+  "message": "루틴 포크 성공",
+  "data": {
+    "planIdx": 87,
+    "activities": []
   }
 }
 ```
@@ -200,6 +266,7 @@
 | 404 | 원본 루틴(`sourcePlanIdx`)이 존재하지 않음 |
 | 410 | 탈퇴한 유저 |
 | 412 | 루틴 20개 초과 |
+| 422 | `copyMode=1`인데 `activities` 누락 또는 빈 배열 |
 
 ---
 

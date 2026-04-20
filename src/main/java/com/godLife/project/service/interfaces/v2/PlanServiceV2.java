@@ -31,8 +31,9 @@ public interface PlanServiceV2 {
     // 루틴 소프트 삭제
     int deletePlan(int planIdx, int userIdx);
 
-    // 포크를 통한 루틴 생성 (공개 루틴만 가능, null 필드는 원본 값 사용)
-    int forkPlan(int sourcePlanIdx, PlanForkRequestV2 dto, int userIdx);
+    // 포크를 통한 루틴 생성 (공개 루틴만 가능, 원본 활동 자동 복사)
+    // 반환: status(int) + 성공 시 planIdx(int) + activities(List<ActivityV2DTO>)
+    java.util.Map<String, Object> forkPlan(int sourcePlanIdx, PlanForkRequestV2 dto, int userIdx);
 
     // 활동 생성 (특정 루틴에 활동 추가)
     int createActivities(int planIdx, ActivityCreateRequestV2 dto, int userIdx);

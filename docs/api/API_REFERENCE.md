@@ -28,7 +28,7 @@ WebSocket(`AdminChatController`, `QnaAdminController`) 및 테스트 컨트롤�
 |---|---|---|---|
 | GET | `/api/v2/plan/detail/{planIdx}` | 루틴 상세 조회 (boolean 플래그) | ❌ |
 | **POST** | **`/api/v2/plan/auth`** | **루틴 생성** (활동 미포함) | ✅ |
-| **POST** | **`/api/v2/plan/auth/{sourcePlanIdx}/fork`** | **루틴 포크 생성** (공개 루틴만) | ✅ |
+| **POST** | **`/api/v2/plan/auth/{sourcePlanIdx}/fork`** | **루틴 포크 생성** (공개 루틴만, **원본 활동 자동 복사**) | ✅ |
 | **PATCH** | **`/api/v2/plan/auth/{planIdx}`** | **루틴 부분 수정** | ✅ |
 | **DELETE** | **`/api/v2/plan/auth/{planIdx}`** | **루틴 삭제** | ✅ |
 | **POST** | **`/api/v2/plan/auth/{planIdx}/activities`** | **활동 생성** | ✅ |
