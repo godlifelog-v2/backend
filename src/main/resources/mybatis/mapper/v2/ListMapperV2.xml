@@ -40,7 +40,7 @@
         GROUP BY p.PLAN_IDX, p.PLAN_TITLE, p.END_TO, p.PLAN_SUB_END,
                  p.IS_SHARED, p.IS_ACTIVE, p.PLAN_IMP, p.CERT_EXP,
                  p.FIRE_STATE, p.COLOR, p.DESCRIPTION
-        ORDER BY p.IS_ACTIVE DESC, p.PLAN_IMP DESC, p.PLAN_SUB_START IS NULL, p.PLAN_SUB_START DESC
+        ORDER BY p.PLAN_IMP DESC, p.IS_ACTIVE DESC, p.PLAN_SUB_START IS NULL, p.PLAN_SUB_START DESC
     </select>
 
     <!-- (개인용) 오늘 요일에 해당하는 활성 루틴 조회 — PLAN_REPEAT_DAYS JOIN -->

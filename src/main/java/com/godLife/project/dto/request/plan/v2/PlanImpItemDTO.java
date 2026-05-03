@@ -12,8 +12,8 @@ public class PlanImpItemDTO {
     @Schema(description = "루틴 인덱스", example = "123")
     private int planIdx;
 
-    @Schema(description = "정렬 우선순위 (1~10)", example = "5")
+    @Schema(description = "정렬 우선순위 (1~50)", example = "5")
     @Min(value = 1, message = "루틴의 정렬 우선순위는 1 이상이어야 합니다.")
-    @Max(value = 10, message = "루틴의 정렬 우선순위는 10 이하이어야 합니다.")
+    @Max(value = 50, message = "루틴의 정렬 우선순위는 50 이하이어야 합니다.")
     private int imp;
 }
