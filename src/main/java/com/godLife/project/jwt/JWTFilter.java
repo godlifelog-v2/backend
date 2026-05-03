@@ -43,10 +43,8 @@ public class JWTFilter extends OncePerRequestFilter {
   @Override
   protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-    if (!(matcherAuth.matches(request) || matcherAdmin1.matches(request) || matcherAdmin2.matches(request) || matcherAuthV2.matches(request))) {
-      filterChain.doFilter(request, response);
-      return;
-    }
+    boolean isAuthRequired = matcherAuth.matches(request) || matcherAdmin1.matches(request)
+        || matcherAdmin2.matches(request) || matcherAuthV2.matches(request);
 
     String authorization = request.getHeader("Authorization");
 
@@ -61,16 +59,25 @@ public class JWTFilter extends OncePerRequestFilter {
     try {
       jwtUtil.isExpired(accessToken);
     } catch (ExpiredJwtException e) {
-      sendApiResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "access token expired");
-      log.error("JWT access 토큰 만료: {}", e.getMessage());
+      if (isAuthRequired) {
+        sendApiResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "access token expired");
+        log.error("JWT access 토큰 만료: {}", e.getMessage());
+        return;
+      }
+      // 인증 선택 경로는 만료된 토큰을 무시하고 비인증 상태로 통과
+      filterChain.doFilter(request, response);
       return;
     }
 
     // access 토큰 카테고리 확인
     String category = jwtUtil.getCategory(accessToken);
     if (!"access".equals(category)) {
-      sendApiResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "invalid access token");
-      log.error("유효하지 않은 access 토큰 사용: {}", category);
+      if (isAuthRequired) {
+        sendApiResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "invalid access token");
+        log.error("유효하지 않은 access 토큰 사용: {}", category);
+        return;
+      }
+      filterChain.doFilter(request, response);
       return;
     }
 
